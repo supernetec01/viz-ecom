@@ -2,6 +2,7 @@
 
 return [
     'app_name' => 'Viz Ecom',
+    'invalid_channel_url' => 'Liên kết không hợp lệ hoặc không thuộc tên miền phù hợp với loại kênh.',
     'security' => 'Bảo mật tài khoản',
     'auth' => [
         'login' => 'Đăng nhập', 'forgot' => 'Gửi liên kết đặt lại mật khẩu', 'reset' => 'Đặt lại mật khẩu',
