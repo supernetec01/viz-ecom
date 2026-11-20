@@ -13,6 +13,17 @@ return [
         'recovery_help' => 'Lưu mã khôi phục ở nơi an toàn. Mỗi mã chỉ dùng một lần.', 'continue' => 'Vào khu vực làm việc',
         'reset_expires' => 'Liên kết chỉ dùng một lần và hết hạn sau 24 giờ.', 'updated' => 'Yêu cầu của bạn đã được xử lý.',
     ],
+    'companies' => [
+        'singular' => 'công ty', 'plural' => 'Công ty', 'name' => 'Tên công ty',
+        'type' => 'Loại công ty', 'types' => ['direct' => 'Công ty chủ việc', 'agency' => 'Công ty trung gian'],
+        'tax_code' => 'Mã số thuế', 'address' => 'Địa chỉ', 'introduction' => 'Giới thiệu',
+        'industry' => 'Ngành hàng', 'products' => 'Sản phẩm kinh doanh', 'staff' => 'Nhân viên phụ trách',
+        'verified' => 'Đã xác minh', 'verify' => 'Xác minh công ty',
+    ],
+    'channels' => [
+        'label' => 'Kênh bán hàng và video', 'type' => 'Loại kênh', 'name' => 'Tên hiển thị', 'url' => 'Liên kết',
+        'types' => ['shopee' => 'Shopee', 'tiktok' => 'TikTok', 'lazada' => 'Lazada', 'youtube' => 'YouTube', 'facebook' => 'Facebook', 'website' => 'Website'],
+    ],
     'login' => 'Đăng nhập',
     'logout' => 'Đăng xuất',
     'forbidden' => 'Bạn không có quyền truy cập.',
