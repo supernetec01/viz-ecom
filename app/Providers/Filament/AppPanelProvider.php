@@ -24,7 +24,7 @@ class AppPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
-        return $panel->default()->id('app')->path('app')->login([AuthController::class, 'login'])->profile()
+        return $panel->default()->id('app')->path('app')->login([AuthController::class, 'login'])->profile()->databaseTransactions()
             ->userMenuItems(['security' => Action::make('security')->label(__('ui.security'))->url(fn () => route('security'))])
             ->pages([Dashboard::class])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
