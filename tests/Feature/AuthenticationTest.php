@@ -67,6 +67,10 @@ it('encrypts MFA secrets and excludes them from serialized users', function () {
         ->and($user->fresh()->toArray())->not->toHaveKey('app_authentication_secret');
 });
 
+it('lets employers open their panel without mandatory MFA', function () {
+    $this->actingAs(User::factory()->create())->get('/app')->assertOk();
+});
+
 it('requires a valid second factor to complete login and rejects code replay', function () {
     $user = User::factory()->create(['role' => Role::Admin]);
     $provider = AppAuthentication::make()->codeWindow(1);
