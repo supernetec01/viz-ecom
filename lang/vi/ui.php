@@ -20,6 +20,13 @@ return [
         'industry' => 'Ngành hàng', 'products' => 'Sản phẩm kinh doanh', 'staff' => 'Nhân viên phụ trách',
         'verified' => 'Đã xác minh', 'verify' => 'Xác minh công ty',
     ],
+    'employers' => [
+        'title' => 'Tài khoản nhà tuyển dụng', 'name' => 'Người đại diện', 'status' => 'Trạng thái',
+        'states' => ['active' => 'Hoạt động', 'locked' => 'Đã khóa'],
+        'create' => 'Tạo tài khoản và gửi lời mời', 'resend' => 'Gửi lại lời mời', 'lock' => 'Khóa', 'unlock' => 'Mở khóa',
+        'invitation_subject' => 'Lời mời tạo mật khẩu tài khoản tuyển dụng',
+        'invitation_line' => 'Bạn được mời sử dụng tài khoản tuyển dụng của công ty :company.', 'set_password' => 'Đặt mật khẩu',
+    ],
     'channels' => [
         'label' => 'Kênh bán hàng và video', 'type' => 'Loại kênh', 'name' => 'Tên hiển thị', 'url' => 'Liên kết',
         'types' => ['shopee' => 'Shopee', 'tiktok' => 'TikTok', 'lazada' => 'Lazada', 'youtube' => 'YouTube', 'facebook' => 'Facebook', 'website' => 'Website'],
