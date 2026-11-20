@@ -3,27 +3,31 @@
 use App\Enums\Role;
 use App\Enums\UserStatus;
 use App\Models\User;
-use Filament\Auth\MultiFactor\App\AppAuthentication;
-use Filament\Auth\Pages\Login;
-use Filament\Facades\Filament;
+use App\Notifications\ResetPasswordLink;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
-use Livewire\Livewire;
+use PragmaRX\Google2FA\Google2FA;
 
 uses(RefreshDatabase::class);
-beforeEach(fn () => Filament::setCurrentPanel(Filament::getPanel('app')));
 
-it('serves the login form with CSP safe Livewire enabled', function () {
-    expect(config('livewire.csp_safe'))->toBeTrue();
-    $this->get('/app/login')->assertOk()->assertSee('livewire', false);
+function confirmedMfaUser(): User
+{
+    return User::factory()->create(['role' => Role::Admin, 'two_factor_secret' => encrypt('JBSWY3DPEHPK3PXP'),
+        'two_factor_recovery_codes' => encrypt(json_encode(['test-recovery-code', 'other-recovery-code'])), 'two_factor_confirmed_at' => now()]);
+}
+
+it('serves Fortify login and redirects the panel login to it', function () {
+    $this->get('/login')->assertOk()->assertSee('Đăng nhập');
+    $this->get('/app/login')->assertRedirect('/login');
 });
 
 it('rejects locked accounts with correct credentials', function () {
     $user = User::factory()->create(['status' => UserStatus::Locked]);
-    Livewire::test(Login::class)->fillForm(['email' => $user->email, 'password' => 'password'])
-        ->call('authenticate')->assertHasFormErrors(['email']);
+    $this->postJson('/login', ['email' => $user->email, 'password' => 'password'])->assertUnprocessable();
     $this->assertGuest();
 });
 
@@ -37,72 +41,95 @@ it('evicts an open session on the next request after locking', function () {
 
 it('throttles login after five failures', function () {
     $user = User::factory()->create();
-    $login = Livewire::test(Login::class)->fillForm(['email' => $user->email, 'password' => 'wrong']);
     for ($i = 0; $i < 5; $i++) {
-        $login->call('authenticate')->assertHasFormErrors(['email']);
+        $this->postJson('/login', ['email' => $user->email, 'password' => 'wrong'])->assertUnprocessable();
     }
-    $login->fillForm(['email' => $user->email, 'password' => 'password'])->call('authenticate');
+    $this->postJson('/login', ['email' => $user->email, 'password' => 'password'])->assertTooManyRequests();
     $this->assertGuest();
 });
 
-it('requires MFA enrollment for privileged roles', function (Role $role) {
-    $this->actingAs(User::factory()->create(['role' => $role]))->get('/app')
-        ->assertRedirect(Filament::getSetUpRequiredMultiFactorAuthenticationUrl());
+it('requires confirmed MFA enrollment for privileged roles', function (Role $role) {
+    $user = User::factory()->create(['role' => $role, 'two_factor_secret' => encrypt('JBSWY3DPEHPK3PXP')]);
+    $this->actingAs($user)->get('/app')->assertRedirect('/bao-mat');
 })->with([Role::Admin, Role::Staff]);
 
-it('authenticates active employers and supports logout', function () {
+it('lets employers sign in without mandatory MFA and supports logout', function () {
     $user = User::factory()->create();
-    Livewire::test(Login::class)->fillForm(['email' => $user->email, 'password' => 'password'])
-        ->call('authenticate')->assertHasNoFormErrors();
+    $this->post('/login', ['email' => $user->email, 'password' => 'password'])->assertRedirect('/app');
     $this->assertAuthenticatedAs($user);
-    $this->post('/app/logout')->assertRedirect();
+    $this->get('/app')->assertOk();
+    $this->post('/logout')->assertRedirect();
     $this->assertGuest();
 });
 
-it('encrypts MFA secrets and excludes them from serialized users', function () {
-    $user = User::factory()->create();
-    $user->saveAppAuthenticationSecret('JBSWY3DPEHPK3PXP');
-    expect($user->fresh()->getAppAuthenticationSecret())->toBe('JBSWY3DPEHPK3PXP')
-        ->and(DB::table('users')->where('id', $user->id)->value('app_authentication_secret'))->not->toBe('JBSWY3DPEHPK3PXP')
-        ->and($user->fresh()->toArray())->not->toHaveKey('app_authentication_secret');
-});
-
-it('lets employers open their panel without mandatory MFA', function () {
-    $this->actingAs(User::factory()->create())->get('/app')->assertOk();
-});
-
-it('requires a valid second factor to complete login and rejects code replay', function () {
+it('confirms enrollment using an authenticator code and hides encrypted secrets', function () {
     $user = User::factory()->create(['role' => Role::Admin]);
-    $provider = AppAuthentication::make()->codeWindow(1);
-    $secret = $provider->generateSecret();
-    $user->saveAppAuthenticationSecret($secret);
-    $login = Livewire::test(Login::class)->fillForm(['email' => $user->email, 'password' => 'password'])->call('authenticate');
+    $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()])
+        ->post('/user/two-factor-authentication')->assertRedirect();
+    $user->refresh();
+    expect($user->hasEnabledTwoFactorAuthentication())->toBeFalse();
+    $secret = decrypt($user->two_factor_secret);
+    $code = app(Google2FA::class)->getCurrentOtp($secret);
+    $this->post('/user/confirmed-two-factor-authentication', ['code' => $code])->assertRedirect();
+    expect($user->fresh()->hasEnabledTwoFactorAuthentication())->toBeTrue()
+        ->and($user->two_factor_secret)->not->toBe($secret)
+        ->and($user->fresh()->toArray())->not->toHaveKeys(['two_factor_secret', 'two_factor_recovery_codes']);
+});
+
+it('requires a valid second factor and rejects replay', function () {
+    $user = confirmedMfaUser();
+    $this->post('/login', ['email' => $user->email, 'password' => 'password'])->assertRedirect('/two-factor-challenge');
     $this->assertGuest();
-    $code = $provider->getCurrentCode($user);
-    $login->set('data.multiFactor.app.code', $code === '000000' ? '111111' : '000000')->call('authenticate');
+    $code = app(Google2FA::class)->getCurrentOtp(decrypt($user->two_factor_secret));
+    $this->post('/two-factor-challenge', ['code' => $code === '000000' ? '111111' : '000000'])
+        ->assertSessionHasErrors('code')->assertSessionMissing('_old_input.code');
     $this->assertGuest();
-    $login->set('data.multiFactor.app.code', $code)->call('authenticate')->assertHasNoFormErrors();
+    $this->post('/two-factor-challenge', ['code' => $code])->assertRedirect('/app');
     $this->assertAuthenticatedAs($user);
-    expect($provider->verifyCode($code, $secret, shouldPreventCodeReuse: true))->toBeFalse();
+    Auth::logout();
+    $this->post('/login', ['email' => $user->email, 'password' => 'password']);
+    $this->postJson('/two-factor-challenge', ['code' => $code])->assertUnprocessable();
+    $this->assertGuest();
 });
 
-it('consumes a recovery code once', function () {
+it('consumes recovery codes once', function () {
+    $user = confirmedMfaUser();
+    $this->post('/login', ['email' => $user->email, 'password' => 'password']);
+    $this->post('/two-factor-challenge', ['recovery_code' => 'test-recovery-code'])->assertRedirect('/app');
+    Auth::logout();
+    $this->post('/login', ['email' => $user->email, 'password' => 'password']);
+    $this->postJson('/two-factor-challenge', ['recovery_code' => 'test-recovery-code'])->assertUnprocessable();
+    $this->assertGuest();
+});
+
+it('rejects a pending MFA challenge after locking or changing the password', function (string $field, string $value) {
+    $user = confirmedMfaUser();
+    $this->post('/login', ['email' => $user->email, 'password' => 'password']);
+    $user->forceFill([$field => $value])->save();
+    $this->post('/two-factor-challenge', ['recovery_code' => 'test-recovery-code'])->assertRedirect('/login');
+    $this->assertGuest();
+})->with([['status', 'locked'], ['password', 'Changed-Password-2026!']]);
+
+it('prevents privileged users from disabling MFA', function () {
+    $this->actingAs(confirmedMfaUser())->withSession(['auth.password_confirmed_at' => time()])
+        ->delete('/user/two-factor-authentication')->assertForbidden();
+});
+
+it('sends reset links through a fake notification channel', function () {
+    Notification::fake();
     $user = User::factory()->create();
-    $provider = AppAuthentication::make()->recoverable();
-    $provider->saveRecoveryCodes($user, ['test-recovery-code', 'another-recovery-code']);
-    expect($provider->verifyRecoveryCode('test-recovery-code', $user))->toBeTrue()
-        ->and($provider->verifyRecoveryCode('test-recovery-code', $user->fresh()))->toBeFalse();
+    $this->post('/forgot-password', ['email' => $user->email])->assertSessionHasNoErrors();
+    Notification::assertSentTo($user, ResetPasswordLink::class);
 });
 
-it('consumes reset tokens once and invalidates existing sessions', function () {
+it('consumes reset links once through Fortify and invalidates existing sessions', function () {
     $user = User::factory()->create();
     DB::table('sessions')->insert(['id' => 'other-device', 'user_id' => $user->id, 'payload' => '', 'last_activity' => time()]);
     $token = Password::createToken($user);
     $credentials = ['email' => $user->email, 'token' => $token, 'password' => 'New-Password-2026!', 'password_confirmation' => 'New-Password-2026!'];
-    $reset = fn (User $user, string $password) => $user->forceFill(['password' => $password])->save();
-    expect(Password::reset($credentials, $reset))->toBe(Password::PASSWORD_RESET)
-        ->and(Password::reset($credentials, $reset))->toBe(Password::INVALID_TOKEN)
-        ->and(Hash::check('New-Password-2026!', $user->fresh()->password))->toBeTrue();
+    $this->post('/reset-password', $credentials)->assertSessionHasNoErrors();
+    $this->post('/reset-password', $credentials)->assertSessionHasErrors('email');
+    expect(Hash::check('New-Password-2026!', $user->fresh()->password))->toBeTrue();
     $this->assertDatabaseMissing('sessions', ['id' => 'other-device']);
 });
 

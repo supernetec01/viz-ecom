@@ -12,6 +12,7 @@
 - CV nằm ngoài web root, tên UUID, kiểm tra loại thật, tối đa 10 MB.
 - Lưu thời gian UTC, hiển thị Asia/Ho_Chi_Minh. Chuỗi giao diện tiếng Việt đặt trong file ngôn ngữ.
 - Xác thực bằng phiên cookie Laravel. Chưa dùng JWT, access/refresh token hoặc Sanctum.
+- Fortify đã được người dùng duyệt cho đăng nhập, đặt lại mật khẩu và 2FA; Filament dùng cho giao diện quản trị.
 - Quyền xem chỉ theo tin tuyển dụng, xem được hồ sơ nộp trước khi mua, hết hạn/thu hồi chặn ngay yêu cầu kế tiếp.
 - Xóa thông tin cá nhân và file sau 6 tháng; chỉ giữ thống kê không định danh. Không có chức năng ứng viên tự xóa. Admin xử lý xóa thủ công ở T46.
 - Chưa làm thanh toán tự động, API Zalo hoặc OTP ứng viên.
