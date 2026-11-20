@@ -3,8 +3,12 @@
 namespace App\Models;
 
 use App\Enums\CompanyType;
+use App\Enums\Role;
+use App\Enums\UserStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -30,5 +34,35 @@ class Company extends Model
     public function isVerified(): bool
     {
         return $this->verified_at !== null && $this->verified_by !== null;
+    }
+
+    /** @return BelongsToMany<User, $this> */
+    public function staff(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'staff_company');
+    }
+
+    /** @return BelongsToMany<User, $this> */
+    public function employers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'company_user');
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        $actor = $user->fresh();
+        if (! $actor || $actor->status !== UserStatus::Active) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return match ($actor->role) {
+            Role::Admin => $query,
+            Role::Staff => $query->whereHas('staff', fn (Builder $users) => $users->where('users.id', $actor->id)),
+            Role::Employer => $query->whereHas('employers', fn (Builder $users) => $users->where('users.id', $actor->id)),
+        };
     }
 }
