@@ -23,13 +23,15 @@ it('accepts the approved channel domains including subdomains', function (string
     ['facebook', 'https://www.facebook.com/shop'],
 ]);
 
-it('requires explicit approval for a company website domain', function () {
-    config(['company-channels.website' => ['company.example']]);
+it('accepts any valid HTTP or HTTPS company website without a domain allowlist', function (string $url) {
     $company = Company::create(['name' => 'Test']);
-    $company->channels()->create(['type' => 'website', 'display_name' => 'Website', 'url' => 'https://company.example/about']);
+    $company->channels()->create(['type' => 'website', 'display_name' => 'Website', 'url' => $url]);
     expect($company->channels()->count())->toBe(1);
-    $company->channels()->create(['type' => 'website', 'display_name' => 'Website', 'url' => 'https://evil.example']);
-})->throws(ValidationException::class);
+})->with(['https://company.example/about', 'http://another-company.test/shop', 'https://new-company.example']);
+
+it('rejects unsafe protocols for company websites', function (string $url) {
+    Company::create(['name' => 'Test'])->channels()->create(['type' => 'website', 'display_name' => 'Website', 'url' => $url]);
+})->with(['javascript:alert(1)', 'ftp://company.example', 'data:text/html,test'])->throws(ValidationException::class);
 
 it('enforces direct or agency at the model boundary', function () {
     Company::create(['name' => 'Test', 'type' => 'other']);

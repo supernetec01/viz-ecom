@@ -2,7 +2,17 @@
 
 return [
     'app_name' => 'Viz Ecom',
-    'invalid_channel_url' => 'Liên kết phải dùng http/https và thuộc tên miền được cho phép cho kênh này.',
+    'invalid_channel_url' => 'Liên kết không hợp lệ hoặc không thuộc tên miền phù hợp với loại kênh.',
+    'security' => 'Bảo mật tài khoản',
+    'auth' => [
+        'login' => 'Đăng nhập', 'forgot' => 'Gửi liên kết đặt lại mật khẩu', 'reset' => 'Đặt lại mật khẩu',
+        'confirm' => 'Xác nhận', 'two_factor' => 'Xác thực hai bước', 'email' => 'Email', 'password' => 'Mật khẩu',
+        'password_confirmation' => 'Nhập lại mật khẩu', 'code' => 'Mã từ ứng dụng Authenticator', 'recovery_code' => 'Hoặc dùng mã khôi phục',
+        'remember' => 'Ghi nhớ đăng nhập', 'enable' => 'Bật xác thực hai bước', 'enable_help' => 'Admin và nhân viên cần bật xác thực hai bước để tiếp tục.',
+        'scan_help' => 'Quét mã QR bằng ứng dụng Authenticator rồi nhập mã xác nhận.', 'enabled' => 'Xác thực hai bước đã được bật.',
+        'recovery_help' => 'Lưu mã khôi phục ở nơi an toàn. Mỗi mã chỉ dùng một lần.', 'continue' => 'Vào khu vực làm việc',
+        'reset_expires' => 'Liên kết chỉ dùng một lần và hết hạn sau 24 giờ.', 'updated' => 'Yêu cầu của bạn đã được xử lý.',
+    ],
     'login' => 'Đăng nhập',
     'logout' => 'Đăng xuất',
     'forbidden' => 'Bạn không có quyền truy cập.',
