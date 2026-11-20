@@ -2,6 +2,7 @@
 
 return [
     'app_name' => 'Viz Ecom',
+    'invalid_channel_url' => 'Liên kết phải dùng http/https và thuộc tên miền được cho phép cho kênh này.',
     'login' => 'Đăng nhập',
     'logout' => 'Đăng xuất',
     'forbidden' => 'Bạn không có quyền truy cập.',
