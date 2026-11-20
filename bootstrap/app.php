@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\EnsureActiveAccount;
+use App\Http\Middleware\EnsurePrivilegedMfa;
 use App\Http\Middleware\RequireHttps;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
@@ -16,9 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(SecurityHeaders::class);
         $middleware->append(RequireHttps::class);
-        $middleware->web(append: ['throttle:web']);
+        $middleware->web(append: ['throttle:web', EnsureActiveAccount::class, EnsurePrivilegedMfa::class]);
+        $middleware->redirectGuestsTo('/app/login');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->dontFlash(['code', 'recovery_code', 'token']);
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
