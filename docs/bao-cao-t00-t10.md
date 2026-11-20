@@ -16,7 +16,7 @@
 | T07 ⚠ | Phân công công ty, phạm vi truy vấn và CompanyPolicy | `CompanyAuthorizationTest`: đổi ID công ty khác bị từ chối, scope từng vai trò và thu hồi phân công | [#8](https://github.com/supernetec01/viz-ecom/pull/8) |
 | T08 | Filament thêm/sửa/tìm/lọc công ty, quản lý kênh; admin xác minh | `CompanyManagementTest`: thao tác theo vai trò, giả mạo phân công/xác minh bị chặn, tìm/lọc và URL; đã kiểm tra giao diện bằng trình duyệt | [#9](https://github.com/supernetec01/viz-ecom/pull/9) |
 | T09 ⚠ | Tạo tài khoản công ty, mời/gửi lại liên kết, khóa/mở khóa | `EmployerAccountsTest`: 9 test, mail giả lập không chứa mật khẩu, đúng công ty, từ chối 403, hủy link cũ, thu hồi phiên và thao tác Filament | [#10](https://github.com/supernetec01/viz-ecom/pull/10) |
-| T10 | Model/migration tin, validation dùng cho form, ràng buộc DB, slug và máy trạng thái | `JobDataTest`: 52 test, gồm ràng buộc lương/count/type/reference, công ty xác minh, 20 cặp trạng thái khác nhau, bản ghi cũ, slug, UTC, hạn tin và hàng đợi | PR nhánh `task/t10-job-data` |
+| T10 | Model/migration tin, validation dùng cho form, ràng buộc DB, slug và máy trạng thái | `JobDataTest`: 52 test, gồm ràng buộc lương/count/type/reference, công ty xác minh, 20 cặp trạng thái khác nhau, bản ghi cũ, slug, UTC, hạn tin và hàng đợi | [#11](https://github.com/supernetec01/viz-ecom/pull/11) |
 
 Kết quả cuối tại T10: `composer test` **140 passed, 466 assertions**; `composer lint` **Pint và Larastan xanh**; `composer validate --strict` xanh. Test dùng database `viz_ecom_test`, tách khỏi database phát triển. Migration mới đã áp dụng lên database phát triển và seed lại không tạo trùng. Không sửa migration cũ.
 
