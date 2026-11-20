@@ -533,7 +533,7 @@ Cổng kiểm 3: nộp thử hồ sơ từ điện thoại với các loại fil
 | Mã | Việc cần làm | Tiêu chí hoàn thành và test bắt buộc |
 | --- | --- | --- |
 | T29 | Migration và model access_grants, orders kèm ràng buộc ends_at lớn hơn starts_at | Test ràng buộc. Hàm kiểm tra quyền còn hiệu lực tính theo giờ hiện tại |
-| T30 ⚠ | ApplicationPolicy với ba hành động: xem tóm tắt, xem chi tiết, tải file | Test ma trận đầy đủ: chưa mua, đang hiệu lực, vừa hết hạn, bị thu hồi, quyền theo tin, quyền theo công ty, công ty khác, tài khoản bị khóa, hồ sơ nộp trước ngày mua (cả hai giá trị của cờ áp dụng). Dùng Carbon::setTestNow cho ngày giờ biên |
+| T30 ⚠ | ApplicationPolicy với ba hành động: xem tóm tắt, xem chi tiết, tải file | Test ma trận đầy đủ: chưa mua, đang hiệu lực, vừa hết hạn, bị thu hồi, đúng tin, tin khác, công ty khác, tài khoản bị khóa; quyền theo tin luôn bao gồm hồ sơ nộp trước ngày mua. Dùng Carbon::setTestNow cho ngày giờ biên |
 | T31 ⚠ | Danh sách hồ sơ cho tài khoản công ty: chỉ họ tên, vị trí, thời gian nộp, có tìm kiếm và lọc | Test: dữ liệu trả về không có SĐT, email, đường dẫn file, cả ở HTML lẫn JSON. Công ty chỉ thấy hồ sơ của chính mình |
 | T32 ⚠ | Trang chi tiết hồ sơ khi có quyền: SĐT, email, portfolio, đổi trạng thái, ghi chú. Khi chưa có quyền hiện nút yêu cầu mở hồ sơ | Test: không quyền thì 403 và không lộ hồ sơ có tồn tại hay không. Ghi chú của công ty này không hiện ở công ty khác |
 | T33 ⚠ | Đường dẫn phục vụ file: kiểm tra quyền mỗi lần, đọc dạng luồng, chế độ xem (inline) và tải (attachment), link ký tên hết hạn sau vài phút, header nosniff | Test: link hết hạn trả 403. Đổi mã trên link trả 403. File chưa quét xong hoặc nhiễm không phục vụ. Quyền hết hạn giữa chừng thì lần tải kế tiếp bị chặn |
@@ -563,7 +563,7 @@ Cổng kiểm 5: chạy trọn vòng: công ty yêu cầu, admin xác nhận, c�
 | T43 | Nút "Báo cáo tin" cho ứng viên và màn hình xử lý của admin | Test: giới hạn số báo cáo từ cùng một người, có captcha. Admin gỡ tin từ báo cáo được |
 | T44 | Nút "Sao chép nội dung đăng Zalo" trong trang quản trị, kèm link có ?nguon= | Nội dung có vị trí, lương, địa điểm, link. Test link đúng và có tham số nguồn |
 | T45 | Trang thống kê cho admin: lượt xem tin, số hồ sơ, doanh thu, nguồn ứng viên | Số liệu khớp với dữ liệu mẫu trong test. Truy vấn không chạy chậm với dữ liệu lớn (kiểm tra bằng 10.000 dòng) |
-| T46 ⚠ | Chính sách lưu trữ và quyền xóa: admin xóa hồ sơ theo yêu cầu của ứng viên, xóa cả file và ghi nhật ký | Test: xóa xong không còn dòng nào và không còn file nào. Nhà tuyển dụng không còn thấy hồ sơ |
+| T46 ⚠ | Admin xóa thủ công cho trường hợp pháp lý hợp lệ, xóa thông tin cá nhân và file, ghi nhật ký; không có chức năng ứng viên tự xóa | Test: sau xóa không còn thông tin cá nhân hoặc file; chỉ giữ thống kê không định danh. Nhà tuyển dụng không còn thấy hồ sơ |
 | T47 | Trang tổng quan cho nhà tuyển dụng: số tin, số hồ sơ mới, quyền còn hạn bao nhiêu ngày, nút yêu cầu mở | Test hiển thị đúng với từng trạng thái quyền |
 | T48 ⚠ | Rà soát cuối: kiểm tra bảo mật theo danh sách ở mục 12.12, kiểm thử trên điện thoại thật, kịch bản sao lưu và khôi phục, hướng dẫn triển khai lên máy chủ | Danh sách rà soát tick đủ. Khôi phục thử từ bản sao lưu thành công. Có tài liệu triển khai từng bước |
 
