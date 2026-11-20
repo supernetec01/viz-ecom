@@ -102,6 +102,20 @@ Chỉ mục: jobs(status, published_at), jobs(location_id, category_id), jobs(l�
 
 Thời gian lưu dạng UTC, hiển thị theo múi giờ Asia/Ho_Chi_Minh.
 
+### 3.3. Máy trạng thái tin tuyển dụng (đã duyệt)
+
+| Trạng thái hiện tại | Được chuyển sang |
+| --- | --- |
+| draft | pending |
+| pending | draft, published |
+| published | expired, closed |
+| expired | draft |
+| closed | draft |
+
+Tin mới luôn là draft. Không chuyển trực tiếp draft sang published. Khi đăng, ghi published_at và yêu cầu expires_at còn hiệu lực, sau published_at. Khi quay lại draft để sửa/đăng lại, xóa ngày đăng và ngày hết hạn cũ. Bộ quét T12 có thể chuyển draft → pending → published trong cùng luồng nếu nội dung sạch; tin cần duyệt giữ ở pending. Kiểm tra quyền theo vai trò và giao diện làm ở T11/T13.
+
+Laravel database queue dùng bảng queue_jobs, tách khỏi bảng jobs nghiệp vụ; migration mới đổi tên và giữ dữ liệu hàng đợi cũ.
+
 ## 4. Luồng xử lý
 
 ### 4.1. Nhân viên tạo công ty và đăng tin
@@ -112,7 +126,7 @@ Nhân viên tạo công ty. Hệ thống ghi vào companies, company_channels v�
 
 Nhân viên tạo vị trí, điền theo form có sẵn: địa điểm, lương, kinh nghiệm, mô tả. Tin ở trạng thái draft.
 
-Khi bấm đăng, hệ thống quét nội dung tìm SĐT, email, Zalo, link lạ. Nếu sạch thì sang published. Nếu nghi ngờ thì sang pending để duyệt tay.
+Khi bấm đăng, hệ thống chuyển sang pending và quét nội dung tìm SĐT, email, Zalo, link lạ. Nếu sạch thì chuyển tiếp sang published. Nếu nghi ngờ thì giữ pending để duyệt tay (mục 3.3).
 
 Tin đã đăng có published_at và expires_at. Link công khai dạng /viec-lam/ten-vi-tri-123.
 

@@ -27,6 +27,12 @@ return [
         'invitation_subject' => 'Lời mời tạo mật khẩu tài khoản tuyển dụng',
         'invitation_line' => 'Bạn được mời sử dụng tài khoản tuyển dụng của công ty :company.', 'set_password' => 'Đặt mật khẩu',
     ],
+    'jobs' => [
+        'salary_range' => 'Lương tối đa không được nhỏ hơn lương tối thiểu.',
+        'invalid_transition' => 'Không thể chuyển tin sang trạng thái này.',
+        'stale_state' => 'Trạng thái tin đã thay đổi. Vui lòng tải lại trước khi tiếp tục.',
+        'invalid_expiry' => 'Ngày hết hạn phải sau ngày đăng và còn hiệu lực khi đăng tin.',
+    ],
     'channels' => [
         'label' => 'Kênh bán hàng và video', 'type' => 'Loại kênh', 'name' => 'Tên hiển thị', 'url' => 'Liên kết',
         'types' => ['shopee' => 'Shopee', 'tiktok' => 'TikTok', 'lazada' => 'Lazada', 'youtube' => 'YouTube', 'facebook' => 'Facebook', 'website' => 'Website'],
