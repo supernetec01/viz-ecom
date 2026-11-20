@@ -15,6 +15,11 @@ use Livewire\Livewire;
 uses(RefreshDatabase::class);
 beforeEach(fn () => Filament::setCurrentPanel(Filament::getPanel('app')));
 
+it('serves the login form with CSP safe Livewire enabled', function () {
+    expect(config('livewire.csp_safe'))->toBeTrue();
+    $this->get('/app/login')->assertOk()->assertSee('livewire', false);
+});
+
 it('rejects locked accounts with correct credentials', function () {
     $user = User::factory()->create(['status' => UserStatus::Locked]);
     Livewire::test(Login::class)->fillForm(['email' => $user->email, 'password' => 'password'])
