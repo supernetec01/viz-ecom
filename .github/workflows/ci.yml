@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: viz_ecom_test
+          POSTGRES_USER: viz_ecom
+          POSTGRES_PASSWORD: ci-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U viz_ecom -d viz_ecom_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      APP_ENV: testing
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: viz_ecom_test
+      DB_USERNAME: viz_ecom
+      DB_PASSWORD: ci-only-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, intl, pdo_pgsql, pgsql, fileinfo, zip
+          coverage: none
+          tools: composer:v2
+      - name: Validate Composer metadata
+        run: composer validate --strict
+      - name: Install locked dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Prepare test environment
+        run: |
+          cp .env.testing.example .env
+          php artisan key:generate
+      - name: Run migrations and seeders
+        run: php artisan migrate:fresh --seed --force
+      - name: Run Pest on PostgreSQL
+        run: composer test
+      - name: Check Pint and Larastan
+        run: composer lint
