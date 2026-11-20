@@ -46,6 +46,7 @@ it('scopes search filters and edit URLs to assigned companies', function () {
     $this->actingAs($staff);
     Livewire::test(ListCompanies::class)->assertCanSeeTableRecords([$own])->assertCanNotSeeTableRecords([$other])
         ->searchTable('Alpha')->filterTable('type', 'agency')->assertCanSeeTableRecords([$own]);
+    $this->get('/app/cong-ty')->assertOk()->assertDontSee('ui-avatars.com')->assertSee('data:image/svg+xml;base64,', false);
     $this->get('/app/cong-ty/'.$other->id.'/edit')->assertNotFound();
 });
 

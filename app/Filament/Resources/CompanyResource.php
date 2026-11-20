@@ -70,7 +70,7 @@ class CompanyResource extends Resource
         return $table->columns([
             TextColumn::make('name')->label(__('ui.companies.name'))->searchable()->sortable(),
             TextColumn::make('type')->label(__('ui.companies.type'))->formatStateUsing(fn ($state) => __('ui.companies.types.'.$state->value)),
-            IconColumn::make('verified_at')->label(__('ui.companies.verified'))->boolean(),
+            IconColumn::make('verified_at')->label(__('ui.companies.verified'))->getStateUsing(fn (Company $record): bool => $record->isVerified())->boolean(),
         ])->filters([SelectFilter::make('type')->label(__('ui.companies.type'))->options(__('ui.companies.types'))])
             ->recordActions([
                 EditAction::make(),
