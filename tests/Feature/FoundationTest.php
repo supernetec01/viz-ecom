@@ -18,7 +18,7 @@ it('serves the health endpoint', function () {
 it('runs the foundation migrations and persists records on PostgreSQL', function () {
     expect(DB::connection()->getDriverName())->toBe('pgsql');
 
-    foreach (['users', 'password_reset_tokens', 'sessions', 'cache', 'jobs', 'failed_jobs'] as $table) {
+    foreach (['users', 'password_reset_tokens', 'sessions', 'cache', config('queue.connections.database.table'), 'failed_jobs'] as $table) {
         expect(Schema::hasTable($table))->toBeTrue();
     }
 
