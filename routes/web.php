@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,3 +15,6 @@ foreach (['admin', 'staff', 'employer'] as $role) {
 
 Route::get('/noi-bo/cong-ty/{company}', [CompanyController::class, 'show'])
     ->middleware(['auth', 'role:admin,staff,employer']);
+
+Route::get('/bao-mat', [AuthController::class, 'security'])
+    ->middleware(['auth', 'password.confirm'])->name('security');

@@ -5,8 +5,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
+function areaUser(string $role): User
+{
+    return User::factory()->create(['role' => $role, 'two_factor_secret' => encrypt('JBSWY3DPEHPK3PXP'), 'two_factor_confirmed_at' => now()]);
+}
+
 it('rejects other roles with 403', function (string $role, string $area) {
-    $this->actingAs(User::factory()->create(['role' => $role]))->get('/khu-vuc/'.$area)->assertForbidden();
+    $this->actingAs(areaUser($role))->get('/khu-vuc/'.$area)->assertForbidden();
 })->with([
     ['admin', 'staff'], ['admin', 'employer'], ['staff', 'admin'],
     ['staff', 'employer'], ['employer', 'admin'], ['employer', 'staff'],
@@ -17,8 +22,7 @@ it('redirects guests to login', function (string $area) {
 })->with(['admin', 'staff', 'employer']);
 
 it('allows each role only in its own area', function (string $role) {
-    $user = User::factory()->create(['role' => $role]);
-    $user->saveAppAuthenticationSecret('JBSWY3DPEHPK3PXP');
+    $user = areaUser($role);
     $this->actingAs($user)->get('/khu-vuc/'.$role)->assertOk();
 })->with(['admin', 'staff', 'employer']);
 

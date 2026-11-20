@@ -10,7 +10,7 @@ uses(RefreshDatabase::class);
 
 it('denies reading and updating an unassigned company', function () {
     $staff = User::factory()->create(['role' => Role::Staff]);
-    $staff->saveAppAuthenticationSecret('JBSWY3DPEHPK3PXP');
+    $staff->forceFill(['two_factor_secret' => encrypt('JBSWY3DPEHPK3PXP'), 'two_factor_confirmed_at' => now()])->save();
     $other = Company::create(['name' => 'Other company']);
     $this->actingAs($staff)->get('/noi-bo/cong-ty/'.$other->id)->assertForbidden();
     expect(Gate::forUser($staff)->denies('update', $other))->toBeTrue();
@@ -29,7 +29,7 @@ it('limits staff and employers to linked companies and lets admin see all', func
         ->and(Company::visibleTo($admin)->count())->toBe(2)
         ->and(Gate::forUser($staff)->allows('update', $own))->toBeTrue()
         ->and(Gate::forUser($employer)->denies('update', $own))->toBeTrue();
-    $staff->saveAppAuthenticationSecret('JBSWY3DPEHPK3PXP');
+    $staff->forceFill(['two_factor_secret' => encrypt('JBSWY3DPEHPK3PXP'), 'two_factor_confirmed_at' => now()])->save();
     $this->actingAs($staff)->get('/noi-bo/cong-ty/'.$own->id)->assertOk()->assertJsonPath('name', 'Assigned');
     $this->get('/noi-bo/cong-ty/'.$other->id)->assertForbidden();
     $this->actingAs($employer)->get('/noi-bo/cong-ty/'.$other->id)->assertForbidden();

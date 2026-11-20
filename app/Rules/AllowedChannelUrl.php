@@ -16,7 +16,7 @@ class AllowedChannelUrl implements ValidationRule
         $domains = config('company-channels.'.$this->type, []);
         if (! $parts || ! in_array(strtolower($parts['scheme'] ?? ''), ['http', 'https'], true)
             || isset($parts['user']) || isset($parts['pass']) || $host === ''
-            || ! array_any($domains, fn (string $domain): bool => $host === strtolower($domain) || str_ends_with($host, '.'.strtolower($domain)))) {
+            || ($this->type !== 'website' && ! array_any($domains, fn (string $domain): bool => $host === strtolower($domain) || str_ends_with($host, '.'.strtolower($domain))))) {
             $fail(__('ui.invalid_channel_url'));
         }
     }

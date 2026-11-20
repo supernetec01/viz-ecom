@@ -418,6 +418,7 @@ Giai đoạn 3 (mở rộng): thanh toán tự động, thống kê và báo cá
 - access_grants chỉ dùng phạm vi theo tin; chưa có gói theo công ty hoặc theo số lượt xem.
 - Zalo chỉ để dán link tin và ảnh Open Graph; không tích hợp API.
 - Chưa có OTP xác thực SĐT ứng viên.
+- Website riêng của công ty nhận mọi URL HTTP/HTTPS hợp lệ, không yêu cầu allowlist tên miền. Các kênh nền tảng vẫn kiểm tra đúng tên miền của nền tảng.
 
 ## 12. Kế hoạch giao việc cho Codex
 
@@ -488,7 +489,7 @@ Cổng kiểm 0: đăng nhập được bằng ba vai trò, mỗi vai trò chỉ
 | Mã | Việc cần làm | Tiêu chí hoàn thành và test bắt buộc |
 | --- | --- | --- |
 | T05 | Migration và seeder cho locations (tỉnh, thành) và job_categories | Seeder chạy hai lần không sinh dòng trùng. Test số lượng và khóa duy nhất |
-| T06 | Migration, model companies và company_channels. Kiểm tra link kênh theo danh sách tên miền cho phép (Shopee, TikTok, Lazada, YouTube, Facebook, website) | Test: link tên miền lạ bị từ chối. Link không bắt đầu bằng http hoặc https bị từ chối. Loại công ty chỉ nhận direct hoặc agency |
+| T06 | Migration, model companies và company_channels. Link Shopee, TikTok, Lazada, YouTube, Facebook kiểm tra tên miền cho phép; website riêng nhận mọi URL HTTP/HTTPS hợp lệ | Test: tên miền lạ bị từ chối đối với kênh nền tảng, website riêng không cần allowlist. Chặn giao thức ngoài HTTP/HTTPS. Loại công ty chỉ nhận direct hoặc agency |
 | T07 ⚠ | Bảng staff_company và company_user. Phạm vi truy vấn: nhân viên chỉ thấy công ty được phân công, tài khoản công ty chỉ thấy công ty mình | Test: nhân viên A không đọc, không sửa được công ty của nhân viên B. Đổi id trên URL vẫn nhận 403 hoặc 404 |
 | T08 | Filament: thêm, sửa, tìm, lọc công ty và kênh bán hàng. Admin xác minh công ty | Test từng thao tác theo từng vai trò. Công ty chưa xác minh không đăng được tin (chặn ở T10) |
 | T09 ⚠ | Filament: tạo, khóa, mở khóa tài khoản công ty và gửi email mời đặt mật khẩu | Test: không có mật khẩu nào gửi qua email. Tài khoản công ty gắn đúng công ty. Khóa xong đăng nhập không được. Email dùng giả lập khi test |
