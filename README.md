@@ -1,6 +1,6 @@
 # Viz Ecom
 
-Website tuyển dụng theo thiết kế trong [docs/thiet-ke.md](docs/thiet-ke.md). Hiện tại chỉ hoàn thành phạm vi nền tảng T00: Laravel, PostgreSQL, Pest, Pint, Larastan và CI. Trang `/` là trang chào mặc định của Laravel; chưa có chức năng tuyển dụng hoặc đăng nhập.
+Website tuyển dụng theo thiết kế trong [docs/thiet-ke.md](docs/thiet-ke.md). Các task được triển khai tuần tự trên từng nhánh và PR. Trang `/` hiện là trang chào Laravel; chưa có chức năng tuyển dụng hoặc đăng nhập ở T02.
 
 ## Yêu cầu
 
@@ -47,7 +47,9 @@ php artisan migrate:fresh --seed
 php artisan serve
 ```
 
-Mở `http://localhost:8000`; health endpoint là `/up`. `migrate:fresh` xóa toàn bộ bảng trong database đang cấu hình: chỉ dùng trên database phát triển/test. Seeder T00 chưa tạo tài khoản mẫu; tài khoản và vai trò thuộc T02.
+Mở `http://localhost:8000`; health endpoint là `/up`. `migrate:fresh` xóa toàn bộ bảng trong database đang cấu hình: chỉ dùng trên database phát triển/test.
+
+Từ T02, seeder tạo ba tài khoản local/testing: `admin@viz-ecom.test`, `staff@viz-ecom.test`, `employer@viz-ecom.test`. Điền `SEED_SAMPLE_PASSWORD` trong `.env` trước lần seed đầu để tự chọn mật khẩu mẫu (khuyến nghị ít nhất 12 ký tự); để trống thì mật khẩu ngẫu nhiên không được in ra log. Seed lại không đổi mật khẩu hoặc tạo trùng tài khoản. Không tạo tài khoản mẫu ở production. Đăng nhập được bổ sung ở T03.
 
 Trang chào mặc định chạy được mà chưa build Vite. Nếu phát triển CSS/JavaScript, cài dependencies và build trước khi chạy:
 
