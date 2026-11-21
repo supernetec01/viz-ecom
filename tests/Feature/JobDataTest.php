@@ -119,10 +119,14 @@ it('only allows approved state transitions in the persisted model', function (st
         $job->expires_at = now()->addDays(7);
         $job->transitionTo(JobStatus::Published);
     }
-    if (in_array($from, ['expired', 'closed'])) {
+    if ($from === 'paused') {
+        $job->expires_at = now()->addDays(7);
+        $job->transitionTo(JobStatus::Published);
+    }
+    if (in_array($from, ['paused', 'expired', 'closed'])) {
         $job->transitionTo(JobStatus::from($from));
     }
-    $job->expires_at = now()->addDays(7);
+    $job->expires_at ??= now()->addDays(7);
     if ($allowed) {
         $job->transitionTo(JobStatus::from($to));
         expect($job->fresh()->status->value)->toBe($to);
@@ -134,7 +138,7 @@ it('only allows approved state transitions in the persisted model', function (st
         expect($job->fresh()->status->value)->toBe($from);
     }
 })->with(function () {
-    $approved = ['draft' => ['pending'], 'pending' => ['draft', 'published'], 'published' => ['expired', 'closed'], 'expired' => ['draft'], 'closed' => ['draft']];
+    $approved = ['draft' => ['pending', 'published'], 'pending' => ['draft', 'published'], 'published' => ['paused', 'expired', 'closed'], 'paused' => ['published', 'closed', 'expired', 'draft'], 'expired' => ['draft'], 'closed' => []];
     foreach ($approved as $from => $targets) {
         foreach (array_keys($approved) as $to) {
             if ($from !== $to) {
