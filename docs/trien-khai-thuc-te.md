@@ -1,6 +1,6 @@
 # Checklist chuyển từ demo sang triển khai thực tế
 
-Cập nhật ngày 21/11/2026, đối chiếu mã đến T13, địa chỉ làm việc và bản sửa CSP T11. Tài liệu này ghi các chỗ phải thay cấu hình, kiểm tra vận hành hoặc hoàn thành chức năng trước khi mở cho người dùng thật. **Các ô chưa đánh dấu là chưa có bằng chứng kiểm tra production**, kể cả khi test tự động đang xanh.
+Cập nhật ngày 21/11/2026, đối chiếu mã đến T15, địa chỉ làm việc và bản sửa CSP T11. Tài liệu này ghi các chỗ phải thay cấu hình, kiểm tra vận hành hoặc hoàn thành chức năng trước khi mở cho người dùng thật. **Các ô chưa đánh dấu là chưa có bằng chứng kiểm tra production**, kể cả khi test tự động đang xanh.
 
 ## Những phần đang dùng cấu hình demo/local
 
@@ -8,6 +8,7 @@ Trạng thái mặc định của mọi hàng dưới đây: **chưa xác minh t
 
 | Phần | Hiện trạng và ảnh hưởng | Việc phải làm khi triển khai | Cách xác nhận đạt |
 | --- | --- | --- | --- |
+| Trang công khai T14/T15 | `/` và `/viec-lam` đã dùng dữ liệu/điều kiện thật; ảnh kiểm tra có tin giả lập đã được dọn. CSS build trong `public/build` không được Git theo dõi | Khi triển khai/cập nhật: `npm ci`, `npm run build`, đưa `public/build` vào gói phát hành; không cần Vite dev server. Kiểm tra tin thật đã duyệt/published, còn hạn và công ty xác minh; không seed tin giả vào production | Trang chủ/danh sách có CSS, không lỗi asset/CSP; kiểm tra 360 px, đổi trang không trùng với dữ liệu cố định; tin paused, bị từ chối hoặc vừa hết hạn không còn trong danh sách. Nếu chưa có tin hợp lệ thì hiện trạng thái trống, không phải lỗi gửi dữ liệu |
 | Duyệt tin và thông báo T13 | Đã có hàng pending cho admin, duyệt/từ chối, lịch sử quyết định và thông báo database cho nhân viên phụ trách. Thông báo lưu thật, không dùng email/queue; polling 30 giây | Chạy migration T13 trước khi phục vụ mã mới; kiểm tra phân công staff và quyền admin thực tế. Không cấu hình SMTP/worker để sửa chuông thông báo. Nếu cần email kết quả duyệt, phải bổ sung và kiểm tra riêng | Tài khoản staff không mở được `/app/duyet-tin`; admin duyệt/từ chối được; staff đang phụ trách nhận chuông, mở đúng tin và thấy lý do. Thu hồi phân công thì link bị chặn; kiểm tra lỗi và thao tác lặp trên môi trường triển khai |
 | Địa chỉ làm việc | Tỉnh chọn từ danh mục 34 tỉnh; xã/phường/đặc khu và địa chỉ chi tiết hiện nhập văn bản, chưa đối chiếu danh mục mã xã. Tin cũ giữ thiếu địa chỉ, không tự điền | Xác minh địa chỉ làm việc thực tế, tên đơn vị hành chính mới và danh mục tỉnh tại ngày triển khai. Bổ sung địa chỉ các tin cũ qua bản nháp. Nếu bổ sung bộ chọn xã/phường sau này, phải có nguồn chính thức, phiên bản và cách cập nhật, không nhập bộ dữ liệu chưa kiểm chứng | Thử tạo/sửa/xem trước và nhân bản tin; kiểm tra đủ số nhà/đường hoặc thôn, xã/phường/đặc khu và tỉnh. T18 phải hiển thị cùng địa chỉ đầy đủ cho ứng viên; kiểm tra trên thiết bị khác |
 | Email lời mời/reset mật khẩu (T03, T09) | `MAIL_MAILER=log`: chỉ ghi nội dung email vào log, không gửi tới hộp thư. Tạo tài khoản thành công không có nghĩa người nhận đã nhận mail | Cấu hình SMTP/dịch vụ gửi thật, địa chỉ From và xác minh miền gửi theo yêu cầu nhà cung cấp. Không dùng `log`, `array` hoặc failover sang `log` làm bằng chứng gửi thành công | Người nhận nhận được email thật; link đặt mật khẩu dùng được một lần và hết hạn sau 24 giờ. Thử cả tình huống SMTP lỗi và gửi lại |
@@ -33,7 +34,7 @@ Trạng thái mặc định của mọi hàng dưới đây: **chưa xác minh t
 Không thể chỉ đổi `.env` để biến các phần sau thành chức năng hoàn chỉnh:
 
 - T13 đã có duyệt/từ chối và thông báo trong hệ thống; chưa có email kết quả duyệt. Nút Gửi đăng đã nối bộ quét T12. Vẫn cần kiểm tra production theo bảng trên, không đồng nhất test local với vận hành thật.
-- T14 đã có khung trang chủ tiếng Việt, header/footer và kiểm tra trình duyệt 360 px; cần `npm ci` và `npm run build` khi triển khai. T15–T21: danh sách tin thật, tìm/lọc, chi tiết tin/công ty, SEO/sitemap/chia sẻ tiếp tục theo task tương ứng.
+- T14/T15 đã có trang chủ, header/footer và danh sách tin published còn hạn, phân trang và kiểm tra trình duyệt 360 px; cần build asset khi triển khai. T16–T21: tìm/lọc, chi tiết tin/công ty, SEO/sitemap/chia sẻ chưa xây. Thẻ T15 chưa có nút chi tiết/ứng tuyển; không coi đây là luồng nhận hồ sơ đã hoàn tất.
 - T22 trở đi: nhận hồ sơ/CV, đồng ý xử lý dữ liệu, captcha, kiểm tra file, quét virus/chuyển đổi xem trước và thông báo. Phải hoàn tất các task liên quan trước nhận hồ sơ thật.
 - T29–T39: quyền xem hồ sơ, chính sách trả dữ liệu theo quyền, audit, đơn hàng/cấp quyền. Không được vận hành dữ liệu ứng viên thật khi các hàng rào này chưa đủ.
 - T40–T42 và T46: gói đẩy tin, lịch hết hạn/paused và xóa PII/file sau 6 tháng, công cụ admin xóa hợp lệ. Chỉ cấu hình cron không tự tạo các chức năng chưa viết.

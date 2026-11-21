@@ -142,6 +142,18 @@ class Job extends Model
         return $query->whereIn('company_id', Company::visibleTo($actor)->select('companies.id'));
     }
 
+    /** @param Builder<static> $query
+     * @return Builder<static>
+     */
+    public function scopePubliclyVisible(Builder $query): Builder
+    {
+        $now = CarbonImmutable::now();
+
+        return $query->where('status', JobStatus::Published)->where('published_at', '<=', $now)
+            ->where('expires_at', '>', $now)
+            ->whereHas('company', fn (Builder $company) => $company->whereNotNull('verified_at')->whereNotNull('verified_by'));
+    }
+
     /** @return BelongsTo<Company, $this> */
     public function company(): BelongsTo
     {
