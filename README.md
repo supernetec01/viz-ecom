@@ -22,6 +22,14 @@ Tin còn nhận hồ sơ có nút sao chép link kèm `nguon=chia-se`; không c�
 
 Migration T22 thêm `files`, `applications` và khóa ghép bảo đảm hồ sơ thuộc công ty của tin. Mã hồ sơ là ULID; mỗi tin chỉ có một hồ sơ còn hiệu lực cho cùng SĐT chuẩn hóa. Có cờ/thời điểm đồng ý, nguồn, trạng thái và xóa mềm; xóa mềm tin/công ty không làm mất hồ sơ. Đây mới là cấu trúc dữ liệu, chưa có form hoặc dịch vụ lưu file. Chạy `php artisan migrate` khi cập nhật local; không dùng `migrate:fresh` trên DB có dữ liệu cần giữ. T23 trở đi mới xử lý file và T24 mới nhận hồ sơ.
 
+## File CV riêng tư — T23 đang triển khai, chưa hoàn tất
+
+Disk `candidate-files` tách khỏi disk local mặc định, lưu dưới `storage/app/candidate-files`, không symlink, không route trực tiếp. Dịch vụ kiểm tra kích thước thật tối đa 10 MiB, MIME từ nội dung và DOCX package; lưu UUID theo công ty/tin/ULID hồ sơ, hash SHA-256 và metadata chờ quét. Chưa có endpoint upload/download hoặc form T24.
+
+**Hiện chỉ DOCX sạch qua kiểm tra cấu trúc được dịch vụ nhận. PDF đang bị chặn ở mọi môi trường** cho tới khi duyệt và kiểm chứng bộ kiểm tra sâu hỗ trợ object stream; không có cấu hình bỏ qua. DOC cũ chưa hỗ trợ: lưu thành DOCX hoặc chờ mở PDF rồi xuất lại PDF. DOCM, macro, OLE/ActiveX, quan hệ ngoài (kể cả hyperlink/mẫu từ xa), path nguy hiểm, ZIP mã hóa/bomb bị từ chối. DOCX có link ngoài cần xuất lại bản không có liên kết ngoài. Các giới hạn ZIP: tối đa 512 mục, 8 MiB/mục, tổng 32 MiB và tối đa 100:1 với mục trên 64 KiB; XML có giới hạn riêng. Đây không phải thay thế ClamAV T27.
+
+[So sánh các công cụ kiểm tra PDF để duyệt](docs/de-xuat-kiem-tra-pdf-t23.md). PR T23 giữ draft; chưa cài qpdf/PHP parser/Ghostscript. Không dùng chặn mọi object stream thay cho bộ kiểm tra PDF hiện đại. Không tiếp nhận CV ứng viên thật khi các task nhận hồ sơ, quét, phân quyền/audit/retention chưa hoàn tất. Trên Windows cần ACL phù hợp; Linux private mode được kiểm tra trong CI.
+
 ## Yêu cầu
 
 - PHP 8.4 với các extension chuẩn Laravel, `pdo_pgsql`, `pgsql`, `mbstring`, `intl`, `fileinfo`, `curl`, `openssl`, `zip` và XML/DOM.

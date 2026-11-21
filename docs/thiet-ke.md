@@ -241,11 +241,13 @@ Mỗi đêm một lịch chạy: chuyển tin quá hạn sang expired, gửi nh�
 
 | Loại | Định dạng cho phép | Dung lượng tối đa |
 | --- | --- | --- |
-| CV | PDF, DOC, DOCX | 10 MB |
+| CV | PDF và DOCX; DOC cũ/DOCM chưa nhận | 10 MB |
 | Portfolio dạng file | PDF, JPG, PNG | 10 MB |
 | Portfolio dạng link | URL bắt đầu bằng http hoặc https | Không áp dụng |
 
 Không nhận file nén, file chạy được, hoặc file có macro.
+
+Quyết định bổ sung T23: DOC cũ bị từ chối, hướng dẫn lưu lại PDF hoặc DOCX; không thêm công cụ đọc DOC. DOCX kiểm tra cấu trúc package, chặn VBA/macro, OLE/ActiveX, mọi quan hệ ngoài (kể cả mẫu từ xa), đường dẫn nguy hiểm và zip bomb. PDF cần kiểm tra sâu để chặn JavaScript/OpenAction/Launch cả trong object stream; phải nhận PDF hiện đại, từ chối mã hóa. Không dùng chế độ chặn mọi object stream. Đang chờ duyệt công cụ theo docs/de-xuat-kiem-tra-pdf-t23.md, nên hiện PDF bị chặn ở mọi môi trường và PR T23 là draft; chưa hoàn tất T23.
 
 ### 5.2. Xử lý khi upload
 

@@ -1,5 +1,19 @@
 # CODEMAP — điểm tích hợp nghiệp vụ
 
+## File CV riêng tư (T23 đang triển khai)
+
+- Disk `candidate-files`: `storage/app/candidate-files`, ngoài web root và tách khỏi disk local mặc định có route ký; serve=false, visibility=private, throw=true. Không symlink/public URL, chưa có route xem/tải file. CI Linux kiểm tra private mode; Windows kiểm tra root/cấu hình do Unix mode không ánh xạ NTFS. Khi triển khai cần quyền OS/ACL phù hợp cho worker.
+- `InspectCv`: đọc dung lượng thật trên đĩa (1–10 MiB), finfo từ nội dung, không tin client MIME; hiện chỉ nhận DOCX đã kiểm tra package/DOM không DTD/network. Chặn DOC/DOCM, VBA, OLE/ActiveX, quan hệ ngoài, path traversal, mục trùng, encrypted ZIP, hơn 512 mục, mục >8 MiB, tổng giải nén >32 MiB, tỉ lệ >100:1 khi mục >64 KiB; XML chính có giới hạn nhỏ hơn. Kiểm tra này không thay antivirus T27.
+- **PDF chưa hỗ trợ**: chặn toàn bộ bằng lỗi tiếng Việt, không flag bật bỏ qua. Người dùng không duyệt chặn mọi object stream; cần parser xử lý PDF hiện đại theo đề xuất qpdf/PHP/raster ở `docs/de-xuat-kiem-tra-pdf-t23.md`. Chưa thêm/cài công cụ. Sau duyệt phải nhận clean PDF và chặn action kể cả trong object stream, encryption, timeout/OOM/error; kiểm chứng corpus thật trước mở PDF/hoàn tất T23.
+- **DOC cũ chưa hỗ trợ**: chỉ mở lại sau khi có phương án kiểm tra được duyệt riêng, ví dụ chuyển PDF trong môi trường cô lập và chỉ giữ bản đã kiểm tra; không tự thêm thư viện đọc DOC. Form T24 phải nêu hướng dẫn xuất lại và tình trạng PDF thực tế.
+- `StoreCandidateFile::storeCv(upload, job, applicationULID)`: context server, tên UUID theo loại đã xác minh, đường dẫn `cv/company/job/application/uuid.docx`, streaming vào disk riêng, SHA-256 thật, metadata scan_status=pending. Không tự insert files/applications. DTO StoredCandidateFile giữ metadata private để không bị JSON serialize lộ path/tên gốc. `discard` chỉ xóa đường dẫn đúng dạng file do service tạo; dùng khi lưu thất bại, không phải công cụ xóa hồ sơ của ứng viên.
+
+## Quyết định T24 đã được người dùng chốt, chưa triển khai
+
+- Họ tên và SĐT bắt buộc, CV tùy chọn cho mọi tin. Không cột/cấu hình bắt buộc CV trong T24; T24B riêng làm sau.
+- Portfolio chỉ LINK tùy chọn HTTP/HTTPS, không tự fetch; file portfolio thuộc T25. T24 lưu applications/files trong giao dịch, lỗi thì rollback và xóa file vừa tạo. T26 còn lệnh dọn file mồ côi và test lỗi mở rộng, không tự làm trước.
+- Turnstile dùng HTTP client Laravel, token server verify mỗi lần/một lần dùng, timeout khoảng 5 giây, lỗi/thiếu cấu hình production chặn thân thiện, không log token. Local/testing dùng test keys chính thức và ghi demo rõ. CSP chỉ thêm đúng host cần theo tài liệu Cloudflare ở trang có form; vẫn nonce, không unsafe-inline/eval, sửa test CSP. Chính sách dữ liệu và README phải nêu Cloudflare Turnstile. Chưa thêm dependency hoặc cấu hình chạy trước khi xong T23.
+
 ## Nền lưu hồ sơ và file (T22)
 
 - Migration mới `2026_11_21_000013_create_files_and_applications.php`; không sửa migration cũ. T22 chỉ schema, không model/route/controller hoặc truy vấn hồ sơ trong ứng dụng. Test DB dùng bản ghi giả để kiểm tra ràng buộc, không phải đường truy cập hồ sơ. Các task đọc hồ sơ sau này phải đi qua ApplicationPolicy; ULID không thay thế kiểm tra quyền.
