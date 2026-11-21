@@ -4,9 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::view('/', 'public.home')->name('home');
 
 foreach (['admin', 'staff', 'employer'] as $role) {
     Route::view('/khu-vuc/'.$role, 'areas.index', ['role' => $role])

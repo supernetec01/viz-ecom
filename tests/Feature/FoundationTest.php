@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 
 uses(RefreshDatabase::class);
 
-it('serves the Laravel welcome page', function () {
+it('serves the public home page', function () {
     $this->get('/')->assertOk();
 });
 

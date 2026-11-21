@@ -34,6 +34,14 @@ jobs:
       DB_PASSWORD: ci-only-password
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Build public assets
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
