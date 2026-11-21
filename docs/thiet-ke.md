@@ -135,7 +135,7 @@ Laravel database queue dùng bảng queue_jobs, tách khỏi bảng jobs nghiệ
 | published còn hạn, đã tới ngày đăng | 200, đầy đủ nội dung và địa chỉ làm việc; đủ điều kiện nhận hồ sơ |
 | paused | 200, đầy đủ nội dung kèm thông báo tạm dừng, không nhận hồ sơ, gợi ý tin tương tự |
 | expired hoặc published/paused đã tới hạn theo đồng hồ | 200, đầy đủ nội dung kèm thông báo hết hạn, không nhận hồ sơ, gợi ý tin tương tự |
-| closed | 200, chỉ tiêu đề, tên công ty dạng chữ, địa điểm, thông báo “Tin đã đóng, không nhận hồ sơ” và gợi ý tối thiểu; không mô tả/yêu cầu/quyền lợi/lương |
+| closed | 200, chỉ tiêu đề, tên công ty (link từ T19), địa điểm, thông báo “Tin đã đóng, không nhận hồ sơ” và gợi ý tối thiểu; không mô tả/yêu cầu/quyền lợi/lương |
 | draft, pending, không tồn tại, xóa mềm, công ty không còn xác minh hoặc chưa tới ngày đăng | 404, không lộ nội dung hoặc redirect tới slug thật |
 | bị gỡ vì vi phạm (cờ riêng T43) | 404, không lộ nội dung; chưa tạo cờ trong T18 |
 

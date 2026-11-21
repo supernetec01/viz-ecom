@@ -5,9 +5,15 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\PublicCompanyController;
 use App\Http\Controllers\PublicJobController;
 use App\Http\Controllers\PublicJobDetailController;
+use App\Http\Controllers\SitemapController;
+use App\Support\PublicSeo;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'public.home')->name('home');
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap.index');
+Route::get('/sitemaps/pages.xml', [SitemapController::class, 'pages'])->name('sitemap.pages');
+Route::get('/sitemaps/{type}/{page}.xml', [SitemapController::class, 'entries'])->where('type', 'jobs|companies')->where('page', '[1-9][0-9]*')->name('sitemap.entries');
+Route::get('/robots.txt', fn () => response("User-agent: *\nDisallow: /app\nDisallow: /noi-bo/\nDisallow: /khu-vuc/\nSitemap: ".PublicSeo::url('sitemap.index')."\n", 200, ['Content-Type' => 'text/plain; charset=UTF-8']));
 Route::get('/viec-lam', PublicJobController::class)->name('jobs.index');
 Route::get('/cong-ty/{id}', PublicCompanyController::class)->where('id', '[1-9][0-9]*')->name('companies.show');
 Route::get('/viec-lam/{slug}-{id}', PublicJobDetailController::class)->where('slug', '[a-z0-9-]+')->where('id', '[1-9][0-9]*')->name('jobs.show');
