@@ -14,6 +14,7 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
+use Filament\View\PanelsRenderHook;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -28,6 +29,7 @@ class AppPanelProvider extends PanelProvider
         return $panel->default()->id('app')->path('app')->login([AuthController::class, 'login'])->profile()->databaseTransactions()
             ->userMenuItems(['security' => Action::make('security')->label(__('ui.security'))->url(fn () => route('security'))])
             ->defaultAvatarProvider(LocalAvatarProvider::class)
+            ->renderHook(PanelsRenderHook::SCRIPTS_AFTER, fn () => view('filament.livewire-scripts'))
             ->pages([Dashboard::class])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->middleware([
@@ -35,7 +37,7 @@ class AppPanelProvider extends PanelProvider
                 EnsureActiveAccount::class, AuthenticateSession::class, ShareErrorsFromSession::class,
                 PreventRequestForgery::class, SubstituteBindings::class,
                 DisableBladeIconComponents::class, DispatchServingFilamentEvent::class, 'throttle:web',
-            ], isPersistent: true)
+            ])
             ->authMiddleware([Authenticate::class, EnsurePrivilegedMfa::class], isPersistent: true);
     }
 }
