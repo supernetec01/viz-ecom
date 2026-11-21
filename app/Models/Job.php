@@ -4,13 +4,18 @@ namespace App\Models;
 
 use App\Enums\EmploymentType;
 use App\Enums\JobStatus;
+use App\Enums\Role;
+use App\Enums\UserStatus;
 use App\Support\JobData;
+use App\Support\JobHtml;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -37,6 +42,18 @@ class Job extends Model
         static::saving(function (self $job): void {
             if ($job->exists && DB::table('jobs')->where('id', $job->getKey())->lockForUpdate()->value('status') !== $job->getRawOriginal('status')) {
                 throw ValidationException::withMessages(['status' => __('ui.jobs.stale_state')]);
+            }
+            foreach (['description', 'requirements', 'benefits'] as $field) {
+                if ($job->isDirty($field)) {
+                    Validator::make([$field => $job->{$field}], [$field => ['required', 'string', 'max:50000']])->validate();
+                    $job->{$field} = JobHtml::clean((string) $job->{$field});
+                }
+            }
+            $originalStatus = $job->getRawOriginal('status');
+            $contentChanged = $job->isDirty(['company_id', 'category_id', 'location_id', 'title', 'description', 'requirements', 'benefits', 'salary_min', 'salary_max', 'negotiable', 'experience_years', 'vacancies', 'employment_type']);
+            $datesChanged = in_array($originalStatus, ['published', 'paused'], true) && $job->isDirty(['published_at', 'expires_at']);
+            if ($job->exists && $originalStatus !== JobStatus::Draft->value && ($contentChanged || $datesChanged)) {
+                throw ValidationException::withMessages(['status' => __('ui.jobs.edit_draft_only')]);
             }
             JobData::validate($job->getAttributes());
             $previous = $job->exists ? JobStatus::from($job->getRawOriginal('status')) : JobStatus::Draft;
@@ -75,6 +92,19 @@ class Job extends Model
     {
         $this->status = $status;
         $this->save();
+    }
+
+    /** @param Builder<static> $query
+     * @return Builder<static>
+     */
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        $actor = $user->fresh();
+        if (! $actor || $actor->status !== UserStatus::Active || $actor->role === Role::Employer) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->whereIn('company_id', Company::visibleTo($actor)->select('companies.id'));
     }
 
     /** @return BelongsTo<Company, $this> */

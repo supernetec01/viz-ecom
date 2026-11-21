@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureActiveAccount;
 use App\Http\Middleware\EnsurePrivilegedMfa;
+use App\Http\Middleware\PrivateFileCsp;
 use App\Http\Middleware\RequireHttps;
 use App\Http\Middleware\RequireRole;
 use App\Http\Middleware\SecurityHeaders;
@@ -21,7 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(RequireHttps::class);
         $middleware->web(append: ['throttle:web', EnsureActiveAccount::class, EnsurePrivilegedMfa::class]);
         $middleware->redirectGuestsTo('/app/login');
-        $middleware->alias(['role' => RequireRole::class]);
+        $middleware->alias(['role' => RequireRole::class, 'csp.private-file' => PrivateFileCsp::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->dontFlash(['code', 'recovery_code', 'token']);

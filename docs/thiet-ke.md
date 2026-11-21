@@ -72,7 +72,7 @@ locations: tỉnh/thành, quận/huyện.
 
 job_categories: nhóm vị trí (kinh doanh, kho vận, marketing, livestream, CSKH…).
 
-jobs: id, company_id, category_id, location_id, tiêu đề, slug, mô tả, yêu cầu, quyền lợi, lương tối thiểu, lương tối đa, cờ "thỏa thuận", yêu cầu kinh nghiệm (số năm), số lượng cần tuyển, hình thức (toàn thời gian, bán thời gian), trạng thái (draft, pending, published, expired, closed), published_at, expires_at, created_by, thời điểm xóa mềm.
+jobs: id, company_id, category_id, location_id, tiêu đề, slug, mô tả, yêu cầu, quyền lợi, lương tối thiểu, lương tối đa, cờ "thỏa thuận", yêu cầu kinh nghiệm (số năm), số lượng cần tuyển, hình thức (toàn thời gian, bán thời gian), trạng thái (draft, pending, published, paused, expired, closed), published_at, expires_at, created_by, thời điểm xóa mềm.
 
 plans: id, tên gói (ví dụ 3 ngày, 7 ngày), số ngày, mức ưu tiên, giá.
 
@@ -106,13 +106,23 @@ Thời gian lưu dạng UTC, hiển thị theo múi giờ Asia/Ho_Chi_Minh.
 
 | Trạng thái hiện tại | Được chuyển sang |
 | --- | --- |
-| draft | pending |
+| draft | pending, published (chỉ qua bước quét nội dung T12) |
 | pending | draft, published |
-| published | expired, closed |
+| published | paused, closed, expired |
+| paused | published (chưa hết hạn), closed, expired, draft |
 | expired | draft |
-| closed | draft |
+| closed | Không chuyển tiếp |
 
-Tin mới luôn là draft. Không chuyển trực tiếp draft sang published. Khi đăng, ghi published_at và yêu cầu expires_at còn hiệu lực, sau published_at. Khi quay lại draft để sửa/đăng lại, xóa ngày đăng và ngày hết hạn cũ. Bộ quét T12 có thể chuyển draft → pending → published trong cùng luồng nếu nội dung sạch; tin cần duyệt giữ ở pending. Kiểm tra quyền theo vai trò và giao diện làm ở T11/T13.
+Tin mới luôn là draft. Chỉ service quét nội dung T12 mới được đưa draft trực tiếp sang published khi sạch; tin cần duyệt chuyển pending. T11 không cung cấp nút đăng hoặc duyệt tin. Khi đăng, ghi published_at và yêu cầu expires_at còn hiệu lực, sau published_at. Khi quay lại draft để sửa/đăng lại, xóa ngày đăng và ngày hết hạn cũ. Chỉ sửa nội dung trong draft; tin đã closed có thể nhân bản thành tin mới, không mở lại tin cũ. Các chuyển trạng thái khác đều bị từ chối.
+
+Quyết định paused ngày 21/11/2026:
+
+- published → paused; paused không cho sửa nội dung hoặc thời gian. Muốn sửa phải về draft và đi lại luồng quét/duyệt.
+- Tiếp tục paused → published giữ published_at và expires_at. Nếu đã quá hạn, không tiếp tục; chuyển expired. Không dừng đồng hồ, không bù ngày cho hạn tin hoặc job_boosts.
+- T15/T16: không hiển thị paused trong danh sách công khai. T18: link chi tiết cũ báo "đang tạm dừng nhận hồ sơ", khóa form, không trả 404. T24: server từ chối ứng tuyển khi paused.
+- T30–T34: giữ hồ sơ cũ; tài khoản có quyền còn hiệu lực vẫn được xem. T40/T41: tiếp tục không thay đổi thời hạn hoặc thứ tự gói đẩy tin.
+- T42: lịch đêm chuyển cả published và paused quá hạn sang expired. T20: không đưa paused vào sitemap.
+- Test tại T11: mọi cặp chuyển trạng thái, chặn sửa paused, tiếp tục trước/quá hạn và giữ thời gian. Test form ứng tuyển bị khóa và thứ tự gói đẩy tin thực hiện khi có các chức năng tương ứng, không tạo trước ở T11.
 
 Laravel database queue dùng bảng queue_jobs, tách khỏi bảng jobs nghiệp vụ; migration mới đổi tên và giữ dữ liệu hàng đợi cũ.
 
@@ -263,9 +273,15 @@ Công ty chỉ thấy hồ sơ có company_id của chính mình. Nhân viên ch
 
 Phiên làm việc: cookie Secure, HttpOnly, SameSite. Đổi mật khẩu hoặc thu hồi tài khoản thì đăng xuất mọi thiết bị.
 
-Chống tấn công thường gặp: CSRF (Laravel có sẵn), SQL injection (dùng truy vấn tham số hóa của Laravel, không nối chuỗi), XSS (thoát ký tự khi hiển thị, nội dung rich text phải lọc bằng HTMLPurifier), clickjacking (X-Frame-Options), và tiêu đề Content-Security-Policy.
+Chống tấn công thường gặp: CSRF (Laravel có sẵn), SQL injection (dùng truy vấn tham số hóa của Laravel, không nối chuỗi), XSS (thoát ký tự khi hiển thị; rich text dùng Symfony HtmlSanitizer đã có trong Filament, được người dùng duyệt thay HTMLPurifier ngày 21/11/2026), clickjacking (X-Frame-Options), và tiêu đề Content-Security-Policy. Nội dung tin chỉ nhận định dạng văn bản cơ bản và link HTTP/HTTPS; loại script, thuộc tính sự kiện, style và nội dung nhúng. Giới hạn mỗi trường rich text 50.000 ký tự, không tải file qua trình soạn thảo T11.
 
 IDOR: mã hồ sơ công khai dùng ULID hoặc UUID thay vì số tăng dần. Quan trọng hơn, mỗi truy cập đều qua policy, nên đổi mã trên link cũng không xem được hồ sơ công ty khác.
+
+Ngoại lệ CSP Filament được duyệt ngày 21/11/2026: chỉ `/app` và `/app/*` (trừ trang đăng nhập `/app/login`) có `unsafe-eval` trong script-src. Script quản trị dùng nonce ngẫu nhiên theo từng yêu cầu từ `Vite::useCspNonce()` của Laravel, không dùng `unsafe-inline`. Trang công khai và đăng nhập không có `unsafe-eval` hoặc `unsafe-inline` cho script. Không thêm gói Composer.
+
+Mọi đường dẫn phục vụ CV/portfolio ở T33 trở đi phải gắn `csp.private-file`: CSP riêng `default-src 'none'; script-src 'none'; …; sandbox`, ưu tiên cao hơn ngoại lệ `/app`, không cho eval hoặc inline. Tại T11 chỉ xây middleware/profile và test header, chưa xây luồng phục vụ file của task sau. Khi có file thật phải kiểm tra tương thích sandbox và quyền/audit ở mỗi lượt truy cập.
+
+Lý do ngoại lệ: runtime CSP-safe của Livewire hiện chưa chạy được các biểu thức Filament sinh ra. Khi Filament hỗ trợ và đã kiểm tra thực tế bằng runtime CSP-safe thì bỏ ngoại lệ. Mỗi lần thay đổi CSP phải sửa test: nonce `/app` đổi theo yêu cầu và khớp script; `/app` có eval nhưng không inline; công khai/đăng nhập không eval; file riêng tư không eval và có sandbox. Xem README để biết chi tiết vận hành.
 
 Kiểm tra quyền tại thời điểm truy cập, không lưu quyền trong phiên. Admin thu hồi thì hiệu lực ngay lập tức.
 
@@ -507,8 +523,8 @@ Cổng kiểm 0: đăng nhập được bằng ba vai trò, mỗi vai trò chỉ
 | T07 ⚠ | Bảng staff_company và company_user. Phạm vi truy vấn: nhân viên chỉ thấy công ty được phân công, tài khoản công ty chỉ thấy công ty mình | Test: nhân viên A không đọc, không sửa được công ty của nhân viên B. Đổi id trên URL vẫn nhận 403 hoặc 404 |
 | T08 | Filament: thêm, sửa, tìm, lọc công ty và kênh bán hàng. Admin xác minh công ty | Test từng thao tác theo từng vai trò. Công ty chưa xác minh không đăng được tin (chặn ở T10) |
 | T09 ⚠ | Filament: tạo, khóa, mở khóa tài khoản công ty và gửi email mời đặt mật khẩu | Test: không có mật khẩu nào gửi qua email. Tài khoản công ty gắn đúng công ty. Khóa xong đăng nhập không được. Email dùng giả lập khi test |
-| T10 | Migration, model jobs: lương, kinh nghiệm, số lượng, trạng thái, slug, hết hạn. Ràng buộc lương tối thiểu không lớn hơn tối đa, không âm. Chỉ công ty đã xác minh mới tạo được tin | Test ràng buộc ở form và ở database. Slug trùng thì tự thêm hậu tố. Máy trạng thái chỉ cho chuyển theo đúng sơ đồ trong mục 3 |
-| T11 | Filament: tạo, sửa, nhân bản, tạm dừng, đóng tin, xem trước. Nhân viên chỉ quản lý tin của công ty mình | Test phân quyền theo vai trò. Nhân bản không sao chép ngày đăng và gói đẩy tin. Rich text qua bộ lọc HTML, test chèn thẻ script bị loại |
+| T10 | Migration, model jobs: lương, kinh nghiệm, số lượng, trạng thái (có paused), slug, hết hạn. Ràng buộc lương tối thiểu không lớn hơn tối đa, không âm. Chỉ công ty đã xác minh mới tạo được tin | Test ràng buộc ở form và ở database. Slug trùng thì tự thêm hậu tố. Máy trạng thái chỉ cho chuyển theo đúng sơ đồ trong mục 3.3; bổ sung paused bằng migration mới tại T11 |
+| T11 | Filament: tạo, sửa bản nháp, nhân bản, tạm dừng/tiếp tục, đóng tin, xem trước. Nhân viên chỉ quản lý tin của công ty mình | Test phân quyền theo vai trò. Nhân bản không sao chép ngày đăng, hạn tin và gói đẩy tin. Rich text qua Symfony HtmlSanitizer, test script/XSS bị loại. Paused không sửa, tiếp tục giữ ngày cũ, quá hạn chuyển expired. Các test công khai/ứng tuyển/gói thực hiện ở task tương ứng theo mục 3.3 |
 | T12 ⚠ | Dịch vụ quét nội dung chống liên hệ ngoài: SĐT (cả viết cách chữ số, chèn dấu chấm hoặc chữ), email, chữ zalo, inbox, link lạ | Bộ test đơn vị có ít nhất 30 biến thể (ví dụ 09 0 1 2 3 4 5 6 7, không9, chữ số viết bằng chữ). Không chặn nhầm con số lương như 15.000.000. Tin vi phạm chuyển sang pending |
 | T13 | Hàng chờ duyệt tin cho admin: xem lý do bị giữ, duyệt hoặc từ chối kèm lý do, thông báo cho nhân viên phụ trách | Test: chỉ admin duyệt được. Từ chối bắt buộc nhập lý do. Tin bị từ chối không hiện ra công khai |
 
