@@ -31,7 +31,7 @@ use Illuminate\Validation\ValidationException;
  * @property array $content_scan_reasons
  */
 #[Fillable(['company_id', 'category_id', 'location_id', 'ward_name', 'work_address', 'title', 'description', 'requirements', 'benefits', 'salary_min', 'salary_max', 'negotiable', 'experience_years', 'vacancies', 'employment_type', 'expires_at'])]
-#[Hidden(['content_scan_reasons', 'content_scanned_at', 'latestReview'])]
+#[Hidden(['content_scan_reasons', 'content_scanned_at', 'latestReview', 'search_text'])]
 class Job extends Model
 {
     use SoftDeletes;

@@ -1,5 +1,8 @@
 <form class="job-filters" action="{{ route('jobs.index') }}" method="get" aria-label="{{ __('public.filters') }}">
     <div class="filter-grid">
+        <label class="search-field">{{ __('public.search') }}
+            <input type="search" name="q" maxlength="200" value="{{ $filters['q'] ?? '' }}" placeholder="{{ __('public.search_placeholder') }}">
+        </label>
         <label>{{ __('ui.jobs.location') }}
             <select name="dia_diem"><option value="">{{ __('public.all_locations') }}</option>
                 @foreach ($locations as $id => $name)<option value="{{ $id }}" @selected((string)($filters['dia_diem'] ?? '') === (string)$id)>{{ $name }}</option>@endforeach

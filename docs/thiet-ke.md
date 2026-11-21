@@ -329,6 +329,8 @@ T16 dùng URL GET `/viec-lam?dia_diem=1&vi_tri=1&luong_tu=10000000&kinh_nghiem=1
 
 Thẻ tin: vị trí, công ty, lương, địa điểm, nhãn "Nổi bật" cho tin đang đẩy.
 
+T17 tìm kiếm bằng q trong tiêu đề tin hoặc tên công ty, không dấu/hoa thường, Unicode NFKC và khoảng trắng chuẩn hóa. Tìm chuỗi con cả cụm từ, không fuzzy/ranking; giữ ngày đăng DESC, ID DESC. q tối đa 200 ký tự, rỗng bỏ điều kiện, sai kiểu/quá dài/NUL trả 422. Tham số SQL được bind và ký tự LIKE được escape. Migration mới bật unaccent/pg_trgm, cột search_text do trigger duy trì/backfill và GIN trigram index trên jobs/companies; không đổi dữ liệu gốc, không quét hồ sơ hoặc nội dung nội bộ, không trả search_text qua JSON. Từ khóa kết hợp bộ lọc T16 trên cùng URL và giữ qua phân trang/Back.
+
 Trang chi tiết: mô tả, thông tin công ty, link các kênh bán hàng và video, form ứng tuyển, nút chia sẻ.
 
 Trang công ty: giới thiệu, ngành hàng, các tin đang tuyển.
