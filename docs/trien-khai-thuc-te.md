@@ -59,4 +59,3 @@ Nếu task dùng giả lập, mailer log, dữ liệu mẫu, đường dẫn loc
 `Task/phần → đang mô phỏng gì → ảnh hưởng khi chạy thật → việc phải làm → cách kiểm tra → trạng thái → người/ngày xác nhận`.
 
 Đóng task mã nguồn không tự đánh dấu các ô kiểm tra production. Tài liệu này chưa thay thế việc cấu hình SMTP hoặc triển khai máy chủ; yêu cầu hiện tại chỉ ghi chú và theo dõi, không đổi cấu hình đang chạy.
-
