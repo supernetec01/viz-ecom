@@ -323,6 +323,8 @@ Nên hỏi luật sư về quy định bảo vệ dữ liệu cá nhân hiện h
 
 Danh sách tin với lọc: địa điểm, vị trí, mức lương, kinh nghiệm, loại công ty (chủ việc hoặc trung gian), từ khóa tìm không dấu.
 
+Triển khai T14/T15 ngày 21/11/2026: trang chủ `/` dùng Blade layout công khai, header/footer và CSS build tại chỗ, không cần JavaScript hoặc font ngoài. `/viec-lam` chỉ lấy jobs chưa xóa mềm, status=published, published_at <= hiện tại và expires_at > hiện tại; công ty vẫn phải tồn tại, chưa xóa mềm và đủ xác minh. Sắp xếp published_at DESC, id DESC, 12 tin/trang qua tham số page; không dùng trạng thái hoặc company_id do người xem truyền để mở rộng dữ liệu. Thẻ hiển thị tên tin/công ty/loại công ty, nhóm vị trí, lương VND, hình thức, kinh nghiệm và địa chỉ đầy đủ nếu đã có. Tin cũ thiếu địa chỉ chỉ hiện tỉnh kèm thông báo thiếu, không tự suy ra trụ sở. Chỉ chọn dữ liệu công khai và eager load quan hệ cần thiết; không lấy mô tả liên hệ, metadata quét hoặc lịch sử duyệt nội bộ cho danh sách. Chưa có bộ lọc, tìm kiếm, chi tiết hoặc nút ứng tuyển ở T15; bổ sung theo T16–T18 và các task hồ sơ.
+
 Đường dẫn lưu bộ lọc, ví dụ /viec-lam?dia-diem=hcm&luong=15&kinh-nghiem=0&trang=2. Bấm quay lại sẽ về đúng trang và bộ lọc.
 
 Thẻ tin: vị trí, công ty, lương, địa điểm, nhãn "Nổi bật" cho tin đang đẩy.

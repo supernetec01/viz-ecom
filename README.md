@@ -1,6 +1,6 @@
 # Viz Ecom
 
-Website tuyển dụng theo thiết kế trong [docs/thiet-ke.md](docs/thiet-ke.md). Các task được triển khai tuần tự trên từng nhánh và PR. T14 thay trang chào Laravel bằng trang chủ tiếng Việt tại `/`, có đầu trang, chân trang và bố cục ưu tiên điện thoại. Từ T03, đăng nhập bằng phiên Laravel Fortify tại `/login`; `/app/login` chuyển về đó. Filament phục vụ giao diện quản trị tại `/app`.
+Website tuyển dụng theo thiết kế trong [docs/thiet-ke.md](docs/thiet-ke.md). Các task được triển khai tuần tự trên từng nhánh và PR. Trang chủ tiếng Việt tại `/` có đầu trang, chân trang và bố cục ưu tiên điện thoại (T14). Danh sách tại `/viec-lam` chỉ hiển thị tin published còn hạn, 12 tin/trang, thứ tự ngày đăng mới trước rồi ID giảm dần (T15). Từ T03, đăng nhập bằng phiên Laravel Fortify tại `/login`; `/app/login` chuyển về đó. Filament phục vụ giao diện quản trị tại `/app`.
 
 **Trước khi chạy thực tế:** xem [checklist chuyển từ demo sang production](docs/trien-khai-thuc-te.md). Email local hiện chỉ ghi log; tài khoản mẫu, URL localhost và các chức năng chưa triển khai không được coi là đã sẵn sàng chạy thật. Mỗi task có phần giả lập hoặc cấu hình chỉ dùng local cần cập nhật checklist này, kèm cách kiểm tra trên môi trường thật.
 
@@ -18,7 +18,7 @@ PHP 8.4 được chọn để chạy Pest 5. Phiên bản dependencies cụ th�
 ```sh
 git clone https://github.com/supernetec01/viz-ecom.git
 cd viz-ecom
-git switch codex/t14-public-layout
+git switch codex/t15-public-job-list
 composer install
 npm ci
 npm run build
@@ -52,6 +52,8 @@ php artisan serve
 ```
 
 Mở `http://localhost:8000`; health endpoint là `/up`. `migrate:fresh` xóa toàn bộ bảng trong database đang cấu hình: chỉ dùng trên database phát triển/test.
+
+Mở `http://localhost:8000/viec-lam` để kiểm tra T15. Nếu hiện “Chưa có vị trí đang tuyển”, kiểm tra tin trong `/app/tin-tuyen-dung`: phải được Gửi đăng/duyệt thành published, còn hạn và thuộc công ty đã xác minh. Draft, pending, paused, closed, expired và tin vừa hết hạn đều bị loại ngay trong truy vấn, không chờ lịch T42. T15 chưa có bộ lọc/tìm kiếm (T16/T17), link chi tiết (T18) hoặc form ứng tuyển. Thẻ tin hiện đọc trực tiếp trên danh sách, không có nút dẫn tới chức năng chưa xây. Xem [báo cáo T15](docs/bao-cao-t15.md).
 
 Từ T02, seeder tạo ba tài khoản local/testing: `admin@viz-ecom.test`, `staff@viz-ecom.test`, `employer@viz-ecom.test`. Điền `SEED_SAMPLE_PASSWORD` trong `.env` trước lần seed đầu để tự chọn mật khẩu mẫu (khuyến nghị ít nhất 12 ký tự); để trống thì mật khẩu ngẫu nhiên không được in ra log. Seed lại không đổi mật khẩu hoặc tạo trùng tài khoản. Không tạo tài khoản mẫu ở production.
 

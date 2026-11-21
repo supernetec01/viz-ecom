@@ -15,7 +15,7 @@
                 <span class="brand-mark" aria-hidden="true">v.</span><span>viz<span class="brand-light"> ecom</span></span>
             </a>
             <div class="site-nav">
-                <a href="{{ route('home') }}#viec-lam">{{ __('public.jobs_nav') }}</a>
+                <a href="{{ route('jobs.index') }}" @if(request()->routeIs('jobs.index')) aria-current="page" @endif>{{ __('public.jobs_nav') }}</a>
                 <a href="{{ route('home') }}#cach-ung-tuyen">{{ __('public.how_nav') }}</a>
             </div>
             <a class="button button-outline employer-link" href="{{ route('login') }}">{{ __('public.employer') }} <span aria-hidden="true">↗&#xfe0e;</span></a>
@@ -26,7 +26,7 @@
         <div class="site-shell footer-inner">
             <div><a class="brand footer-brand" href="{{ route('home') }}">{{ __('ui.app_name') }}</a><p>{{ __('public.footer_line') }}</p></div>
             <nav aria-label="{{ __('public.footer_nav') }}">
-                <a href="{{ route('home') }}#viec-lam">{{ __('public.jobs_nav') }}</a>
+                <a href="{{ route('jobs.index') }}">{{ __('public.jobs_nav') }}</a>
                 <a href="{{ route('login') }}">{{ __('public.work_login') }}</a>
             </nav>
         </div>

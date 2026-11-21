@@ -18,4 +18,13 @@ return [
         ['title' => 'Gửi hồ sơ', 'copy' => 'Ứng tuyển trên website khi tìm được vị trí phù hợp, không cần tài khoản ứng viên.'],
     ],
     'footer_line' => 'Thông tin rõ ràng. Cơ hội phù hợp.',
+    'list_title' => 'Cơ hội việc làm', 'list_intro' => 'Tìm hiểu các vị trí đang nhận hồ sơ, mức lương và địa chỉ làm việc cụ thể.',
+    'list_heading' => 'Các vị trí đang tuyển', 'list_total' => ':count vị trí đang nhận hồ sơ', 'all_jobs' => 'Xem tất cả việc làm',
+    'no_jobs_title' => 'Chưa có vị trí đang tuyển', 'no_jobs_copy' => 'Bạn hãy quay lại sau để xem các cơ hội mới được cập nhật.',
+    'page_empty_title' => 'Trang này không còn tin tuyển dụng', 'first_page' => 'Về trang đầu',
+    'salary_negotiable' => 'Lương thỏa thuận', 'salary_unknown' => 'Lương chưa công bố', 'salary_from' => 'Từ :amount ₫', 'salary_to' => 'Đến :amount ₫',
+    'address' => 'Nơi làm việc', 'address_incomplete' => 'Chưa bổ sung địa chỉ chi tiết',
+    'experience' => 'Kinh nghiệm', 'experience_years' => ':years năm', 'no_experience' => 'Không yêu cầu kinh nghiệm',
+    'published_on' => 'Đăng :date', 'expires_on' => 'Nhận hồ sơ đến :date',
+    'pagination' => 'Phân trang việc làm', 'previous' => 'Trang trước', 'next' => 'Trang sau', 'page_count' => 'Trang :current / :last',
 ];
