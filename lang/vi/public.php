@@ -27,4 +27,9 @@ return [
     'experience' => 'Kinh nghiệm', 'experience_years' => ':years năm', 'no_experience' => 'Không yêu cầu kinh nghiệm',
     'published_on' => 'Đăng :date', 'expires_on' => 'Nhận hồ sơ đến :date',
     'pagination' => 'Phân trang việc làm', 'previous' => 'Trang trước', 'next' => 'Trang sau', 'page_count' => 'Trang :current / :last',
+    'filters' => 'Lọc việc làm', 'filter_salary' => 'Lương khởi điểm từ', 'filter_experience' => 'Kinh nghiệm tối đa',
+    'all_locations' => 'Tất cả tỉnh/thành', 'all_categories' => 'Tất cả nhóm vị trí', 'all_salaries' => 'Tất cả mức lương',
+    'all_experience' => 'Không giới hạn', 'all_company_types' => 'Tất cả loại công ty', 'experience_up_to' => 'Tối đa :years năm',
+    'filter_salary_help' => 'Lọc lương chỉ hiện tin công bố mức lương khởi điểm từ số tiền đã chọn; không gồm lương thỏa thuận.',
+    'apply_filters' => 'Áp dụng bộ lọc', 'clear_filters' => 'Xóa bộ lọc', 'invalid_filters' => 'Bộ lọc không hợp lệ',
 ];
