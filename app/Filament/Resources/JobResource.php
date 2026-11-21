@@ -10,7 +10,9 @@ use App\Models\JobCategory;
 use App\Models\Location;
 use App\Models\User;
 use App\Services\ManageJobs;
+use App\Services\SubmitJob;
 use App\Support\JobHtml;
+use App\Support\JobScanSummary;
 use App\Support\VietnamTime;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -31,6 +33,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
 /** @extends resource<Job> */
@@ -90,6 +93,11 @@ class JobResource extends Resource
             TextEntry::make('category.name')->label(__('ui.jobs.category')),
             TextEntry::make('workplace_address')->label(__('ui.jobs.workplace'))
                 ->state(fn (Job $record): ?string => $record->workplaceAddress())->placeholder(__('ui.jobs.address_missing'))->columnSpanFull(),
+            TextEntry::make('scan_summary')->label(__('ui.review.scan_reasons'))->state(fn (Job $record): string => JobScanSummary::for($record))
+                ->visible(fn (Job $record): bool => $record->status === JobStatus::Pending && Gate::allows('reviewAny', Job::class))->columnSpanFull(),
+            TextEntry::make('latestReview.decision')->label(__('ui.review.latest_decision'))
+                ->formatStateUsing(fn (string $state): string => __('ui.review.'.$state))->placeholder('—'),
+            TextEntry::make('latestReview.reason')->label(__('ui.review.reason'))->placeholder('—')->columnSpanFull(),
             TextEntry::make('salary_min')->label(__('ui.jobs.salary_min'))->numeric(decimalPlaces: 0)->suffix(' VND')->placeholder('—'),
             TextEntry::make('salary_max')->label(__('ui.jobs.salary_max'))->numeric(decimalPlaces: 0)->suffix(' VND')->placeholder('—'),
             TextEntry::make('negotiable')->label(__('ui.jobs.negotiable'))->formatStateUsing(fn (bool $state): string => $state ? __('ui.jobs.yes') : __('ui.jobs.no')),
@@ -115,6 +123,7 @@ class JobResource extends Resource
                 ViewAction::make()->label(__('ui.jobs.preview')),
                 EditAction::make(),
                 ActionGroup::make([
+                    self::submissionAction(),
                     Action::make('duplicate')->label(__('ui.jobs.duplicate'))->authorize('replicate')->requiresConfirmation()
                         ->action(function (Job $record): void {
                             try {
@@ -144,7 +153,28 @@ class JobResource extends Resource
     /** @return Builder<Job> */
     public static function getEloquentQuery(): Builder
     {
-        return Job::visibleTo(self::actor())->with(['company', 'category', 'location']);
+        return Job::visibleTo(self::actor())->with(['company', 'category', 'location', 'latestReview']);
+    }
+
+    public static function submissionAction(): Action
+    {
+        return Action::make('submit')->label(__('ui.review.submit'))->authorize('submit')->requiresConfirmation()
+            ->schema([DateTimePicker::make('expires_at')->label(__('ui.jobs.expires_at'))->required()->rules(['after:now'])
+                ->timezone(config('app.display_timezone'))->seconds(false)->default(fn (Job $record) => $record->expires_at)])
+            ->action(function (Job $record, array $data): void {
+                try {
+                    $result = app(SubmitJob::class)->submit(self::actor(), $record, $data);
+                    $record->refresh();
+                } catch (ValidationException $exception) {
+                    if (array_intersect(array_keys($exception->errors()), ['ward_name', 'work_address']) === []) {
+                        throw $exception;
+                    }
+                    Notification::make()->warning()->title(__('ui.jobs.address_missing'))->body(__('ui.review.complete_address'))->send();
+
+                    return;
+                }
+                Notification::make()->success()->title(__($result->status === JobStatus::Pending ? 'ui.review.submitted_pending' : 'ui.review.submitted_published'))->send();
+            });
     }
 
     public static function getPages(): array

@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -30,7 +31,7 @@ use Illuminate\Validation\ValidationException;
  * @property array $content_scan_reasons
  */
 #[Fillable(['company_id', 'category_id', 'location_id', 'ward_name', 'work_address', 'title', 'description', 'requirements', 'benefits', 'salary_min', 'salary_max', 'negotiable', 'experience_years', 'vacancies', 'employment_type', 'expires_at'])]
-#[Hidden(['content_scan_reasons', 'content_scanned_at'])]
+#[Hidden(['content_scan_reasons', 'content_scanned_at', 'latestReview'])]
 class Job extends Model
 {
     use SoftDeletes;
@@ -120,6 +121,12 @@ class Job extends Model
         }
 
         return implode(', ', [$this->work_address, $this->ward_name, $this->location->name]);
+    }
+
+    /** @return HasOne<JobReview, $this> */
+    public function latestReview(): HasOne
+    {
+        return $this->hasOne(JobReview::class)->latestOfMany();
     }
 
     /** @param Builder<static> $query

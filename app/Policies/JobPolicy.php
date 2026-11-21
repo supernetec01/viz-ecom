@@ -43,6 +43,18 @@ class JobPolicy
         return $this->update($user, $job);
     }
 
+    public function reviewAny(User $user): Response
+    {
+        $actor = $user->fresh();
+
+        return $this->decision($actor && $actor->status === UserStatus::Active && $actor->role === Role::Admin);
+    }
+
+    public function review(User $user, Job $job): Response
+    {
+        return $this->decision($this->reviewAny($user)->allowed() && $job->fresh()?->status === JobStatus::Pending);
+    }
+
     public function pause(User $user, Job $job): Response
     {
         return $this->inStates($user, $job, [JobStatus::Published]);

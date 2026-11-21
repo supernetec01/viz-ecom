@@ -38,3 +38,13 @@ function publishManagedJob(Job $job): Job
 
     return $job;
 }
+
+function heldReviewJob(User $staff): Job
+{
+    $job = managedJob($staff);
+    $job->update(['description' => 'Liên hệ Zalo', 'expires_at' => now()->addDays(7)]);
+
+    $job->transitionTo(JobStatus::Pending);
+
+    return $job;
+}

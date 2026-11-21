@@ -27,6 +27,7 @@ class AppPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
         return $panel->default()->id('app')->path('app')->login([AuthController::class, 'login'])->profile()->databaseTransactions()
+            ->databaseNotifications()->databaseNotificationsPollingInterval('30s')
             ->userMenuItems(['security' => Action::make('security')->label(__('ui.security'))->url(fn () => route('security'))])
             ->defaultAvatarProvider(LocalAvatarProvider::class)
             ->renderHook(PanelsRenderHook::SCRIPTS_AFTER, fn () => view('filament.livewire-scripts'))

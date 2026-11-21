@@ -179,6 +179,9 @@ it('enforces unique slugs foreign keys valid states and dates in PostgreSQL', fu
 })->with([[['slug' => 'existing']], [['status' => 'unknown']], [['status' => 'published']], [['company_id' => 999999]], [['published_at' => '2026-11-20 10:00:00+00', 'expires_at' => '2026-11-20 09:00:00+00']]])->throws(QueryException::class);
 
 it('preserves queue rows through migration up and down and keeps database queue usable', function () {
+    // Roll back the later child table first, matching the real migrator's reverse order.
+    $reviews = require database_path('migrations/2026_11_21_000011_create_job_reviews_and_notifications.php');
+    $reviews->down();
     $migration = require database_path('migrations/2026_11_20_000007_create_recruitment_jobs.php');
     $migration->down();
     DB::table('jobs')->insert(['queue' => 'default', 'payload' => 'existing-payload', 'attempts' => 0, 'available_at' => time(), 'created_at' => time()]);
@@ -190,4 +193,5 @@ it('preserves queue rows through migration up and down and keeps database queue 
     $migration->down();
     expect(DB::table('jobs')->count())->toBe(2);
     $migration->up();
+    $reviews->up();
 });
