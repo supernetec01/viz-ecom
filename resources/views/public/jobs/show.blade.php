@@ -1,4 +1,4 @@
-<x-public-layout :title="$job->title" :noindex="! $accepting">
+<x-public-layout :title="$job->title" :noindex="! $accepting" :description="\App\Support\PublicSeo::jobDescription($job, $state)" :structured-data="\App\Support\PublicSeo::jobPosting($job)">
     <section class="detail-intro">
         <div class="site-shell">
             <a class="detail-back" href="{{ route('jobs.index') }}">← {{ __('public.back_to_jobs') }}</a>

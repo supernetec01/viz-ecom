@@ -1,4 +1,4 @@
-<x-public-layout :title="__('public.list_title')">
+<x-public-layout :title="__('public.list_title')" :description="__('public.list_intro')" :canonical="\App\Support\PublicSeo::url('jobs.index', $filters + ($jobs->currentPage() > 1 ? ['page' => $jobs->currentPage()] : []))">
     <section class="listing-intro">
         <div class="site-shell">
             <p class="eyebrow">{{ __('public.opportunities') }}</p>

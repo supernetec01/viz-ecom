@@ -1,4 +1,4 @@
-<x-public-layout :title="$company->name">
+<x-public-layout :title="$company->name" :description="\App\Support\PublicSeo::text($company->name.' · '.$company->address.' · '.$company->introduction)" :canonical="\App\Support\PublicSeo::url('companies.show', ['id' => $company->id] + ($jobs->currentPage() > 1 ? ['page' => $jobs->currentPage()] : []))">
     <section class="listing-intro company-intro"><div class="site-shell">
         <p class="eyebrow">{{ __('public.company_profile') }}</p>
         <h1>{{ $company->name }}</h1>

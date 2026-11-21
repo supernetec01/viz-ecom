@@ -4,6 +4,16 @@ Website tuyển dụng theo thiết kế trong [docs/thiet-ke.md](docs/thiet-ke.
 
 **Trước khi chạy thực tế:** xem [checklist chuyển từ demo sang production](docs/trien-khai-thuc-te.md). Email local hiện chỉ ghi log; tài khoản mẫu, URL localhost và các chức năng chưa triển khai không được coi là đã sẵn sàng chạy thật. Mỗi task có phần giả lập hoặc cấu hình chỉ dùng local cần cập nhật checklist này, kèm cách kiểm tra trên môi trường thật.
 
+## Trang công ty và SEO (T19–T20)
+
+Tên công ty trên trang tin dẫn tới `/cong-ty/{id}`: giới thiệu, ngành hàng/sản phẩm, kênh bán hàng/video và tin còn nhận hồ sơ. Chỉ công ty đã xác minh/chưa xóa có trang công khai; link ngoài mở tab mới an toàn.
+
+Meta/canonical/Open Graph có sẵn trong HTML, ảnh thương hiệu tại `/images/social-card.png` (1200×630); PNG đã commit nên Linux/CI không cần công cụ sinh ảnh. Nếu đổi thiết kế, có thể tái tạo trên Windows bằng `scripts/generate-social-card.ps1`. `/sitemap.xml` là index, chia tối đa 1.000 URL/file; robots.txt động dẫn tới đó. Tin trong sitemap chỉ published còn hạn của công ty đã xác minh. Đặt `APP_URL` đúng tên miền HTTPS chính thức; URL SEO lấy từ cấu hình.
+
+**JobPosting mặc định tắt** (`SEO_JOB_POSTING_ENABLED=false`): form/luồng ứng tuyển T22–T24 chưa có. Chỉ bật sau khi nhận hồ sơ hoạt động thật, rồi cập nhật cache cấu hình. Kể cả bật, chỉ tin qua `canReceiveApplications()` và có địa chỉ đầy đủ mới xuất JSON-LD; không xuất ở danh sách/công ty hoặc tin không nhận. JSON thoát ký tự và có nonce CSP, không nới script-src. Không đoán kỳ tính lương/mã bưu chính: `baseSalary`/`postalCode` tùy chọn được bỏ qua.
+
+Google Rich Results đã kiểm tra mã mẫu: 1 JobPosting hợp lệ, 2 cảnh báo tùy chọn trên. Chưa chứng minh Google crawl/index tên miền thật hoặc Zalo tải preview từ localhost. Kiểm tra HTTPS, ảnh/OG trên thiết bị khác và dán link vào Zalo nằm trong [checklist triển khai](docs/trien-khai-thuc-te.md), xem [báo cáo T20](docs/bao-cao-t20.md). Không cần API Zalo.
+
 ## Yêu cầu
 
 - PHP 8.4 với các extension chuẩn Laravel, `pdo_pgsql`, `pgsql`, `mbstring`, `intl`, `fileinfo`, `curl`, `openssl`, `zip` và XML/DOM.
@@ -18,7 +28,7 @@ PHP 8.4 được chọn để chạy Pest 5. Phiên bản dependencies cụ th�
 ```sh
 git clone https://github.com/supernetec01/viz-ecom.git
 cd viz-ecom
-git switch codex/t18-public-job-detail
+git switch codex/t20-public-seo
 composer install
 npm ci
 npm run build
