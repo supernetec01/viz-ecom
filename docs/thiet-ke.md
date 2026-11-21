@@ -84,6 +84,8 @@ applications: id (ULID công khai), job_id, company_id (lưu thêm để lọc n
 
 files: id, đường dẫn lưu, tên gốc, MIME đã kiểm tra, dung lượng, mã băm SHA-256, trạng thái quét (pending, clean, infected), đường dẫn bản PDF xem trước.
 
+Ánh xạ schema T22: applications dùng id ULID, full_name, phone_normalized (dạng 0 + 9 chữ số), consent_given/consented_at, source, submitted_at và internal_notes. Unique theo job_id/phone_normalized khi deleted_at null. FK ghép job_id/company_id chống ghi nhầm công ty; xóa mềm tin/công ty không cascade hồ sơ. Files chỉ là metadata ở T22; MIME thật, UUID và lưu ngoài web root do T23 kiểm tra/thực hiện, không có luồng upload/download trong T22.
+
 access_grants: id, company_id, job_id (bắt buộc, phạm vi theo tin), starts_at, ends_at, trạng thái (active, revoked), order_id, cấp bởi (user), ghi chú. Luôn áp dụng cho hồ sơ nộp trước ngày mua. Chưa triển khai quyền theo công ty hoặc theo lượt xem.
 
 orders: id, company_id, loại (quyền xem hồ sơ hoặc gói đẩy tin), số tiền, trạng thái (pending, paid, cancelled), phương thức, mã giao dịch, người xác nhận, thời điểm xác nhận.
