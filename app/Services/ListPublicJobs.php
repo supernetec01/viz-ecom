@@ -10,9 +10,12 @@ class ListPublicJobs
     public const PER_PAGE = 12;
 
     /** @return LengthAwarePaginator<int, Job> */
-    public function paginate(array $filters = []): LengthAwarePaginator
+    public function paginate(array $filters = [], ?int $companyId = null): LengthAwarePaginator
     {
         $query = Job::publiclyVisible();
+        if ($companyId !== null) {
+            $query->where('company_id', $companyId);
+        }
         if (isset($filters['q']) && $filters['q'] !== '') {
             // Wildcards are literal user text, never a way to expand the result set.
             $pattern = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $filters['q']).'%';
