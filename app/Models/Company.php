@@ -6,6 +6,7 @@ use App\Enums\CompanyType;
 use App\Enums\Role;
 use App\Enums\UserStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -14,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /** @property CompanyType $type */
 #[Fillable(['name', 'type', 'tax_code', 'address', 'logo_path', 'introduction', 'industry', 'products'])]
+#[Hidden(['search_text'])]
 class Company extends Model
 {
     use SoftDeletes;

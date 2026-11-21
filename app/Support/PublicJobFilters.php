@@ -16,12 +16,14 @@ class PublicJobFilters
     public static function validator(array $input): ValidatorContract
     {
         return Validator::make($input, [
+            'q' => ['nullable', 'string', 'max:200', 'regex:/^[^\x00]*$/u'],
             'dia_diem' => ['nullable', 'integer', Rule::exists('locations', 'id')->whereNull('parent_id')],
             'vi_tri' => ['nullable', 'integer', 'exists:job_categories,id'],
             'luong_tu' => ['nullable', 'integer', Rule::in(self::SALARIES)],
             'kinh_nghiem' => ['nullable', 'integer', Rule::in(self::EXPERIENCE)],
             'loai_cong_ty' => ['nullable', 'string', Rule::enum(CompanyType::class)],
         ], [], [
+            'q' => __('public.search'),
             'dia_diem' => __('ui.jobs.location'), 'vi_tri' => __('ui.jobs.category'),
             'luong_tu' => __('public.filter_salary'), 'kinh_nghiem' => __('public.filter_experience'),
             'loai_cong_ty' => __('ui.companies.type'),
@@ -30,6 +32,11 @@ class PublicJobFilters
 
     public static function normalized(array $validated): array
     {
+        if (is_string($validated['q'] ?? null)) {
+            $text = \Normalizer::normalize($validated['q'], \Normalizer::FORM_KC) ?: $validated['q'];
+            $validated['q'] = trim(preg_replace('/\s+/u', ' ', $text) ?? $text);
+        }
+
         return array_filter($validated, fn ($value): bool => $value !== null && $value !== '');
     }
 }

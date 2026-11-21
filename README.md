@@ -18,7 +18,7 @@ PHP 8.4 được chọn để chạy Pest 5. Phiên bản dependencies cụ th�
 ```sh
 git clone https://github.com/supernetec01/viz-ecom.git
 cd viz-ecom
-git switch codex/t16-job-filters
+git switch codex/t17-accent-search
 composer install
 npm ci
 npm run build
@@ -53,7 +53,9 @@ php artisan serve
 
 Mở `http://localhost:8000`; health endpoint là `/up`. `migrate:fresh` xóa toàn bộ bảng trong database đang cấu hình: chỉ dùng trên database phát triển/test.
 
-Mở `http://localhost:8000/viec-lam` để kiểm tra T15. Nếu hiện “Chưa có vị trí đang tuyển”, kiểm tra tin trong `/app/tin-tuyen-dung`: phải được Gửi đăng/duyệt thành published, còn hạn và thuộc công ty đã xác minh. Draft, pending, paused, closed, expired và tin vừa hết hạn đều bị loại ngay trong truy vấn, không chờ lịch T42. T16 đã có bộ lọc GET; tìm kiếm không dấu thuộc T17, link chi tiết (T18) hoặc form ứng tuyển. Thẻ tin hiện đọc trực tiếp trên danh sách, không có nút dẫn tới chức năng chưa xây. Xem [báo cáo T15](docs/bao-cao-t15.md).
+Mở `http://localhost:8000/viec-lam` để kiểm tra danh sách, bộ lọc GET T16 và tìm kiếm không dấu T17. Nếu hiện “Chưa có vị trí đang tuyển”, kiểm tra tin trong `/app/tin-tuyen-dung`: phải được Gửi đăng/duyệt thành published, còn hạn và thuộc công ty đã xác minh. Draft, pending, paused, closed, expired và tin vừa hết hạn đều bị loại ngay trong truy vấn, không chờ lịch T42. Thẻ tin hiện đọc trực tiếp trên danh sách, chưa có link chi tiết T18 hoặc form ứng tuyển. Xem báo cáo [T15](docs/bao-cao-t15.md), [T16](docs/bao-cao-t16.md), [T17](docs/bao-cao-t17.md).
+
+T17: nhập `ke toan` để tìm tiêu đề “kế toán”, `Nguyen` để tìm tên công ty “Nguyễn”. Từ khóa tối đa 200 ký tự, tìm cả cụm từ trong tiêu đề hoặc tên công ty; bộ lọc cùng URL được giữ khi phân trang/Back. Khi nâng cấp chạy `php artisan migrate` trước mã mới: migration thêm unaccent/pg_trgm, cột tìm kiếm chuẩn hóa, trigger và GIN index. PostgreSQL cần UTF-8 và module tương ứng; role migration cần CREATE trên database hoặc DBA cài extension trước vào public. Nội dung gốc không bị đổi. Không dùng `migrate:fresh` cho DB đang sử dụng.
 
 Từ T02, seeder tạo ba tài khoản local/testing: `admin@viz-ecom.test`, `staff@viz-ecom.test`, `employer@viz-ecom.test`. Điền `SEED_SAMPLE_PASSWORD` trong `.env` trước lần seed đầu để tự chọn mật khẩu mẫu (khuyến nghị ít nhất 12 ký tự); để trống thì mật khẩu ngẫu nhiên không được in ra log. Seed lại không đổi mật khẩu hoặc tạo trùng tài khoản. Không tạo tài khoản mẫu ở production.
 

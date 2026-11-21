@@ -13,6 +13,14 @@ class ListPublicJobs
     public function paginate(array $filters = []): LengthAwarePaginator
     {
         $query = Job::publiclyVisible();
+        if (isset($filters['q']) && $filters['q'] !== '') {
+            // Wildcards are literal user text, never a way to expand the result set.
+            $pattern = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $filters['q']).'%';
+            $query->where(function ($matches) use ($pattern): void {
+                $matches->whereRaw("jobs.search_text LIKE public.viz_search_normalize(?) ESCAPE '!'", [$pattern])
+                    ->orWhereHas('company', fn ($company) => $company->whereRaw("companies.search_text LIKE public.viz_search_normalize(?) ESCAPE '!'", [$pattern]));
+            });
+        }
         foreach (['dia_diem' => 'location_id', 'vi_tri' => 'category_id'] as $key => $column) {
             if (isset($filters[$key])) {
                 $query->where($column, $filters[$key]);
