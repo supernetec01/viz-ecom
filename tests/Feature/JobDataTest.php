@@ -26,6 +26,7 @@ function recruitmentJobData(): array
         'company_id' => $company->id,
         'category_id' => JobCategory::create(['name' => 'Sales', 'slug' => 'sales'])->id,
         'location_id' => Location::create(['name' => 'Hà Nội', 'code' => '01'])->id,
+        'ward_name' => 'Phường thử nghiệm', 'work_address' => 'Số 12, đường thử nghiệm',
         'title' => 'Nhân viên kinh doanh', 'description' => 'Mô tả', 'requirements' => 'Yêu cầu', 'benefits' => 'Quyền lợi',
         'salary_min' => 10000000, 'salary_max' => 20000000, 'negotiable' => false,
         'experience_years' => 1, 'vacancies' => 2, 'employment_type' => 'full_time', 'created_by' => $creator->id,

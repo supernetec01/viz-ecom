@@ -22,6 +22,7 @@ function managedJob(User $staff): Job
         'company_id' => $company->id,
         'category_id' => JobCategory::firstOrCreate(['slug' => 'sales'], ['name' => 'Sales'])->id,
         'location_id' => Location::firstOrCreate(['code' => '01'], ['name' => 'Hà Nội'])->id,
+        'ward_name' => 'Phường thử nghiệm', 'work_address' => 'Số 12, đường thử nghiệm',
         'title' => 'Nhân viên kinh doanh', 'description' => '<p>Mô tả</p>', 'requirements' => '<p>Yêu cầu</p>', 'benefits' => '<p>Quyền lợi</p>',
     ]);
     $job->created_by = $staff->id;

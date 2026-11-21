@@ -29,7 +29,7 @@ use Illuminate\Validation\ValidationException;
  * @property CarbonImmutable|null $content_scanned_at
  * @property array $content_scan_reasons
  */
-#[Fillable(['company_id', 'category_id', 'location_id', 'title', 'description', 'requirements', 'benefits', 'salary_min', 'salary_max', 'negotiable', 'experience_years', 'vacancies', 'employment_type', 'expires_at'])]
+#[Fillable(['company_id', 'category_id', 'location_id', 'ward_name', 'work_address', 'title', 'description', 'requirements', 'benefits', 'salary_min', 'salary_max', 'negotiable', 'experience_years', 'vacancies', 'employment_type', 'expires_at'])]
 #[Hidden(['content_scan_reasons', 'content_scanned_at'])]
 class Job extends Model
 {
@@ -55,12 +55,13 @@ class Job extends Model
                 }
             }
             $originalStatus = $job->getRawOriginal('status');
-            $contentChanged = $job->isDirty(['company_id', 'category_id', 'location_id', 'title', 'description', 'requirements', 'benefits', 'salary_min', 'salary_max', 'negotiable', 'experience_years', 'vacancies', 'employment_type']);
+            $contentChanged = $job->isDirty(['company_id', 'category_id', 'location_id', 'ward_name', 'work_address', 'title', 'description', 'requirements', 'benefits', 'salary_min', 'salary_max', 'negotiable', 'experience_years', 'vacancies', 'employment_type']);
             $datesChanged = in_array($originalStatus, ['published', 'paused'], true) && $job->isDirty(['published_at', 'expires_at']);
             if ($job->exists && $originalStatus !== JobStatus::Draft->value && ($contentChanged || $datesChanged)) {
                 throw ValidationException::withMessages(['status' => __('ui.jobs.edit_draft_only')]);
             }
-            JobData::validate($job->getAttributes());
+            $validated = JobData::validate($job->getAttributes(), ! $job->exists || $originalStatus === JobStatus::Draft->value);
+            $job->fill(array_intersect_key($validated, array_flip(['ward_name', 'work_address'])));
             $previous = $job->exists ? JobStatus::from($job->getRawOriginal('status')) : JobStatus::Draft;
             if ((! $job->exists && $job->status !== JobStatus::Draft) || ($job->exists && $job->isDirty('status') && ! $previous->canTransitionTo($job->status))) {
                 throw ValidationException::withMessages(['status' => __('ui.jobs.invalid_transition')]);
@@ -110,6 +111,15 @@ class Job extends Model
     {
         $this->status = $status;
         $this->save();
+    }
+
+    public function workplaceAddress(): ?string
+    {
+        if (blank($this->ward_name) || blank($this->work_address)) {
+            return null;
+        }
+
+        return implode(', ', [$this->work_address, $this->ward_name, $this->location->name]);
     }
 
     /** @param Builder<static> $query
