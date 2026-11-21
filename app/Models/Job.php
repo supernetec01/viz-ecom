@@ -123,6 +123,15 @@ class Job extends Model
         return implode(', ', [$this->work_address, $this->ward_name, $this->location->name]);
     }
 
+    public function canReceiveApplications(): bool
+    {
+        $now = CarbonImmutable::now();
+
+        return ! $this->trashed() && $this->status === JobStatus::Published
+            && $this->published_at !== null && $this->published_at->lte($now)
+            && $this->expires_at !== null && $this->expires_at->gt($now);
+    }
+
     /** @return HasOne<JobReview, $this> */
     public function latestReview(): HasOne
     {
@@ -147,10 +156,18 @@ class Job extends Model
      */
     public function scopePubliclyVisible(Builder $query): Builder
     {
-        $now = CarbonImmutable::now();
+        return $query->publiclyViewable()->where('status', JobStatus::Published)->where('expires_at', '>', CarbonImmutable::now());
+    }
 
-        return $query->where('status', JobStatus::Published)->where('published_at', '<=', $now)
-            ->where('expires_at', '>', $now)
+    /** @param Builder<static> $query
+     * @return Builder<static>
+     */
+    public function scopePubliclyViewable(Builder $query): Builder
+    {
+        // T43 adds its removal flag here, shared by detail, list, and future submission lookup.
+        // Historical pages must have actually been published, even when their state is now closed/expired.
+        return $query->whereIn('status', [JobStatus::Published, JobStatus::Paused, JobStatus::Expired, JobStatus::Closed])
+            ->where('published_at', '<=', CarbonImmutable::now())
             ->whereHas('company', fn (Builder $company) => $company->whereNotNull('verified_at')->whereNotNull('verified_by'));
     }
 

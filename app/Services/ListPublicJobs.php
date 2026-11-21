@@ -38,7 +38,7 @@ class ListPublicJobs
 
         // A public projection: do not fetch reviewer, creator, contact content or scan metadata.
         return $query->select([
-            'id', 'title', 'company_id', 'category_id', 'location_id', 'ward_name', 'work_address',
+            'id', 'slug', 'title', 'company_id', 'category_id', 'location_id', 'ward_name', 'work_address',
             'salary_min', 'salary_max', 'negotiable', 'experience_years', 'vacancies', 'employment_type', 'published_at', 'expires_at',
         ])->with(['company:id,name,type', 'category:id,name', 'location:id,name'])
             ->orderByDesc('published_at')->orderByDesc('id')->paginate(self::PER_PAGE)->appends($filters);

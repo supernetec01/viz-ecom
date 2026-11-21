@@ -1,10 +1,11 @@
-@props(['title' => null])
+@props(['title' => null, 'noindex' => false])
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ? $title.' — '.__('ui.app_name') : __('public.home_title').' — '.__('ui.app_name') }}</title>
+    @if ($noindex)<meta name="robots" content="noindex, follow">@endif
     @vite('resources/css/app.css')
 </head>
 <body class="public-site">

@@ -21,7 +21,7 @@
                     <li>
                         <article class="job-card" aria-labelledby="job-{{ $job->id }}" data-job-id="{{ $job->id }}">
                             <div class="job-card-top"><span class="category-tag">{{ $job->category->name }}</span><span class="job-date">{{ __('public.published_on', ['date' => $job->published_at->setTimezone(config('app.display_timezone'))->format('d/m/Y')]) }}</span></div>
-                            <h3 id="job-{{ $job->id }}">{{ $job->title }}</h3>
+                            <h3 id="job-{{ $job->id }}"><a class="job-title-link" href="{{ route('jobs.show', ['slug' => $job->slug, 'id' => $job->id]) }}">{{ $job->title }}</a></h3>
                             <p class="job-company">{{ $job->company->name }}</p>
                             <p class="job-company-type">{{ __('ui.companies.types.'.$job->company->type->value) }}</p>
                             <p class="job-salary">{{ \App\Support\JobPresentation::salary($job) }}</p>

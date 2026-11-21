@@ -128,6 +128,21 @@ Quyết định paused ngày 21/11/2026:
 
 Laravel database queue dùng bảng queue_jobs, tách khỏi bảng jobs nghiệp vụ; migration mới đổi tên và giữ dữ liệu hàng đợi cũ.
 
+### 3.4. Trang chi tiết công khai và nhận hồ sơ — quyết định T18 ngày 21/11/2026
+
+| Trạng thái | HTTP và nội dung trang chi tiết |
+| --- | --- |
+| published còn hạn, đã tới ngày đăng | 200, đầy đủ nội dung và địa chỉ làm việc; đủ điều kiện nhận hồ sơ |
+| paused | 200, đầy đủ nội dung kèm thông báo tạm dừng, không nhận hồ sơ, gợi ý tin tương tự |
+| expired hoặc published/paused đã tới hạn theo đồng hồ | 200, đầy đủ nội dung kèm thông báo hết hạn, không nhận hồ sơ, gợi ý tin tương tự |
+| closed | 200, chỉ tiêu đề, tên công ty dạng chữ, địa điểm, thông báo “Tin đã đóng, không nhận hồ sơ” và gợi ý tối thiểu; không mô tả/yêu cầu/quyền lợi/lương |
+| draft, pending, không tồn tại, xóa mềm, công ty không còn xác minh hoặc chưa tới ngày đăng | 404, không lộ nội dung hoặc redirect tới slug thật |
+| bị gỡ vì vi phạm (cờ riêng T43) | 404, không lộ nội dung; chưa tạo cờ trong T18 |
+
+Mọi trang không còn nhận hồ sơ có noindex, không JobPosting và không vào sitemap. T20 dùng scope công khai cho sitemap và hàm nhận hồ sơ cho JobPosting. Chi tiết dùng Cache-Control no-store để không giữ nội dung cũ sau đổi trạng thái. Slug cũ chỉ 301 sau kiểm tra công khai; slug vẫn giữ nguyên khi sửa tiêu đề theo T10, 301 áp dụng khi slug lưu thật sự đổi.
+
+`Job::canReceiveApplications()` là hàm chung duy nhất: published, đã tới ngày đăng, chưa tới thời điểm hết hạn và chưa xóa mềm. T18 dùng hàm cho khu vực ứng tuyển/thông báo khóa; unit test mọi trạng thái và ngày biên. T18 không tạo POST/form/lưu hồ sơ/file hoặc route tạm. T24 đọc lại tin qua scope công khai, gọi đúng hàm và test POST trực tiếp bị từ chối cho paused/expired/closed. T19 mới tạo trang công ty và gắn link từ view con tên công ty ở mọi trạng thái được hiển thị. Các điểm tích hợp ở `docs/CODEMAP.md`.
+
 ## 4. Luồng xử lý
 
 ### 4.1. Nhân viên tạo công ty và đăng tin
@@ -554,8 +569,8 @@ Cổng kiểm 1: nhân viên tạo công ty, tạo tài khoản công ty, đăng
 | T15 | Danh sách tin: chỉ lấy tin published và chưa hết hạn, phân trang, thứ tự ổn định (thêm id vào cuối quy tắc sắp xếp) | Test: không lặp và không sót tin giữa các trang khi có tin cùng ngày đăng. Tin draft, pending, expired không xuất hiện |
 | T16 | Bộ lọc: địa điểm, vị trí, mức lương, kinh nghiệm, loại công ty. Tất cả là tham số trên URL (GET) | Test từng bộ lọc và kết hợp nhiều bộ lọc. Mở lại URL đã lưu ra đúng kết quả. Bấm quay lại giữ nguyên bộ lọc và trang |
 | T17 | Tìm kiếm không dấu: bật unaccent và pg_trgm, thêm chỉ mục | Test: tìm ke toan ra kế toán, tìm Nguyen ra Nguyễn. Chuỗi rỗng, ký tự đặc biệt, chuỗi rất dài không gây lỗi |
-| T18 | Trang chi tiết tin: URL gồm slug và id, chuyển hướng 301 khi slug đổi, tin hết hạn vẫn mở được và hiện thông báo kèm gợi ý tin tương tự | Test 301. Tin hết hạn trả 200 kèm thông báo, tin không tồn tại trả 404. Tin draft công khai trả 404 |
-| T19 | Trang công ty: giới thiệu, ngành hàng, link các kênh bán hàng và video, tin đang tuyển | Link mở tab mới với rel an toàn. Công ty chưa xác minh không có trang công khai |
+| T18 | Chi tiết slug-id, 301 khi slug đổi; hiển thị theo mục 3.4, closed chỉ tối thiểu; hàm chung canReceiveApplications và CODEMAP. Không POST/form/route công ty tạm | Mỗi trạng thái một test HTTP/nội dung; 301; closed không có mô tả/yêu cầu/quyền lợi/lương trong HTML; noindex khi không nhận; unit test hàm chung đủ 6 trạng thái và ngày hết hạn biên |
+| T19 | Trang công ty: giới thiệu, ngành hàng, kênh bán hàng/video, tin đang tuyển; gắn link tên công ty trong view con T18 cho published/paused/expired/closed | Link kênh mở tab mới với rel an toàn. Công ty chưa xác minh không có trang công khai. T18 chỉ có tên dạng chữ, không route công ty tạm |
 | T20 | SEO: thẻ meta, Open Graph (tiêu đề, lương, địa điểm), dữ liệu JobPosting, sitemap tự cập nhật | Test sitemap chỉ có tin đang đăng. Kiểm tra dữ liệu JobPosting bằng công cụ kiểm tra của Google. Xem thử khi dán link vào Zalo |
 | T21 | Chia sẻ và ghi nguồn: tham số ?nguon= được lưu lại vào phiên để gắn vào hồ sơ ở T24 | Test: nguồn chỉ nhận chuỗi ngắn, an toàn. Nguồn không làm đổi nội dung trang |
 
@@ -567,7 +582,7 @@ Cổng kiểm 2: mở link tin trên điện thoại thật từ Zalo, lọc, b�
 | --- | --- | --- |
 | T22 | Migration files và applications: ULID công khai, company_id lưu kèm, cờ đồng ý, nguồn, xóa mềm. Ràng buộc duy nhất theo (tin, SĐT đã chuẩn hóa) | Test ràng buộc ở database. Xóa mềm tin hoặc công ty không làm mất hồ sơ |
 | T23 ⚠ | Dịch vụ lưu file: kiểm tra loại thật bằng nội dung, giới hạn 10 MB, đổi tên thành UUID, lưu ngoài thư mục web, theo cấu trúc cv/công-ty/vị-trí/hồ-sơ, tính mã băm SHA-256 | Test: PDF đúng được nhận. File .exe đổi thành .pdf bị từ chối. File 10 MB cộng 1 byte bị từ chối. Không có đường dẫn nào truy cập file trực tiếp từ internet |
-| T24 ⚠ | Form ứng tuyển: họ tên, SĐT, email (tùy chọn), CV, portfolio, ô đồng ý xử lý dữ liệu, captcha. Chuẩn hóa SĐT (0912345678, +84912345678 và 84 912 345 678 là một). Mã chống gửi lặp | Test: thiếu trường bắt buộc, SĐT sai, nộp trùng cùng tin, bấm gửi hai lần liên tiếp, không tích đồng ý. Dữ liệu đã nhập được giữ lại khi có lỗi |
+| T24 ⚠ | Form ứng tuyển: họ tên, SĐT, email (tùy chọn), CV, portfolio, ô đồng ý xử lý dữ liệu, captcha. Chuẩn hóa SĐT (0912345678, +84912345678 và 84 912 345 678 là một). Mã chống gửi lặp. Trước lưu gọi đúng Job::canReceiveApplications T18 trên bản ghi đọc lại qua scope công khai | Test: thiếu trường bắt buộc, SĐT sai, nộp trùng cùng tin, bấm gửi hai lần liên tiếp, không tích đồng ý. POST trực tiếp vào paused/expired/closed bị từ chối ở server, mỗi trạng thái một test. Dữ liệu đã nhập được giữ lại khi có lỗi |
 | T25 | Portfolio: nhận link hoặc file dưới 10 MB (PDF, JPG, PNG) | Test: chặn javascript: và link không phải http, https. Link không bao giờ được server tự mở. Cho phép bỏ trống |
 | T26 ⚠ | Giao dịch cho việc nộp hồ sơ: lưu applications và files cùng lúc, lỗi thì hoàn tác và xóa file. Lệnh dọn file tạm và file mồ côi | Test: giả lập lỗi ở bước lưu database thì không còn file thừa. Lệnh dọn không xóa file của hồ sơ hợp lệ |
 | T27 ⚠ | Công việc nền: quét virus bằng ClamAV, đổi DOC/DOCX sang PDF xem trước, cập nhật trạng thái file (pending, clean, infected) | Test dùng bộ quét giả. File nhiễm bị khóa, không cho xem hay tải. Lỗi quét thì thử lại tối đa 3 lần rồi đánh dấu cần xem tay. Ứng viên không phải chờ bước này |
@@ -607,7 +622,7 @@ Cổng kiểm 5: chạy trọn vòng: công ty yêu cầu, admin xác nhận, c�
 
 | Mã | Việc cần làm | Tiêu chí hoàn thành và test bắt buộc |
 | --- | --- | --- |
-| T43 | Nút "Báo cáo tin" cho ứng viên và màn hình xử lý của admin | Test: giới hạn số báo cáo từ cùng một người, có captcha. Admin gỡ tin từ báo cáo được |
+| T43 | Nút "Báo cáo tin" cho ứng viên và màn hình xử lý của admin. Tin gỡ vi phạm dùng cờ riêng, thêm vào scope công khai chung ở CODEMAP; không dùng closed thay thế | Test: giới hạn số báo cáo từ cùng một người, có captcha. Admin gỡ tin được; chi tiết tin gỡ trả 404 không lộ nội dung, không ở danh sách/gợi ý/sitemap |
 | T44 | Nút "Sao chép nội dung đăng Zalo" trong trang quản trị, kèm link có ?nguon= | Nội dung có vị trí, lương, địa điểm, link. Test link đúng và có tham số nguồn |
 | T45 | Trang thống kê cho admin: lượt xem tin, số hồ sơ, doanh thu, nguồn ứng viên | Số liệu khớp với dữ liệu mẫu trong test. Truy vấn không chạy chậm với dữ liệu lớn (kiểm tra bằng 10.000 dòng) |
 | T46 ⚠ | Admin xóa thủ công cho trường hợp pháp lý hợp lệ, xóa thông tin cá nhân và file, ghi nhật ký; không có chức năng ứng viên tự xóa | Test: sau xóa không còn thông tin cá nhân hoặc file; chỉ giữ thống kê không định danh. Nhà tuyển dụng không còn thấy hồ sơ |
