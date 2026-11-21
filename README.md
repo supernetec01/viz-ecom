@@ -16,7 +16,7 @@ PHP 8.4 được chọn để chạy Pest 5. Phiên bản dependencies cụ th�
 ```sh
 git clone https://github.com/supernetec01/viz-ecom.git
 cd viz-ecom
-git switch task/t11-job-management
+git switch task/t12-content-screening
 composer install
 ```
 
@@ -73,6 +73,10 @@ Người dùng duyệt ngoại lệ ngày 21/11/2026 vì phiên bản Filament h
 
 T33 trở đi phải gắn middleware `csp.private-file` cho **mọi** endpoint xem/tải CV và portfolio, kể cả endpoint nằm dưới `/app`; kiểm tra lại quyền và audit vẫn bắt buộc. Hiện mới có profile CSP và test header, chưa tạo endpoint CV. Khi có luồng PDF/xem/tải thật phải kiểm tra chức năng với sandbox; mọi điều chỉnh policy phải kèm test và giữ nguyên việc chặn script.
 
+T11 đã được kiểm tra thao tác thật sau sửa CSP: mở menu, tạo/sửa/xem trước/nhân bản và tạm dừng. T12 cung cấp backend `SubmitJob`: kiểm tra quyền, quét tin draft rồi chuyển published nếu sạch hoặc pending nếu cần duyệt. Chưa bổ sung nút gửi đăng hoặc màn hình duyệt T13 trong đợt sửa CSP này.
+
+Đặt `APP_URL` đúng URL chuẩn của website để T12 nhận diện link nội bộ. So sánh hostname chính xác, không tự cho phép www hoặc tên miền con khác. Kênh công ty tách riêng không bị quét. Bộ quét dùng chuẩn hóa Unicode, mẫu SĐT/email/từ khóa và tên miền; đây là heuristic, cần bổ sung test nếu phát hiện cách viết né lọc mới. Server không mở các link được quét.
+
 Trang chào mặc định chạy được mà chưa build Vite. Nếu phát triển CSS/JavaScript, cài dependencies và build trước khi chạy:
 
 ```sh
@@ -88,7 +92,7 @@ composer test
 composer lint
 ```
 
-- `composer test`: Pest chạy trên PostgreSQL thật, bao gồm đăng nhập/2FA, phân quyền công ty, thao tác Filament, lời mời tài khoản và dữ liệu/máy trạng thái tin.
+- `composer test`: Pest chạy trên PostgreSQL thật, bao gồm đăng nhập/2FA, phân quyền công ty, thao tác Filament, lời mời tài khoản, dữ liệu/máy trạng thái tin, quét nội dung và gửi đăng. `ContentScannerTest` chạy độc lập không cần database; `JobSubmissionTest` kiểm tra tích hợp và quyền trên PostgreSQL.
 - `composer lint`: Pint kiểm tra định dạng, Larastan phân tích tĩnh ở mức 5. Sửa định dạng bằng `vendor/bin/pint` nếu cần.
 - `phpunit.xml` buộc database test là `viz_ecom_test` và bỏ `DB_URL`, tránh vô tình dùng database phát triển. Test migration làm mới database test; không trỏ cấu hình test vào dữ liệu thật.
 - GitHub Actions chạy mỗi lần push và mở/cập nhật PR: PostgreSQL 18, PHP 8.4, cài dependencies từ lockfile, migration + seed, Pest, Pint và Larastan.
