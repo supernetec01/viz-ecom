@@ -17,7 +17,7 @@ Trạng thái: đang làm, chưa đánh dấu hoàn tất. Nhánh `task/t11-job-
 - `JobDataTest`: 62 test, có đầy đủ 30 cặp trạng thái khác nhau của sáu trạng thái, tạo tin/ràng buộc dữ liệu/slug/UTC và bảo toàn hàng đợi. Cập nhật ma trận theo quyết định mới, không sửa migration cũ.
 - `JobManagementTest`: 22 test, gồm tạo/sửa theo vai trò, 403/404, thu hồi phân công khi trang còn mở, chặn đổi công ty, validation form, HTML/XSS ở ba trường và dữ liệu cũ, nhân bản, paused/resume, chặn sửa nội dung và thời gian, ranh giới đúng hạn/quá hạn, UTF-8.
 - Toàn bộ: `composer test` **186 passed, 653 assertions**; `composer lint` **Pint/Larastan xanh**; `composer validate --strict` xanh.
-- Migration paused đã áp dụng thành công lên database phát triển. Tài khoản admin demo của người dùng không bị sửa.
+- Migration paused đã áp dụng thành công lên database phát triển. Dữ liệu/tài khoản giả kiểm tra trình duyệt đã được dọn; tài khoản admin demo của người dùng không bị sửa.
 
 ## Chưa đạt / điểm đang chờ
 
@@ -35,7 +35,7 @@ Chưa chạy test form ứng tuyển khi paused hoặc thứ tự gói đẩy ti
 
 ## Đề xuất / bước tiếp
 
-Chờ quyết định CSP, hoàn tất tương tác trên trình duyệt, dọn dữ liệu giả của phiên kiểm tra, kiểm tra CI và cập nhật báo cáo. Chỉ sau đó mới đánh dấu T11 xong và dừng chờ xem lại.
+Chờ quyết định CSP, hoàn tất tương tác trên trình duyệt, kiểm tra CI và cập nhật báo cáo. Chỉ sau đó mới đánh dấu T11 xong và dừng chờ xem lại.
 
 Để chạy kiểm tra mã trên máy hiện tại:
 
