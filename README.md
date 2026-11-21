@@ -53,7 +53,7 @@ php artisan serve
 
 Mở `http://localhost:8000`; health endpoint là `/up`. `migrate:fresh` xóa toàn bộ bảng trong database đang cấu hình: chỉ dùng trên database phát triển/test.
 
-Mở `http://localhost:8000/viec-lam` để kiểm tra T15. Nếu hiện “Chưa có vị trí đang tuyển”, kiểm tra tin trong `/app/tin-tuyen-dung`: phải được Gửi đăng/duyệt thành published, còn hạn và thuộc công ty đã xác minh. Draft, pending, paused, closed, expired và tin vừa hết hạn đều bị loại ngay trong truy vấn, không chờ lịch T42. T15 chưa có bộ lọc/tìm kiếm (T16/T17), link chi tiết (T18) hoặc form ứng tuyển. Thẻ tin hiện đọc trực tiếp trên danh sách, không có nút dẫn tới chức năng chưa xây. Xem [báo cáo T15](docs/bao-cao-t15.md).
+Mở `http://localhost:8000/viec-lam` để kiểm tra T15. Nếu hiện “Chưa có vị trí đang tuyển”, kiểm tra tin trong `/app/tin-tuyen-dung`: phải được Gửi đăng/duyệt thành published, còn hạn và thuộc công ty đã xác minh. Draft, pending, paused, closed, expired và tin vừa hết hạn đều bị loại ngay trong truy vấn, không chờ lịch T42. T16 đã có bộ lọc GET; tìm kiếm không dấu thuộc T17, link chi tiết (T18) hoặc form ứng tuyển. Thẻ tin hiện đọc trực tiếp trên danh sách, không có nút dẫn tới chức năng chưa xây. Xem [báo cáo T15](docs/bao-cao-t15.md).
 
 Từ T02, seeder tạo ba tài khoản local/testing: `admin@viz-ecom.test`, `staff@viz-ecom.test`, `employer@viz-ecom.test`. Điền `SEED_SAMPLE_PASSWORD` trong `.env` trước lần seed đầu để tự chọn mật khẩu mẫu (khuyến nghị ít nhất 12 ký tự); để trống thì mật khẩu ngẫu nhiên không được in ra log. Seed lại không đổi mật khẩu hoặc tạo trùng tài khoản. Không tạo tài khoản mẫu ở production.
 
@@ -110,3 +110,4 @@ composer lint
 - GitHub Actions chạy mỗi lần push và mở/cập nhật PR: PostgreSQL 18, PHP 8.4, cài dependencies từ lockfile, migration + seed, Pest, Pint và Larastan.
 
 Đọc [AGENTS.md](AGENTS.md) trước khi làm task. Mỗi task một nhánh và một PR; chờ xem lại trước khi chuyển task kế tiếp.
+
