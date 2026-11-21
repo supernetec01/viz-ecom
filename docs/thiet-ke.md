@@ -283,6 +283,12 @@ Chống tấn công thường gặp: CSRF (Laravel có sẵn), SQL injection (d�
 
 IDOR: mã hồ sơ công khai dùng ULID hoặc UUID thay vì số tăng dần. Quan trọng hơn, mỗi truy cập đều qua policy, nên đổi mã trên link cũng không xem được hồ sơ công ty khác.
 
+Ngoại lệ CSP Filament được duyệt ngày 21/11/2026: chỉ `/app` và `/app/*` (trừ trang đăng nhập `/app/login`) có `unsafe-eval` trong script-src. Script quản trị dùng nonce ngẫu nhiên theo từng yêu cầu từ `Vite::useCspNonce()` của Laravel, không dùng `unsafe-inline`. Trang công khai và đăng nhập không có `unsafe-eval` hoặc `unsafe-inline` cho script. Không thêm gói Composer.
+
+Mọi đường dẫn phục vụ CV/portfolio ở T33 trở đi phải gắn `csp.private-file`: CSP riêng `default-src 'none'; script-src 'none'; …; sandbox`, ưu tiên cao hơn ngoại lệ `/app`, không cho eval hoặc inline. Tại T11 chỉ xây middleware/profile và test header, chưa xây luồng phục vụ file của task sau. Khi có file thật phải kiểm tra tương thích sandbox và quyền/audit ở mỗi lượt truy cập.
+
+Lý do ngoại lệ: runtime CSP-safe của Livewire hiện chưa chạy được các biểu thức Filament sinh ra. Khi Filament hỗ trợ và đã kiểm tra thực tế bằng runtime CSP-safe thì bỏ ngoại lệ. Mỗi lần thay đổi CSP phải sửa test: nonce `/app` đổi theo yêu cầu và khớp script; `/app` có eval nhưng không inline; công khai/đăng nhập không eval; file riêng tư không eval và có sandbox. Xem README để biết chi tiết vận hành.
+
 Kiểm tra quyền tại thời điểm truy cập, không lưu quyền trong phiên. Admin thu hồi thì hiệu lực ngay lập tức.
 
 Nhật ký: ai xem hồ sơ nào, lúc nào, từ IP nào. Cảnh báo khi một tài khoản xem hoặc tải số lượng lớn trong thời gian ngắn.

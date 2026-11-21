@@ -1,6 +1,6 @@
 # T12 — Quét nội dung trước khi đăng tin
 
-Nhánh `task/t12-content-screening`, nối tiếp T11 theo yêu cầu tiếp tục công việc khác khi T11 đang chờ quyết định CSP. Một task, một PR; chưa merge main và chưa làm T13.
+Nhánh `task/t12-content-screening`, nối tiếp T11, một task/một PR; chưa merge main và chưa làm T13. Bản sửa CSP của T11 đã được đưa vào nhánh này sau khi người dùng duyệt điều kiện nonce và kiểm tra trình duyệt đạt.
 
 ## Đã làm
 
@@ -24,11 +24,11 @@ Nhánh `task/t12-content-screening`, nối tiếp T11 theo yêu cầu tiếp t�
 | Sạch đăng, vi phạm pending, lưu href, không quét kênh công ty | `JobSubmissionTest`: role matrix, field matrix, exact outside href, company channels | Đạt trên PostgreSQL |
 | Không bỏ qua quét, không dùng model cũ, giao dịch rollback và quét lại | Các test model boundary, stale clean model, invalid expiry, redraft và repeated submit | Đạt |
 
-Tổng bộ test: **277 passed, 846 assertions**. Trong đó `ContentScannerTest` **74 test**, `JobSubmissionTest` **17 test**. `composer lint` (Pint/Larastan) và `composer validate --strict` xanh. Migration đã chạy thành công trên database phát triển.
+Khi hoàn tất riêng T12: **277 passed, 846 assertions**. Sau khi đưa bản sửa CSP/T11 đã được duyệt vào nhánh này: **289 passed, 923 assertions**, bao gồm 12 test CSP/hồi quy phiên. `ContentScannerTest` vẫn có **74 test**, `JobSubmissionTest` **17 test**. `composer lint` (Pint/Larastan) và `composer validate --strict` xanh. Migration đã chạy thành công trên database phát triển.
 
 ## Tiêu chí chưa đạt / ngoài phạm vi
 
-Không còn tiêu chí thiếu trong phạm vi dịch vụ T12 và các trường hợp link đã được chốt. Chưa thêm nút đăng hoặc kiểm tra tương tác trình duyệt mới: T11 vẫn draft do CSP, chưa được duyệt thay đổi bảo mật. Không coi giao diện quản trị T11 là hoàn tất chỉ vì test PHP xanh. T13 sẽ làm màn hình xem lý do, duyệt/từ chối và thông báo; chưa làm trước ở đây.
+Không còn tiêu chí thiếu trong phạm vi dịch vụ T12 và các trường hợp link đã được chốt. T11 đã kiểm tra các thao tác trình duyệt sau sửa CSP, xem báo cáo T11. Chưa thêm nút gửi đăng trong đợt sửa CSP; T13 sẽ làm màn hình xem lý do, duyệt/từ chối và thông báo, chưa làm trước ở đây.
 
 ## Giả định đã dùng
 
@@ -41,7 +41,7 @@ Không còn tiêu chí thiếu trong phạm vi dịch vụ T12 và các trườn
 
 - Khi làm T13, hiển thị nhãn trường/quy tắc và URL gây giữ, kiểm tra admin-only, bắt buộc lý do từ chối.
 - Thêm regression test cho từng biến thể né lọc hoặc giữ nhầm được phát hiện thực tế trước khi sửa quy tắc.
-- Giải quyết quyết định CSP của T11 riêng, không tự giảm bảo vệ để làm các task backend tiếp theo.
+- Giữ đúng ngoại lệ CSP đã duyệt ở T11 và cập nhật test mỗi lần đổi cấu hình; không tự mở rộng ngoại lệ sang trang công khai hoặc file riêng tư.
 
 ## Chạy kiểm tra trên máy hiện tại
 
