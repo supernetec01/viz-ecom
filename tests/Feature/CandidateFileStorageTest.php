@@ -95,7 +95,7 @@ it('does not accept any PDF until a deep inspector has been approved and impleme
         app(InspectCv::class)->inspect(UploadedFile::fake()->createWithContent('cv.pdf', cleanPdfBytes()));
         test()->fail('PDF inspection is not implemented yet.');
     } catch (ValidationException $exception) {
-        expect($exception->errors()['cv'])->toBe([__('applications.pdf_inspection_pending')]);
+        expect($exception->errors()['cv'])->toBe([__('applications.pdf_rejected')]);
     }
 });
 

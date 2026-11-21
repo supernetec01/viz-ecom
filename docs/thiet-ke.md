@@ -247,7 +247,7 @@ Mỗi đêm một lịch chạy: chuyển tin quá hạn sang expired, gửi nh�
 
 Không nhận file nén, file chạy được, hoặc file có macro.
 
-Quyết định bổ sung T23: DOC cũ bị từ chối, hướng dẫn lưu lại PDF hoặc DOCX; không thêm công cụ đọc DOC. DOCX kiểm tra cấu trúc package, chặn VBA/macro, OLE/ActiveX, mọi quan hệ ngoài (kể cả mẫu từ xa), đường dẫn nguy hiểm và zip bomb. PDF cần kiểm tra sâu để chặn JavaScript/OpenAction/Launch cả trong object stream; phải nhận PDF hiện đại, từ chối mã hóa. Không dùng chế độ chặn mọi object stream. Đang chờ duyệt công cụ theo docs/de-xuat-kiem-tra-pdf-t23.md, nên hiện PDF bị chặn ở mọi môi trường và PR T23 là draft; chưa hoàn tất T23.
+Quyết định bổ sung T23: DOC cũ bị từ chối, hướng dẫn lưu lại PDF hoặc DOCX; không thêm công cụ đọc DOC. DOCX kiểm tra package, chặn VBA/macro, OLE/ActiveX, quan hệ ngoài, path nguy hiểm và zip bomb. Người dùng đã duyệt qpdf JSON/object stream và runner cô lập, không thêm Composer package. Đã có kiểm tra sâu PDF, từ chối mã hóa (cả mật khẩu rỗng) và JS/JavaScript/OpenAction/AA/Launch/GoToR/GoToE/SubmitForm/ImportData/XFA/RichMedia/3D/EmbeddedFile cùng marker liên quan, giữ nguyên gốc. Fail closed với lỗi/thiếu công cụ/timeout/RAM/output/object/depth limit. Hướng dẫn/test/số đo ở docs/pdf-inspector-t48.md. PDF production vẫn tắt, T23 draft chờ mẫu điện thoại và Canva không đính kèm. Quyết định mới nhất: chờ T23 đủ mẫu/hoàn tất trước làm T24.
 
 ### 5.2. Xử lý khi upload
 

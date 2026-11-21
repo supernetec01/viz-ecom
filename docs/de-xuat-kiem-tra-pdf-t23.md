@@ -1,6 +1,6 @@
 # Đề xuất kiểm tra PDF cho T23 — chờ người dùng duyệt
 
-Đối chiếu nguồn chính thức ngày 21/11/2026. Chưa cài công cụ, thêm package hay mở nhận PDF. PDF hiện bị từ chối ở mọi môi trường; PR T23 giữ draft. Người dùng yêu cầu nhận PDF hiện đại, gồm object stream nén; không áp dụng phương án chặn mọi object stream.
+Đối chiếu nguồn chính thức ngày 21/11/2026. **Người dùng đã duyệt phương án 1**: qpdf + JSON và runner cô lập, không thêm Composer package. Đã xây image Ubuntu/qpdf và kiểm tra local; bản triển khai ở `docs/pdf-inspector-t48.md`. Giữ phần so sánh dưới đây làm căn cứ quyết định. PR T23 vẫn draft vì còn mẫu tương thích thiếu; PDF production vẫn tắt. Không áp dụng phương án chặn mọi object stream.
 
 ## So sánh ba phương án
 

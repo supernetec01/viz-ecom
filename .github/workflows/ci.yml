@@ -25,6 +25,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
+      PDF_SANDBOX_TESTS: '1'
       APP_ENV: testing
       DB_CONNECTION: pgsql
       DB_HOST: 127.0.0.1
@@ -34,6 +35,8 @@ jobs:
       DB_PASSWORD: ci-only-password
     steps:
       - uses: actions/checkout@v4
+      - name: Build isolated qpdf inspector
+        run: docker build --tag viz-ecom-qpdf:local docker/pdf-inspector
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -56,6 +59,8 @@ jobs:
         run: |
           cp .env.testing.example .env
           php artisan key:generate
+      - name: Fetch pinned public PDF corpus
+        run: php scripts/fetch-pdf-corpus.php
       - name: Run migrations and seeders
         run: php artisan migrate:fresh --seed --force
       - name: Run Pest on PostgreSQL

@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'pdf_encrypted' => 'CV PDF đang được mã hóa hoặc đặt mật khẩu. Vui lòng xuất lại bản PDF không mã hóa rồi gửi lại.',
+    'pdf_rejected' => 'Chưa xác minh được CV PDF an toàn. File có thể không hợp lệ, chứa nội dung chủ động hoặc dịch vụ kiểm tra chưa sẵn sàng. Vui lòng xuất lại CV hoặc thử lại sau.',
     'file_size' => 'File CV phải có dung lượng từ 1 byte đến 10 MB.',
     'file_type' => 'Định dạng hoặc nội dung CV không hợp lệ. Vui lòng dùng PDF hoặc DOCX.',
     'legacy_doc' => 'Chưa hỗ trợ DOC cũ. Vui lòng lưu CV thành PDF hoặc DOCX rồi gửi lại.',

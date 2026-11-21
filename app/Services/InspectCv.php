@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\PdfInspectionFailed;
 use DOMDocument;
 use DOMXPath;
 use finfo;
@@ -12,6 +13,8 @@ use ZipArchive;
 class InspectCv
 {
     public const MAX_BYTES = 10485760;
+
+    public function __construct(private InspectPdf $pdf) {}
 
     /** @return array{extension: string, mime_type: string, size: int, sha256: string} */
     public function inspect(UploadedFile $file): array
@@ -32,8 +35,17 @@ class InspectCv
             $this->reject('unsafe_document');
         }
         if ($extension === 'pdf' && $mime === 'application/pdf') {
-            // No PDF is accepted until a deep object-stream inspector is approved and implemented.
-            $this->reject('pdf_inspection_pending');
+            try {
+                $this->pdf->inspect($file->getPathname());
+            } catch (PdfInspectionFailed $exception) {
+                $this->reject($exception->reason === 'encrypted' ? 'pdf_encrypted' : 'pdf_rejected');
+            }
+            $hash = hash_file('sha256', $file->getPathname());
+            if ($hash === false) {
+                $this->reject('upload_failed');
+            }
+
+            return ['extension' => 'pdf', 'mime_type' => 'application/pdf', 'size' => $size, 'sha256' => $hash];
         }
         if ($extension !== 'docx' || ! in_array($mime, ['application/zip', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'], true)) {
             $this->reject('file_type');
