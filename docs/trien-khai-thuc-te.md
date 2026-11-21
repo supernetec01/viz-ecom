@@ -1,6 +1,6 @@
 # Checklist chuyển từ demo sang triển khai thực tế
 
-Cập nhật ngày 21/11/2026, đối chiếu mã đến T12 và bản sửa CSP T11. Tài liệu này ghi các chỗ phải thay cấu hình, kiểm tra vận hành hoặc hoàn thành chức năng trước khi mở cho người dùng thật. **Các ô chưa đánh dấu là chưa có bằng chứng kiểm tra production**, kể cả khi test tự động đang xanh.
+Cập nhật ngày 21/11/2026, đối chiếu mã đến T13, địa chỉ làm việc và bản sửa CSP T11. Tài liệu này ghi các chỗ phải thay cấu hình, kiểm tra vận hành hoặc hoàn thành chức năng trước khi mở cho người dùng thật. **Các ô chưa đánh dấu là chưa có bằng chứng kiểm tra production**, kể cả khi test tự động đang xanh.
 
 ## Những phần đang dùng cấu hình demo/local
 
@@ -8,6 +8,7 @@ Trạng thái mặc định của mọi hàng dưới đây: **chưa xác minh t
 
 | Phần | Hiện trạng và ảnh hưởng | Việc phải làm khi triển khai | Cách xác nhận đạt |
 | --- | --- | --- | --- |
+| Duyệt tin và thông báo T13 | Đã có hàng pending cho admin, duyệt/từ chối, lịch sử quyết định và thông báo database cho nhân viên phụ trách. Thông báo lưu thật, không dùng email/queue; polling 30 giây | Chạy migration T13 trước khi phục vụ mã mới; kiểm tra phân công staff và quyền admin thực tế. Không cấu hình SMTP/worker để sửa chuông thông báo. Nếu cần email kết quả duyệt, phải bổ sung và kiểm tra riêng | Tài khoản staff không mở được `/app/duyet-tin`; admin duyệt/từ chối được; staff đang phụ trách nhận chuông, mở đúng tin và thấy lý do. Thu hồi phân công thì link bị chặn; kiểm tra lỗi và thao tác lặp trên môi trường triển khai |
 | Địa chỉ làm việc | Tỉnh chọn từ danh mục 34 tỉnh; xã/phường/đặc khu và địa chỉ chi tiết hiện nhập văn bản, chưa đối chiếu danh mục mã xã. Tin cũ giữ thiếu địa chỉ, không tự điền | Xác minh địa chỉ làm việc thực tế, tên đơn vị hành chính mới và danh mục tỉnh tại ngày triển khai. Bổ sung địa chỉ các tin cũ qua bản nháp. Nếu bổ sung bộ chọn xã/phường sau này, phải có nguồn chính thức, phiên bản và cách cập nhật, không nhập bộ dữ liệu chưa kiểm chứng | Thử tạo/sửa/xem trước và nhân bản tin; kiểm tra đủ số nhà/đường hoặc thôn, xã/phường/đặc khu và tỉnh. T18 phải hiển thị cùng địa chỉ đầy đủ cho ứng viên; kiểm tra trên thiết bị khác |
 | Email lời mời/reset mật khẩu (T03, T09) | `MAIL_MAILER=log`: chỉ ghi nội dung email vào log, không gửi tới hộp thư. Tạo tài khoản thành công không có nghĩa người nhận đã nhận mail | Cấu hình SMTP/dịch vụ gửi thật, địa chỉ From và xác minh miền gửi theo yêu cầu nhà cung cấp. Không dùng `log`, `array` hoặc failover sang `log` làm bằng chứng gửi thành công | Người nhận nhận được email thật; link đặt mật khẩu dùng được một lần và hết hạn sau 24 giờ. Thử cả tình huống SMTP lỗi và gửi lại |
 | URL trong email và link nội bộ | `APP_URL` local là localhost. Người nhận ở máy khác không truy cập được; bộ quét T12 dùng hostname này để phân biệt link nội bộ | Đặt URL HTTPS chính thức; kiểm tra URL Laravel thực sự sinh ra dưới cấu hình web server/proxy | Mở email và link từ thiết bị/mạng khác; không có localhost/127.0.0.1. Link nội bộ qua T12, link ngoài vẫn pending |
@@ -31,7 +32,7 @@ Trạng thái mặc định của mọi hàng dưới đây: **chưa xác minh t
 
 Không thể chỉ đổi `.env` để biến các phần sau thành chức năng hoàn chỉnh:
 
-- T13: màn hình admin duyệt/từ chối và thông báo; T12 hiện có dịch vụ gửi đăng/quét, chưa bổ sung nút gửi đăng trong đợt sửa CSP.
+- T13 đã có duyệt/từ chối và thông báo trong hệ thống; chưa có email kết quả duyệt. Nút Gửi đăng đã nối bộ quét T12. Vẫn cần kiểm tra production theo bảng trên, không đồng nhất test local với vận hành thật.
 - T14–T21: trang tuyển dụng công khai, tìm/lọc, chi tiết tin/công ty, SEO/sitemap/chia sẻ. Trang `/` hiện vẫn là trang chào Laravel.
 - T22 trở đi: nhận hồ sơ/CV, đồng ý xử lý dữ liệu, captcha, kiểm tra file, quét virus/chuyển đổi xem trước và thông báo. Phải hoàn tất các task liên quan trước nhận hồ sơ thật.
 - T29–T39: quyền xem hồ sơ, chính sách trả dữ liệu theo quyền, audit, đơn hàng/cấp quyền. Không được vận hành dữ liệu ứng viên thật khi các hàng rào này chưa đủ.

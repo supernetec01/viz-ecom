@@ -75,7 +75,9 @@ Người dùng duyệt ngoại lệ ngày 21/11/2026 vì phiên bản Filament h
 
 T33 trở đi phải gắn middleware `csp.private-file` cho **mọi** endpoint xem/tải CV và portfolio, kể cả endpoint nằm dưới `/app`; kiểm tra lại quyền và audit vẫn bắt buộc. Hiện mới có profile CSP và test header, chưa tạo endpoint CV. Khi có luồng PDF/xem/tải thật phải kiểm tra chức năng với sandbox; mọi điều chỉnh policy phải kèm test và giữ nguyên việc chặn script.
 
-T11 đã được kiểm tra thao tác thật sau sửa CSP: mở menu, tạo/sửa/xem trước/nhân bản và tạm dừng. T12 cung cấp backend `SubmitJob`: kiểm tra quyền, quét tin draft rồi chuyển published nếu sạch hoặc pending nếu cần duyệt. Chưa bổ sung nút gửi đăng hoặc màn hình duyệt T13 trong đợt sửa CSP này.
+T11 đã được kiểm tra thao tác thật sau sửa CSP: mở menu, tạo/sửa/xem trước/nhân bản và tạm dừng. T12 cung cấp backend `SubmitJob`: kiểm tra quyền, quét tin draft rồi chuyển published nếu sạch hoặc pending nếu cần duyệt. T13 nối nút **Gửi đăng** tại trang xem trước và menu thao tác tin; chọn ngày hết hạn còn hiệu lực khi gửi.
+
+**T13 — Duyệt tin:** admin mở `/app/duyet-tin` để xem các tin pending, xem trước và lý do bị giữ (gồm URL ngoài cụ thể), duyệt đăng hoặc từ chối kèm lý do bắt buộc. Từ chối trả tin về bản nháp để sửa/gửi lại. Nhân viên phụ trách còn hoạt động nhận thông báo ở chuông Filament; mở tin để xem lý do theo quyền hiện tại. Đây là thông báo lưu trong database, không cần SMTP hay queue worker; khác với email lời mời T09 hiện vẫn cần cấu hình gửi thật. Nâng cấp bằng `php artisan migrate`; không dùng `migrate:fresh` với dữ liệu đang sử dụng. Xem [báo cáo T13](docs/bao-cao-t13.md) để kiểm tra theo vai trò.
 
 Địa chỉ làm việc theo từng tin gồm **Tỉnh/Thành phố → Xã/Phường/Đặc khu → Số nhà, đường / thôn, tổ dân phố**. Hai ô sau nhập văn bản theo địa chỉ mới, bắt buộc khi tạo/sửa bản nháp và gửi đăng; chưa có danh mục chọn xã/phường hoặc xác minh địa chỉ tự động. Không yêu cầu quận/huyện. Đổi tỉnh trên form sẽ xóa hai ô để nhập lại. Xem trước hiển thị đủ địa chỉ, nhân bản giữ địa chỉ của tin gốc; địa chỉ trụ sở công ty là dữ liệu riêng.
 
