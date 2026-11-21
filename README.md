@@ -77,6 +77,10 @@ T33 trở đi phải gắn middleware `csp.private-file` cho **mọi** endpoint 
 
 T11 đã được kiểm tra thao tác thật sau sửa CSP: mở menu, tạo/sửa/xem trước/nhân bản và tạm dừng. T12 cung cấp backend `SubmitJob`: kiểm tra quyền, quét tin draft rồi chuyển published nếu sạch hoặc pending nếu cần duyệt. Chưa bổ sung nút gửi đăng hoặc màn hình duyệt T13 trong đợt sửa CSP này.
 
+Địa chỉ làm việc theo từng tin gồm **Tỉnh/Thành phố → Xã/Phường/Đặc khu → Số nhà, đường / thôn, tổ dân phố**. Hai ô sau nhập văn bản theo địa chỉ mới, bắt buộc khi tạo/sửa bản nháp và gửi đăng; chưa có danh mục chọn xã/phường hoặc xác minh địa chỉ tự động. Không yêu cầu quận/huyện. Đổi tỉnh trên form sẽ xóa hai ô để nhập lại. Xem trước hiển thị đủ địa chỉ, nhân bản giữ địa chỉ của tin gốc; địa chỉ trụ sở công ty là dữ liệu riêng.
+
+Nâng cấp bằng `php artisan migrate` (không dùng `migrate:fresh`). Migration mới giữ nguyên tin cũ với hai trường địa chỉ null; xem trước báo thiếu, cần bổ sung trong bản nháp trước lưu/gửi/nhân bản. Tin cũ đã đăng vẫn tạm dừng/đóng/hết hạn được. Trang công khai cho ứng viên ở T18 chưa xây; phải dùng `Job::workplaceAddress()` khi triển khai, tránh chỉ hiển thị tỉnh. Chi tiết và kiểm tra: [báo cáo địa chỉ làm việc](docs/dia-chi-lam-viec.md).
+
 Đặt `APP_URL` đúng URL chuẩn của website để T12 nhận diện link nội bộ. So sánh hostname chính xác, không tự cho phép www hoặc tên miền con khác. Kênh công ty tách riêng không bị quét. Bộ quét dùng chuẩn hóa Unicode, mẫu SĐT/email/từ khóa và tên miền; đây là heuristic, cần bổ sung test nếu phát hiện cách viết né lọc mới. Server không mở các link được quét.
 
 Trang chào mặc định chạy được mà chưa build Vite. Nếu phát triển CSS/JavaScript, cài dependencies và build trước khi chạy:

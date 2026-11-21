@@ -25,11 +25,13 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Validation\ValidationException;
 
 /** @extends resource<Job> */
 class JobResource extends Resource
@@ -56,7 +58,16 @@ class JobResource extends Resource
                 ->disabledOn('edit')->dehydrated(fn (string $operation): bool => $operation !== 'edit'),
             TextInput::make('title')->label(__('ui.jobs.title'))->required()->maxLength(255),
             Select::make('category_id')->label(__('ui.jobs.category'))->required()->searchable()->options(fn () => JobCategory::pluck('name', 'id')),
-            Select::make('location_id')->label(__('ui.jobs.location'))->required()->searchable()->options(fn () => Location::pluck('name', 'id')),
+            Select::make('location_id')->label(__('ui.jobs.location'))->required()->searchable()->live()
+                ->options(fn () => Location::whereNull('parent_id')->pluck('name', 'id'))
+                ->afterStateUpdated(function (Set $set): void {
+                    $set('ward_name', null);
+                    $set('work_address', null);
+                }),
+            TextInput::make('ward_name')->label(__('ui.jobs.ward_name'))->required()->maxLength(150)->rules(['regex:/^[^<>]*$/u'])
+                ->helperText(__('ui.jobs.ward_help')),
+            TextInput::make('work_address')->label(__('ui.jobs.work_address'))->required()->maxLength(500)->rules(['regex:/^[^<>]*$/u'])
+                ->helperText(__('ui.jobs.address_help')),
             TextInput::make('salary_min')->label(__('ui.jobs.salary_min'))->integer()->minValue(0)->maxValue(PHP_INT_MAX)->suffix('VND'),
             TextInput::make('salary_max')->label(__('ui.jobs.salary_max'))->integer()->minValue(0)->maxValue(PHP_INT_MAX)->suffix('VND')
                 ->rules(fn (Get $get): array => filled($get('salary_min')) ? ['gte:data.salary_min'] : []),
@@ -77,7 +88,8 @@ class JobResource extends Resource
             TextEntry::make('company.name')->label(__('ui.jobs.company')),
             TextEntry::make('status')->label(__('ui.jobs.status'))->formatStateUsing(fn (JobStatus $state): string => __('ui.jobs.states.'.$state->value)),
             TextEntry::make('category.name')->label(__('ui.jobs.category')),
-            TextEntry::make('location.name')->label(__('ui.jobs.location')),
+            TextEntry::make('workplace_address')->label(__('ui.jobs.workplace'))
+                ->state(fn (Job $record): ?string => $record->workplaceAddress())->placeholder(__('ui.jobs.address_missing'))->columnSpanFull(),
             TextEntry::make('salary_min')->label(__('ui.jobs.salary_min'))->numeric(decimalPlaces: 0)->suffix(' VND')->placeholder('—'),
             TextEntry::make('salary_max')->label(__('ui.jobs.salary_max'))->numeric(decimalPlaces: 0)->suffix(' VND')->placeholder('—'),
             TextEntry::make('negotiable')->label(__('ui.jobs.negotiable'))->formatStateUsing(fn (bool $state): string => $state ? __('ui.jobs.yes') : __('ui.jobs.no')),
@@ -105,7 +117,16 @@ class JobResource extends Resource
                 ActionGroup::make([
                     Action::make('duplicate')->label(__('ui.jobs.duplicate'))->authorize('replicate')->requiresConfirmation()
                         ->action(function (Job $record): void {
-                            app(ManageJobs::class)->duplicate(self::actor(), $record);
+                            try {
+                                app(ManageJobs::class)->duplicate(self::actor(), $record);
+                            } catch (ValidationException $exception) {
+                                if (array_intersect(array_keys($exception->errors()), ['ward_name', 'work_address']) === []) {
+                                    throw $exception;
+                                }
+                                Notification::make()->warning()->title(__('ui.jobs.address_missing'))->body(__('ui.jobs.complete_before_duplicate'))->send();
+
+                                return;
+                            }
                             Notification::make()->success()->title(__('ui.jobs.duplicated'))->send();
                         }),
                     ...array_map(fn (string $action): Action => Action::make($action)->label(__('ui.jobs.'.$action))->authorize($action)->requiresConfirmation()

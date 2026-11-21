@@ -10,7 +10,7 @@ use Normalizer;
 
 final class ContentScanner
 {
-    public const FIELDS = ['title', 'description', 'requirements', 'benefits'];
+    public const FIELDS = ['title', 'description', 'requirements', 'benefits', 'ward_name', 'work_address'];
 
     public function __construct(private readonly string $siteUrl) {}
 

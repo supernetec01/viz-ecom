@@ -3,6 +3,8 @@
 return [
     'required' => 'Vui lòng nhập :attribute.',
     'string' => ':attribute phải là văn bản.',
+    'regex' => ':attribute có định dạng không hợp lệ.',
+    'required_with' => 'Vui lòng nhập :attribute khi đã nhập :values.',
     'email' => ':attribute phải là địa chỉ email hợp lệ.',
     'url' => ':attribute phải là liên kết hợp lệ.',
     'unique' => ':attribute đã được sử dụng.',

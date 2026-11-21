@@ -68,11 +68,13 @@ company_user: user_id, company_id. Cho biết tài khoản công ty nào thuộc
 
 staff_company: user_id (nhân viên), company_id. Cho biết nhân viên phụ trách công ty nào.
 
-locations: tỉnh/thành, quận/huyện.
+locations: danh mục tỉnh/thành dùng cho lựa chọn và lọc tin. Địa chỉ làm việc theo yêu cầu bổ sung ngày 21/11/2026 dùng mô hình tỉnh/thành → xã/phường/đặc khu → số nhà, đường hoặc thôn/tổ dân phố; không yêu cầu quận/huyện.
 
 job_categories: nhóm vị trí (kinh doanh, kho vận, marketing, livestream, CSKH…).
 
-jobs: id, company_id, category_id, location_id, tiêu đề, slug, mô tả, yêu cầu, quyền lợi, lương tối thiểu, lương tối đa, cờ "thỏa thuận", yêu cầu kinh nghiệm (số năm), số lượng cần tuyển, hình thức (toàn thời gian, bán thời gian), trạng thái (draft, pending, published, paused, expired, closed), published_at, expires_at, created_by, thời điểm xóa mềm.
+jobs: id, company_id, category_id, location_id (tỉnh/thành), ward_name (xã/phường/đặc khu, tối đa 150 ký tự), work_address (số nhà, đường/thôn/tổ dân phố, có thể thêm tòa nhà/tầng, tối đa 500 ký tự), tiêu đề, slug, mô tả, yêu cầu, quyền lợi, lương tối thiểu, lương tối đa, cờ "thỏa thuận", yêu cầu kinh nghiệm (số năm), số lượng cần tuyển, hình thức (toàn thời gian, bán thời gian), trạng thái (draft, pending, published, paused, expired, closed), published_at, expires_at, created_by, thời điểm xóa mềm.
+
+Địa chỉ làm việc lưu theo từng tin, không tự sao chép từ trụ sở công ty. Bắt buộc đủ ba phần khi tạo/sửa bản nháp và gửi bản nháp đăng tin. Xã/phường/đặc khu hiện nhập văn bản theo tên mới; chưa xác minh tên bằng danh mục mã xã, chưa có bản đồ/geocoding. Đổi tỉnh trên form xóa hai ô địa chỉ còn lại để nhập lại. Bản ghi cũ giữ null cả hai trường, xem trước báo thiếu, không tự suy ra địa chỉ; vẫn cho phép tạm dừng/đóng/hết hạn tin cũ. Bản nháp cũ cần bổ sung trước khi lưu/gửi/nhân bản. Địa chỉ không nhận HTML và được quét cùng nội dung tin tại T12. T18 phải dùng địa chỉ đầy đủ trên trang chi tiết cho ứng viên; không chỉ hiển thị tỉnh.
 
 plans: id, tên gói (ví dụ 3 ngày, 7 ngày), số ngày, mức ưu tiên, giá.
 
