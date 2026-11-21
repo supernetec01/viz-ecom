@@ -18,6 +18,10 @@ Google Rich Results đã kiểm tra mã mẫu: 1 JobPosting hợp lệ, 2 cảnh
 
 Tin còn nhận hồ sơ có nút sao chép link kèm `nguon=chia-se`; không có JavaScript vẫn copy từ ô link. Có thể đặt nguồn khác khi phát link, ví dụ `?nguon=zalo-nhom_1`. Nguồn chỉ 1–64 ký tự chữ/số không dấu, gạch ngang/gạch dưới, chuẩn hóa chữ thường. Nguồn hợp lệ gần nhất lưu trong phiên; thiếu hoặc sai không ghi đè, không đổi nội dung trang. T24 sẽ đọc nguồn từ phiên khi lưu hồ sơ. Chưa gửi tin tự động hay tích hợp API Zalo.
 
+## Nền database hồ sơ (T22)
+
+Migration T22 thêm `files`, `applications` và khóa ghép bảo đảm hồ sơ thuộc công ty của tin. Mã hồ sơ là ULID; mỗi tin chỉ có một hồ sơ còn hiệu lực cho cùng SĐT chuẩn hóa. Có cờ/thời điểm đồng ý, nguồn, trạng thái và xóa mềm; xóa mềm tin/công ty không làm mất hồ sơ. Đây mới là cấu trúc dữ liệu, chưa có form hoặc dịch vụ lưu file. Chạy `php artisan migrate` khi cập nhật local; không dùng `migrate:fresh` trên DB có dữ liệu cần giữ. T23 trở đi mới xử lý file và T24 mới nhận hồ sơ.
+
 ## Yêu cầu
 
 - PHP 8.4 với các extension chuẩn Laravel, `pdo_pgsql`, `pgsql`, `mbstring`, `intl`, `fileinfo`, `curl`, `openssl`, `zip` và XML/DOM.
@@ -32,7 +36,7 @@ PHP 8.4 được chọn để chạy Pest 5. Phiên bản dependencies cụ th�
 ```sh
 git clone https://github.com/supernetec01/viz-ecom.git
 cd viz-ecom
-git switch codex/t21-share-source
+git switch codex/t22-application-storage
 composer install
 npm ci
 npm run build

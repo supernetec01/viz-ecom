@@ -1,5 +1,14 @@
 # CODEMAP — điểm tích hợp nghiệp vụ
 
+## Nền lưu hồ sơ và file (T22)
+
+- Migration mới `2026_11_21_000013_create_files_and_applications.php`; không sửa migration cũ. T22 chỉ schema, không model/route/controller hoặc truy vấn hồ sơ trong ứng dụng. Test DB dùng bản ghi giả để kiểm tra ràng buộc, không phải đường truy cập hồ sơ. Các task đọc hồ sơ sau này phải đi qua ApplicationPolicy; ULID không thay thế kiểm tra quyền.
+- `applications.id` ULID công khai; `job_id, company_id` FK ghép tới `jobs.id, company_id` bảo đảm đúng chủ tin. FK RESTRICT tới công ty và file không cascade mất hồ sơ; xóa mềm tin/công ty giữ nguyên hồ sơ/file. Chỉ mục riêng `jobs_id_company_unique` được thêm bởi migration mới để hỗ trợ FK ghép.
+- `phone_normalized` chỉ dạng 0 + 9 chữ số; unique partial `(job_id, phone_normalized) WHERE deleted_at IS NULL`. T24 chuẩn hóa/kiểm tra SĐT trước insert; DB không tự đổi +84/84 hoặc khoảng trắng. T24 phải xử lý xung đột unique an toàn, không ghi QueryException/bindings chứa PII vào log. Cho nộp cùng số ở tin khác; hồ sơ xóa mềm không chiếm khóa, nhưng restore bị từ chối nếu đã có bản đang hiệu lực.
+- `consent_given` phải true và `consented_at` bắt buộc; `submitted_at`, các timestamps và deleted_at dùng timestamp with time zone. T24 đặt thời điểm từ server. `source` nullable, cùng dạng ASCII/chữ thường/max64 của T21; T24 lấy qua ApplicationSource, không từ payload. Email/CV/portfolio tùy chọn; portfolio URL hoặc file, không cả hai. URL DB chỉ chặn scheme/whitespace, T24 còn cần validator URL đầy đủ.
+- `files` chỉ metadata: path unique, original_name, mime_type, size 1–10 MiB, SHA-256, scan_status pending/clean/infected, preview_path tùy chọn và thời gian UTC. T22 không ghi/tạo/đọc/tải bất cứ file ứng viên nào. T23 phải kiểm tra nội dung thật, UUID và private disk/path; CHECK metadata không chứng minh file thật an toàn. T25–T26 quét/chuyển PDF, T33 policy/audit/CSP khi phục vụ file.
+- T42/T46 xử lý xóa PII/file và thống kê không định danh trong các task được duyệt sau; soft delete không thay thế xóa dữ liệu sau 6 tháng. Khi cần xóa file/bản ghi thật phải xử lý tham chiếu trong giao dịch có kiểm tra quyền, không đổi RESTRICT thành CASCADE để bỏ qua quy tắc.
+
 ## Chia sẻ và nguồn ứng tuyển (T21)
 
 - `CaptureApplicationSource` chỉ gắn vào bốn trang GET công khai: home, jobs.index, jobs.show, companies.show; chỉ ghi nguồn sau phản hồi 200/301, không từ 404/422, auth/quản trị/robots/sitemap. Slug cũ lưu nguồn trong session trước redirect nên không phải mang nguồn qua Location.
