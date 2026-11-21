@@ -22,6 +22,16 @@ Tin còn nhận hồ sơ có nút sao chép link kèm `nguon=chia-se`; không c�
 
 Migration T22 thêm `files`, `applications` và khóa ghép bảo đảm hồ sơ thuộc công ty của tin. Mã hồ sơ là ULID; mỗi tin chỉ có một hồ sơ còn hiệu lực cho cùng SĐT chuẩn hóa. Có cờ/thời điểm đồng ý, nguồn, trạng thái và xóa mềm; xóa mềm tin/công ty không làm mất hồ sơ. Đây mới là cấu trúc dữ liệu, chưa có form hoặc dịch vụ lưu file. Chạy `php artisan migrate` khi cập nhật local; không dùng `migrate:fresh` trên DB có dữ liệu cần giữ. T23 trở đi mới xử lý file và T24 mới nhận hồ sơ.
 
+## File CV riêng tư — T23 đang triển khai, chưa hoàn tất
+
+Disk `candidate-files` tách khỏi disk local mặc định, lưu dưới `storage/app/candidate-files`, không symlink, không route trực tiếp. Dịch vụ kiểm tra kích thước thật tối đa 10 MiB, MIME từ nội dung và DOCX package; lưu UUID theo công ty/tin/ULID hồ sơ, hash SHA-256 và metadata chờ quét. Chưa có endpoint upload/download hoặc form T24.
+
+DOCX sạch được nhận sau kiểm tra cấu trúc. DOC cũ/DOCM chưa hỗ trợ; DOCX có VBA/macro, OLE/ActiveX, quan hệ ngoài (kể cả hyperlink/mẫu từ xa), path nguy hiểm, ZIP mã hóa/bomb bị từ chối. Các giới hạn ZIP: tối đa 512 mục, 8 MiB/mục, tổng 32 MiB và tối đa 100:1 với mục trên 64 KiB; XML có giới hạn riêng. Đây không thay thế ClamAV T27.
+
+**Đã triển khai qpdf + JSON v2 trong container cô lập** theo phương án được duyệt, không thêm Composer package. Nhận được object stream; kiểm tra cấu trúc đã mở rộng, từ chối mã hóa (cả mật khẩu rỗng), lỗi/timeout/OOM/output quá lớn. Chặn `JS`, `JavaScript`, `OpenAction`, `AA`, `Launch`, `GoToR`, `GoToE`, `SubmitForm`, `ImportData`, `XFA`, `RichMedia`/3D và các biến thể, `EmbeddedFile`/`EmbeddedFiles`/`Filespec`/`EF`. Giữ nguyên file gốc. File có marker bị chặn dù chỉ là hành động mở trang hoặc đính kèm vô hại; không tự rewrite để bỏ marker.
+
+Mặc định `PDF_INSPECTION_ENABLED=false`; **giữ `PDF_PRODUCTION_ENABLED=false`** khi bộ mẫu/kiểm tra triển khai còn thiếu. Production còn yêu cầu rootless Docker và image ID cố định; thiếu điều kiện thì từ chối. PR T23 vẫn draft, chờ mẫu điện thoại/Canva không đính kèm; T24 chưa làm theo quyết định mới nhất. [Hướng dẫn Windows/Ubuntu, test thật, số đo và yêu cầu T48](docs/pdf-inspector-t48.md). Không tiếp nhận CV thật khi các task nhận hồ sơ, quét, phân quyền/audit/retention chưa hoàn tất. Trên Windows cần ACL phù hợp; CI Linux kiểm tra Unix private mode.
+
 ## Yêu cầu
 
 - PHP 8.4 với các extension chuẩn Laravel, `pdo_pgsql`, `pgsql`, `mbstring`, `intl`, `fileinfo`, `curl`, `openssl`, `zip` và XML/DOM.
