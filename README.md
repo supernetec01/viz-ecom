@@ -1,6 +1,6 @@
 # Viz Ecom
 
-Website tuyển dụng theo thiết kế trong [docs/thiet-ke.md](docs/thiet-ke.md). Các task được triển khai tuần tự trên từng nhánh và PR. Trang `/` hiện là trang chào Laravel. Từ T03, đăng nhập bằng phiên Laravel Fortify tại `/login`; `/app/login` chuyển về đó. Filament phục vụ giao diện quản trị tại `/app`.
+Website tuyển dụng theo thiết kế trong [docs/thiet-ke.md](docs/thiet-ke.md). Các task được triển khai tuần tự trên từng nhánh và PR. T14 thay trang chào Laravel bằng trang chủ tiếng Việt tại `/`, có đầu trang, chân trang và bố cục ưu tiên điện thoại. Từ T03, đăng nhập bằng phiên Laravel Fortify tại `/login`; `/app/login` chuyển về đó. Filament phục vụ giao diện quản trị tại `/app`.
 
 **Trước khi chạy thực tế:** xem [checklist chuyển từ demo sang production](docs/trien-khai-thuc-te.md). Email local hiện chỉ ghi log; tài khoản mẫu, URL localhost và các chức năng chưa triển khai không được coi là đã sẵn sàng chạy thật. Mỗi task có phần giả lập hoặc cấu hình chỉ dùng local cần cập nhật checklist này, kèm cách kiểm tra trên môi trường thật.
 
@@ -9,7 +9,7 @@ Website tuyển dụng theo thiết kế trong [docs/thiet-ke.md](docs/thiet-ke.
 - PHP 8.4 với các extension chuẩn Laravel, `pdo_pgsql`, `pgsql`, `mbstring`, `intl`, `fileinfo`, `curl`, `openssl`, `zip` và XML/DOM.
 - Composer 2.
 - PostgreSQL 18 đang chạy; có thể dùng PostgreSQL cài riêng hoặc Laragon có PostgreSQL.
-- Git. Node.js 22.12+ và npm chỉ cần nếu muốn build tài nguyên Vite mặc định.
+- Git, Node.js 22.12+ và npm để build CSS công khai từ T14.
 
 PHP 8.4 được chọn để chạy Pest 5. Phiên bản dependencies cụ thể nằm trong `composer.lock`; dùng `composer install`, không dùng `composer update` khi thiết lập máy mới.
 
@@ -18,8 +18,10 @@ PHP 8.4 được chọn để chạy Pest 5. Phiên bản dependencies cụ th�
 ```sh
 git clone https://github.com/supernetec01/viz-ecom.git
 cd viz-ecom
-git switch task/t12-content-screening
+git switch codex/t14-public-layout
 composer install
+npm ci
+npm run build
 ```
 
 Sao chép `.env.example` thành `.env`, `.env.testing.example` thành `.env.testing`. Trên PowerShell:

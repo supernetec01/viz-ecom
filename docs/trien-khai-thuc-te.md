@@ -33,7 +33,7 @@ Trạng thái mặc định của mọi hàng dưới đây: **chưa xác minh t
 Không thể chỉ đổi `.env` để biến các phần sau thành chức năng hoàn chỉnh:
 
 - T13 đã có duyệt/từ chối và thông báo trong hệ thống; chưa có email kết quả duyệt. Nút Gửi đăng đã nối bộ quét T12. Vẫn cần kiểm tra production theo bảng trên, không đồng nhất test local với vận hành thật.
-- T14–T21: trang tuyển dụng công khai, tìm/lọc, chi tiết tin/công ty, SEO/sitemap/chia sẻ. Trang `/` hiện vẫn là trang chào Laravel.
+- T14 đã có khung trang chủ tiếng Việt, header/footer và kiểm tra trình duyệt 360 px; cần `npm ci` và `npm run build` khi triển khai. T15–T21: danh sách tin thật, tìm/lọc, chi tiết tin/công ty, SEO/sitemap/chia sẻ tiếp tục theo task tương ứng.
 - T22 trở đi: nhận hồ sơ/CV, đồng ý xử lý dữ liệu, captcha, kiểm tra file, quét virus/chuyển đổi xem trước và thông báo. Phải hoàn tất các task liên quan trước nhận hồ sơ thật.
 - T29–T39: quyền xem hồ sơ, chính sách trả dữ liệu theo quyền, audit, đơn hàng/cấp quyền. Không được vận hành dữ liệu ứng viên thật khi các hàng rào này chưa đủ.
 - T40–T42 và T46: gói đẩy tin, lịch hết hạn/paused và xóa PII/file sau 6 tháng, công cụ admin xóa hợp lệ. Chỉ cấu hình cron không tự tạo các chức năng chưa viết.
