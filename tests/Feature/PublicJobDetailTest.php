@@ -142,10 +142,10 @@ it('offers at most three stable minimal suggestions on every nonreceiving detail
     expect($response->viewData('similar')->pluck('id')->all())->toBe(array_slice(array_reverse($ids), 0, 3));
 })->with([JobStatus::Paused, JobStatus::Expired, JobStatus::Closed]);
 
-it('links public list titles to their canonical detail pages without a temporary company or POST route', function () {
+it('links public list titles to canonical detail and company pages without a temporary POST route', function () {
     $job = publishManagedJob(managedJob(jobManager()));
     $url = route('jobs.show', ['slug' => $job->slug, 'id' => $job->id]);
     $this->get('/viec-lam')->assertOk()->assertSee($url);
-    $this->get($url)->assertOk()->assertDontSee('/cong-ty/', false)->assertDontSee('<form', false);
+    $this->get($url)->assertOk()->assertSee(route('companies.show', ['id' => $job->company_id]))->assertDontSee('<form', false);
     $this->post('/viec-lam/'.$job->slug.'-'.$job->id)->assertStatus(405);
 });

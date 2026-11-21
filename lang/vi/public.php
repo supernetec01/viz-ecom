@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'company_profile' => 'Thông tin công ty', 'company_introduction' => 'Giới thiệu', 'company_industry' => 'Ngành hàng',
+    'company_products' => 'Sản phẩm kinh doanh', 'company_channels' => 'Kênh bán hàng và video',
+    'external_link_notice' => 'Liên kết bên ngoài, hãy cẩn thận khi mở.',
     'home_title' => 'Việc làm thương mại điện tử', 'skip' => 'Chuyển đến nội dung',
     'main_nav' => 'Điều hướng chính', 'footer_nav' => 'Điều hướng cuối trang', 'home_link' => 'Viz Ecom — Trang chủ',
     'jobs_nav' => 'Cơ hội việc làm', 'how_nav' => 'Cách ứng tuyển', 'employer' => 'Nhà tuyển dụng', 'work_login' => 'Đăng nhập khu vực làm việc',
