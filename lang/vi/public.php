@@ -33,4 +33,9 @@ return [
     'filter_salary_help' => 'Lọc lương chỉ hiện tin công bố mức lương khởi điểm từ số tiền đã chọn; không gồm lương thỏa thuận.',
     'apply_filters' => 'Áp dụng bộ lọc', 'clear_filters' => 'Xóa bộ lọc', 'invalid_filters' => 'Bộ lọc không hợp lệ',
     'search' => 'Từ khóa', 'search_placeholder' => 'Tên công việc hoặc công ty, có hoặc không dấu',
+    'back_to_jobs' => 'Danh sách việc làm', 'application_status' => 'Trạng thái nhận hồ sơ', 'job_summary' => 'Thông tin công việc',
+    'detail_states' => ['published' => 'Vị trí đang tuyển', 'paused' => 'Đang tạm dừng nhận hồ sơ', 'expired' => 'Tin tuyển dụng đã hết hạn', 'closed' => 'Tin đã đóng, không nhận hồ sơ'],
+    'not_accepting' => 'Vị trí này không nhận hồ sơ. Bạn có thể tham khảo các công việc khác bên dưới.',
+    'application_not_open' => 'Chức năng gửi hồ sơ trên website chưa được mở.',
+    'similar_jobs' => 'Công việc tương tự đang tuyển', 'no_similar_jobs' => 'Chưa có công việc tương tự đang tuyển. Bạn có thể xem tất cả cơ hội khác.',
 ];
