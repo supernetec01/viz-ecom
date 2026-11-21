@@ -38,6 +38,11 @@ class JobPolicy
         return $this->view($user, $job);
     }
 
+    public function submit(User $user, Job $job): Response
+    {
+        return $this->update($user, $job);
+    }
+
     public function pause(User $user, Job $job): Response
     {
         return $this->inStates($user, $job, [JobStatus::Published]);

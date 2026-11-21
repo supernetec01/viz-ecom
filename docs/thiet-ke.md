@@ -136,7 +136,13 @@ Nhân viên tạo công ty. Hệ thống ghi vào companies, company_channels v�
 
 Nhân viên tạo vị trí, điền theo form có sẵn: địa điểm, lương, kinh nghiệm, mô tả. Tin ở trạng thái draft.
 
-Khi bấm đăng, hệ thống chuyển sang pending và quét nội dung tìm SĐT, email, Zalo, link lạ. Nếu sạch thì chuyển tiếp sang published. Nếu nghi ngờ thì giữ pending để duyệt tay (mục 3.3).
+Khi gửi đăng, hệ thống kiểm tra quyền và quét nội dung mới nhất trong một giao dịch có khóa bản ghi. Tin sạch chuyển draft → published nếu ngày hết hạn hợp lệ. Tin có dấu hiệu liên hệ ngoài chuyển draft → pending để duyệt tay; chưa có ngày đăng (mục 3.3).
+
+T12 chỉ quét title, description, requirements và benefits. Không quét giới thiệu hoặc kênh công ty. SĐT/email/Zalo/inbox tạo lý do theo trường và loại vi phạm; không ghi đoạn nội dung hoặc số/email khớp vào log. Lý do link ngoài lưu thêm URL gây giữ để người duyệt T13 thấy ngay; metadata này không nằm trong JSON mặc định của model.
+
+Quyết định link T12 ngày 21/11/2026: chỉ link có hostname trùng tên miền chuẩn trong APP_URL (sau chuẩn hóa IDNA/hoa thường) hoặc đường dẫn nội bộ được qua. Mọi link ngoài trong nội dung tin đều cần duyệt: có/không HTTP(S), www, link rút gọn, zalo.me/wa.me/t.me/m.me, tên miền hoa thường hoặc Unicode giống Latin. Kiểm tra href thật của thẻ a thay vì chỉ chữ hiển thị. Ảnh nhúng ngoài bị bộ lọc HTML loại; bộ quét cũng nhận diện src ngoài khi được gọi với HTML chưa lọc. Không tự thêm allowlist theo kênh công ty hoặc tên miền con; không mở URL từ server.
+
+T12 cung cấp service SubmitJob, kiểm tra policy submit và chỉ nhận tin draft của admin/nhân viên được phân công. Hook lưu model tự quét trước chuyển từ draft sang pending/published, để lời gọi publish trực tiếp cũng không bỏ qua bước giữ tin. Về draft hoặc sửa nội dung thì xóa kết quả cũ và quét lại khi gửi đăng. Tin pending chỉ được xử lý qua luồng T13; không gửi đăng lặp để vượt duyệt.
 
 Tin đã đăng có published_at và expires_at. Link công khai dạng /viec-lam/ten-vi-tri-123.
 
@@ -519,7 +525,7 @@ Cổng kiểm 0: đăng nhập được bằng ba vai trò, mỗi vai trò chỉ
 | T09 ⚠ | Filament: tạo, khóa, mở khóa tài khoản công ty và gửi email mời đặt mật khẩu | Test: không có mật khẩu nào gửi qua email. Tài khoản công ty gắn đúng công ty. Khóa xong đăng nhập không được. Email dùng giả lập khi test |
 | T10 | Migration, model jobs: lương, kinh nghiệm, số lượng, trạng thái (có paused), slug, hết hạn. Ràng buộc lương tối thiểu không lớn hơn tối đa, không âm. Chỉ công ty đã xác minh mới tạo được tin | Test ràng buộc ở form và ở database. Slug trùng thì tự thêm hậu tố. Máy trạng thái chỉ cho chuyển theo đúng sơ đồ trong mục 3.3; bổ sung paused bằng migration mới tại T11 |
 | T11 | Filament: tạo, sửa bản nháp, nhân bản, tạm dừng/tiếp tục, đóng tin, xem trước. Nhân viên chỉ quản lý tin của công ty mình | Test phân quyền theo vai trò. Nhân bản không sao chép ngày đăng, hạn tin và gói đẩy tin. Rich text qua Symfony HtmlSanitizer, test script/XSS bị loại. Paused không sửa, tiếp tục giữ ngày cũ, quá hạn chuyển expired. Các test công khai/ứng tuyển/gói thực hiện ở task tương ứng theo mục 3.3 |
-| T12 ⚠ | Dịch vụ quét nội dung chống liên hệ ngoài: SĐT (cả viết cách chữ số, chèn dấu chấm hoặc chữ), email, chữ zalo, inbox, link lạ | Bộ test đơn vị có ít nhất 30 biến thể (ví dụ 09 0 1 2 3 4 5 6 7, không9, chữ số viết bằng chữ). Không chặn nhầm con số lương như 15.000.000. Tin vi phạm chuyển sang pending |
+| T12 ⚠ | Dịch vụ quét nội dung chống liên hệ ngoài: SĐT (cả viết cách chữ số, chèn dấu chấm hoặc chữ), email, chữ zalo, inbox. Mọi link ngoài APP_URL trong nội dung tin cần duyệt; không có allowlist theo kênh công ty | Ít nhất 30 biến thể liên hệ. Không giữ nhầm lương 15.000.000 hoặc địa chỉ 12.5 km. Tin vi phạm sang pending và lưu lý do, URL ngoài cụ thể. Test riêng từng dạng link http/https, bare domain/www, link rút gọn/nhắn tin, href ẩn, hoa thường/Unicode và trộn nội bộ/ngoài; không quét thông tin/kênh công ty |
 | T13 | Hàng chờ duyệt tin cho admin: xem lý do bị giữ, duyệt hoặc từ chối kèm lý do, thông báo cho nhân viên phụ trách | Test: chỉ admin duyệt được. Từ chối bắt buộc nhập lý do. Tin bị từ chối không hiện ra công khai |
 
 Cổng kiểm 1: nhân viên tạo công ty, tạo tài khoản công ty, đăng tin sạch (hiện ra) và tin có SĐT (bị giữ chờ duyệt). Mọi test phân quyền xanh.

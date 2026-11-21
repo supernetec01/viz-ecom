@@ -6,10 +6,12 @@ use App\Enums\EmploymentType;
 use App\Enums\JobStatus;
 use App\Enums\Role;
 use App\Enums\UserStatus;
+use App\Services\ContentScanner;
 use App\Support\JobData;
 use App\Support\JobHtml;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,8 +26,11 @@ use Illuminate\Validation\ValidationException;
  * @property EmploymentType $employment_type
  * @property CarbonImmutable|null $published_at
  * @property CarbonImmutable|null $expires_at
+ * @property CarbonImmutable|null $content_scanned_at
+ * @property array $content_scan_reasons
  */
 #[Fillable(['company_id', 'category_id', 'location_id', 'title', 'description', 'requirements', 'benefits', 'salary_min', 'salary_max', 'negotiable', 'experience_years', 'vacancies', 'employment_type', 'expires_at'])]
+#[Hidden(['content_scan_reasons', 'content_scanned_at'])]
 class Job extends Model
 {
     use SoftDeletes;
@@ -34,7 +39,7 @@ class Job extends Model
 
     protected function casts(): array
     {
-        return ['status' => JobStatus::class, 'employment_type' => EmploymentType::class, 'negotiable' => 'boolean', 'salary_min' => 'integer', 'salary_max' => 'integer', 'published_at' => 'immutable_datetime', 'expires_at' => 'immutable_datetime'];
+        return ['status' => JobStatus::class, 'employment_type' => EmploymentType::class, 'negotiable' => 'boolean', 'salary_min' => 'integer', 'salary_max' => 'integer', 'published_at' => 'immutable_datetime', 'expires_at' => 'immutable_datetime', 'content_scan_reasons' => 'array', 'content_scanned_at' => 'immutable_datetime'];
     }
 
     protected static function booted(): void
@@ -59,6 +64,19 @@ class Job extends Model
             $previous = $job->exists ? JobStatus::from($job->getRawOriginal('status')) : JobStatus::Draft;
             if ((! $job->exists && $job->status !== JobStatus::Draft) || ($job->exists && $job->isDirty('status') && ! $previous->canTransitionTo($job->status))) {
                 throw ValidationException::withMessages(['status' => __('ui.jobs.invalid_transition')]);
+            }
+            if ($job->isDirty(ContentScanner::FIELDS) || ($job->isDirty('status') && $job->status === JobStatus::Draft)) {
+                $job->content_scan_reasons = [];
+                $job->content_scanned_at = null;
+            }
+            if ($job->exists && $previous === JobStatus::Draft && $job->isDirty('status') && in_array($job->status, [JobStatus::Pending, JobStatus::Published], true)) {
+                $result = app(ContentScanner::class)->scan(array_intersect_key($job->getAttributes(), array_flip(ContentScanner::FIELDS)));
+                $job->content_scan_reasons = $result->findings;
+                $job->content_scanned_at = CarbonImmutable::now();
+                if ($result->requiresReview()) {
+                    $job->status = JobStatus::Pending;
+                    $job->published_at = null;
+                }
             }
             if ($job->exists && $job->isDirty('status') && $job->status === JobStatus::Draft) {
                 $job->published_at = null;
