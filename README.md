@@ -14,6 +14,10 @@ Meta/canonical/Open Graph có sẵn trong HTML, ảnh thương hiệu tại `/im
 
 Google Rich Results đã kiểm tra mã mẫu: 1 JobPosting hợp lệ, 2 cảnh báo tùy chọn trên. Chưa chứng minh Google crawl/index tên miền thật hoặc Zalo tải preview từ localhost. Kiểm tra HTTPS, ảnh/OG trên thiết bị khác và dán link vào Zalo nằm trong [checklist triển khai](docs/trien-khai-thuc-te.md), xem [báo cáo T20](docs/bao-cao-t20.md). Không cần API Zalo.
 
+## Chia sẻ và nguồn ứng tuyển (T21)
+
+Tin còn nhận hồ sơ có nút sao chép link kèm `nguon=chia-se`; không có JavaScript vẫn copy từ ô link. Có thể đặt nguồn khác khi phát link, ví dụ `?nguon=zalo-nhom_1`. Nguồn chỉ 1–64 ký tự chữ/số không dấu, gạch ngang/gạch dưới, chuẩn hóa chữ thường. Nguồn hợp lệ gần nhất lưu trong phiên; thiếu hoặc sai không ghi đè, không đổi nội dung trang. T24 sẽ đọc nguồn từ phiên khi lưu hồ sơ. Chưa gửi tin tự động hay tích hợp API Zalo.
+
 ## Yêu cầu
 
 - PHP 8.4 với các extension chuẩn Laravel, `pdo_pgsql`, `pgsql`, `mbstring`, `intl`, `fileinfo`, `curl`, `openssl`, `zip` và XML/DOM.
@@ -28,7 +32,7 @@ PHP 8.4 được chọn để chạy Pest 5. Phiên bản dependencies cụ th�
 ```sh
 git clone https://github.com/supernetec01/viz-ecom.git
 cd viz-ecom
-git switch codex/t20-public-seo
+git switch codex/t21-share-source
 composer install
 npm ci
 npm run build

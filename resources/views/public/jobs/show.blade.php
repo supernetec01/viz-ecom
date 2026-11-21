@@ -6,6 +6,15 @@
             <h1>{{ $job->title }}</h1>
             <p class="detail-company">@include('public.jobs.company-name', ['company' => $job->company])</p>
             <p class="detail-address"><strong>{{ __('public.address') }}:</strong> {{ $job->workplaceAddress() ?? $job->location->name.' — '.__('public.address_incomplete') }}</p>
+            @if ($accepting)
+                <section class="job-share" aria-label="{{ __('public.share_job') }}" data-job-share>
+                    <label for="share-url">{{ __('public.share_job') }}</label>
+                    <div class="share-controls"><input id="share-url" type="url" readonly value="{{ \App\Support\PublicSeo::url('jobs.show', ['slug' => $job->slug, 'id' => $job->id, 'nguon' => 'chia-se']) }}">
+                        <button type="button" class="button button-outline" data-copy-link hidden>{{ __('public.copy_link') }}</button></div>
+                    <p data-copy-status role="status" aria-live="polite" data-success="{{ __('public.link_copied') }}" data-failure="{{ __('public.copy_link_manually') }}">{{ __('public.share_help') }}</p>
+                </section>
+                @vite('resources/js/app.js')
+            @endif
         </div>
     </section>
     <div class="site-shell detail-body">
