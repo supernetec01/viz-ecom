@@ -1,5 +1,12 @@
 # CODEMAP — điểm tích hợp nghiệp vụ
 
+## Chia sẻ và nguồn ứng tuyển (T21)
+
+- `CaptureApplicationSource` chỉ gắn vào bốn trang GET công khai: home, jobs.index, jobs.show, companies.show; chỉ ghi nguồn sau phản hồi 200/301, không từ 404/422, auth/quản trị/robots/sitemap. Slug cũ lưu nguồn trong session trước redirect nên không phải mang nguồn qua Location.
+- `ApplicationSource::normalize()` chấp nhận 1–64 ký tự ASCII, đầu chữ/số, còn lại chữ/số/gạch ngang/gạch dưới, chuẩn hóa chữ thường. TrimStrings bỏ qua `nguon` để khoảng trắng/xuống dòng không được hợp thức hóa trước kiểm tra. Nguồn mới hợp lệ nhất ghi vào `application_source`, nguồn thiếu/sai không xóa giá trị cũ; tồn tại theo vòng đời phiên Laravel, không dùng cookie theo dõi riêng.
+- T24 dùng `ApplicationSource::current($request->session())` khi lưu hồ sơ; không tin hidden input hoặc POST nguồn. Nguồn chỉ là nhãn thống kê do người chia sẻ tự khai báo, không phải chứng cứ định danh/phân quyền. Không đưa vào nội dung, canonical/OG/JobPosting.
+- `public/jobs/show.blade.php` chỉ hiện chia sẻ khi hàm nhận hồ sơ đúng; `resources/js/app.js` copy URL APP_URL có `nguon=chia-se`. Link không lấy nguồn hay tham số bất kỳ từ request; không JS vẫn có ô readonly để copy. Lỗi clipboard chọn ô và báo copy thủ công, không báo thành công giả. Không API Zalo hoặc gửi tin nhắn; T44 sẽ bổ sung công cụ nhân viên.
+
 ## Tin tuyển dụng công khai và nhận hồ sơ
 
 - `app/Models/Job.php::canReceiveApplications()` là hàm dùng chung duy nhất quyết định tin có nhận hồ sơ: chưa xóa mềm, published, đã tới ngày đăng và chưa tới ngày hết hạn. Đúng thời điểm hết hạn là không nhận. Hàm không truy vấn DB, không lưu dữ liệu; T18 dùng trên trang chi tiết, T24 phải gọi lại trên bản ghi đọc/khóa mới nhất trước khi nhận POST/lưu file/hồ sơ. Không sao chép điều kiện thành một công thức khác trong controller/view/service T24.

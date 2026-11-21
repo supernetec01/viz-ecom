@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'share_job' => 'Chia sẻ tin tuyển dụng', 'copy_link' => 'Sao chép liên kết', 'link_copied' => 'Đã sao chép liên kết.',
+    'copy_link_manually' => 'Chưa sao chép được. Bạn hãy chọn và sao chép liên kết trong ô trên.',
+    'share_help' => 'Sao chép liên kết rồi dán vào Zalo hoặc nơi bạn muốn chia sẻ.',
     'company_profile' => 'Thông tin công ty', 'company_introduction' => 'Giới thiệu', 'company_industry' => 'Ngành hàng',
     'company_products' => 'Sản phẩm kinh doanh', 'company_channels' => 'Kênh bán hàng và video',
     'external_link_notice' => 'Liên kết bên ngoài, hãy cẩn thận khi mở.',
