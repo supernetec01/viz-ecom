@@ -7,12 +7,13 @@
         </div>
     </section>
     <section class="site-shell section-block job-list-section" aria-labelledby="list-heading">
+        @include('public.jobs.filters')
         <div class="list-heading"><h2 id="list-heading">{{ __('public.list_heading') }}</h2><p>{{ __('public.list_total', ['count' => number_format($jobs->total(), 0, ',', '.')]) }}</p></div>
         @if ($jobs->isEmpty())
             <div class="empty-state"><span class="empty-symbol" aria-hidden="true">↗&#xfe0e;</span>
                 <h3>{{ __($jobs->total() ? 'public.page_empty_title' : 'public.no_jobs_title') }}</h3>
                 <p>{{ __('public.no_jobs_copy') }}</p>
-                @if ($jobs->total())<a class="button button-outline" href="{{ route('jobs.index') }}">{{ __('public.first_page') }}</a>@endif
+                @if ($jobs->total())<a class="button button-outline" href="{{ route('jobs.index', $filters) }}">{{ __('public.first_page') }}</a>@endif
             </div>
         @else
             <ol class="job-grid" aria-label="{{ __('public.list_heading') }}">
