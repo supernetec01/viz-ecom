@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\LocalAvatarProvider;
+use App\Filament\Widgets\FileReviewStats;
 use App\Http\Controllers\AuthController;
 use App\Http\Middleware\EnsureActiveAccount;
 use App\Http\Middleware\EnsurePrivilegedMfa;
@@ -32,6 +33,7 @@ class AppPanelProvider extends PanelProvider
             ->defaultAvatarProvider(LocalAvatarProvider::class)
             ->renderHook(PanelsRenderHook::SCRIPTS_AFTER, fn () => view('filament.livewire-scripts'))
             ->pages([Dashboard::class])
+            ->widgets([FileReviewStats::class])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->middleware([
                 EncryptCookies::class, AddQueuedCookiesToResponse::class, StartSession::class,

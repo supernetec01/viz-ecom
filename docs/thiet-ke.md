@@ -82,7 +82,7 @@ job_boosts: id, job_id, plan_id, starts_at, ends_at, priority, order_id.
 
 applications: id (ULID công khai), job_id, company_id (lưu thêm để lọc nhanh), họ tên, SĐT (đã chuẩn hóa), email (tùy chọn), cv_file_id, portfolio_url, portfolio_file_id, đã đồng ý xử lý dữ liệu (thời điểm), nguồn (?nguon=), submitted_at, trạng thái (new, viewed, interview, hired, rejected), ghi chú nội bộ, thời điểm xóa mềm.
 
-files: id, đường dẫn lưu, tên gốc, MIME đã kiểm tra, dung lượng, mã băm SHA-256, trạng thái quét (pending, clean, infected), đường dẫn bản PDF xem trước.
+files: id, đường dẫn lưu, tên gốc, MIME đã kiểm tra, dung lượng, mã băm SHA-256, scan_status (pending, clean, infected, error), preview_status (pending, ready, failed), đường dẫn PDF xem trước, số lượt xử lý/quét/preview, mã lỗi, cờ xem tay, phiên xử lý và hash/thời điểm đã quét.
 
 Ánh xạ schema T22: applications dùng id ULID, full_name, phone_normalized (dạng 0 + 9 chữ số), consent_given/consented_at, source, submitted_at và internal_notes. Unique theo job_id/phone_normalized khi deleted_at null. FK ghép job_id/company_id chống ghi nhầm công ty; xóa mềm tin/công ty không cascade hồ sơ. Files chỉ là metadata ở T22; MIME thật, UUID và lưu ngoài web root do T23 kiểm tra/thực hiện, không có luồng upload/download trong T22.
 
@@ -251,7 +251,7 @@ Quyết định ngày 25/11/2026: người dùng yêu cầu tiếp tục hai tas
 
 Không nhận file nén, file chạy được, hoặc file có macro.
 
-Quyết định bổ sung T23: DOC cũ bị từ chối, hướng dẫn lưu lại PDF hoặc DOCX; không thêm công cụ đọc DOC. DOCX kiểm tra package, chặn VBA/macro, OLE/ActiveX, quan hệ ngoài, path nguy hiểm và zip bomb. Người dùng đã duyệt qpdf JSON/object stream và runner cô lập, không thêm Composer package. Đã có kiểm tra sâu PDF, từ chối mã hóa (cả mật khẩu rỗng) và JS/JavaScript/OpenAction/AA/Launch/GoToR/GoToE/SubmitForm/ImportData/XFA/RichMedia/3D/EmbeddedFile cùng marker liên quan, giữ nguyên gốc. Fail closed với lỗi/thiếu công cụ/timeout/RAM/output/object/depth limit. Hướng dẫn/test/số đo ở docs/pdf-inspector-t48.md. PDF production vẫn tắt, T23 draft chờ mẫu điện thoại và Canva không đính kèm. Quyết định mới nhất: chờ T23 đủ mẫu/hoàn tất trước làm T24.
+Quyết định bổ sung T23: DOC cũ bị từ chối, hướng dẫn lưu lại PDF hoặc DOCX; không thêm công cụ đọc DOC. DOCX kiểm tra package, chặn VBA/macro, OLE/ActiveX, quan hệ ngoài, path nguy hiểm và zip bomb. Người dùng đã duyệt qpdf JSON/object stream và runner cô lập, không thêm Composer package. Đã có kiểm tra sâu PDF, từ chối mã hóa (cả mật khẩu rỗng) và JS/JavaScript/OpenAction/AA/Launch/GoToR/GoToE/SubmitForm/ImportData/XFA/RichMedia/3D/EmbeddedFile cùng marker liên quan, giữ nguyên gốc. Fail closed với lỗi/thiếu công cụ/timeout/RAM/output/object/depth limit. Hướng dẫn/test/số đo ở docs/pdf-inspector-t48.md. PDF production vẫn tắt, T23 draft chờ mẫu điện thoại và Canva không đính kèm. Quyết định tiếp tục T24–T27 theo yêu cầu sau đó không thay các chốt production này.
 
 ### 5.2. Xử lý khi upload
 
@@ -267,7 +267,9 @@ Giới hạn dung lượng được kiểm tra ở cả Nginx, PHP và Laravel �
 
 Quét virus trước khi cho phép xem. File chưa quét xong hiển thị trạng thái "đang xử lý" cho nhà tuyển dụng.
 
-Với DOC/DOCX: tạo thêm bản PDF để xem trong trình duyệt. Giữ bản gốc để tải xuống.
+Chỉ DOCX: tạo PDF bằng LibreOffice cô lập không mạng, giữ bản gốc; DOC cũ chưa nhận. Dùng InitialPage=0 để không sinh OpenAction, rồi qua đúng qpdf T23 và ClamAV; không sửa PDF upload hoặc nới denylist. Không có chuẩn hóa hậu kỳ vì cấu hình xuất đã cho kết quả tương đương.
+
+Quyết định T27: tối đa ba lượt thực chạy, chờ 1 phút rồi 5 phút khi lỗi tạm; lỗi chắc chắn không retry. Hết lỗi scan: error + xem tay, không xem/tải. Chỉ preview lỗi: clean/failed, vẫn đủ trạng thái tải gốc; thông báo “Không có bản xem trước, tải về để xem”. Virus ở gốc hoặc preview: infected, không xem/tải và không retry. Admin chỉ thấy mã hồ sơ ULID, mã file, trạng thái, lượt, mã lỗi và thời gian; không định danh/nội dung. Retry kiểm tra hash và chỉ chạy bước lỗi, ghi actor/time/file qua hook T35. FileReadiness dùng chung cho T30/T33; route nội dung chờ T33, T27 không tạo trước.
 
 ### 5.3. Xem và tải
 
@@ -593,7 +595,7 @@ Cổng kiểm 2: mở link tin trên điện thoại thật từ Zalo, lọc, b�
 | T24 ⚠ | Form ứng tuyển: họ tên, SĐT, email (tùy chọn), CV, portfolio, ô đồng ý xử lý dữ liệu, captcha. Chuẩn hóa SĐT (0912345678, +84912345678 và 84 912 345 678 là một). Mã chống gửi lặp. Trước lưu gọi đúng Job::canReceiveApplications T18 trên bản ghi đọc lại qua scope công khai | Test: thiếu trường bắt buộc, SĐT sai, nộp trùng cùng tin, bấm gửi hai lần liên tiếp, không tích đồng ý. POST trực tiếp vào paused/expired/closed bị từ chối ở server, mỗi trạng thái một test. Dữ liệu đã nhập được giữ lại khi có lỗi |
 | T25 | Portfolio: nhận link hoặc file dưới 10 MB (PDF, JPG, PNG) | Test: chặn javascript: và link không phải http, https. Link không bao giờ được server tự mở. Cho phép bỏ trống |
 | T26 ⚠ | Giao dịch cho việc nộp hồ sơ: lưu applications và files cùng lúc, lỗi thì hoàn tác và xóa file. Lệnh dọn file tạm và file mồ côi | Test: giả lập lỗi ở bước lưu database thì không còn file thừa. Lệnh dọn không xóa file của hồ sơ hợp lệ |
-| T27 ⚠ | Công việc nền: quét virus bằng ClamAV, đổi DOC/DOCX sang PDF xem trước, cập nhật trạng thái file (pending, clean, infected) | Test dùng bộ quét giả. File nhiễm bị khóa, không cho xem hay tải. Lỗi quét thì thử lại tối đa 3 lần rồi đánh dấu cần xem tay. Ứng viên không phải chờ bước này |
+| T27 ⚠ | Worker ClamAV, chỉ chuyển DOCX bằng LibreOffice cô lập; scan pending/clean/infected/error, preview pending/ready/failed; admin metadata/retry | Ba lượt thực chạy, backoff 60/300s; infected không retry; error chặn readiness; chỉ lỗi preview vẫn tải gốc clean. Khóa/idempotent, qpdf T23 + AV trước ready, test 403, không route nội dung. Chi tiết ở 5.2/báo cáo T27 |
 | T28 | Trang cảm ơn sau khi nộp. Email tóm tắt cho nhà tuyển dụng (chỉ nói có hồ sơ mới ở vị trí nào) | Test: nội dung email không chứa tên, SĐT, email của ứng viên. Email gửi bằng hàng đợi |
 
 Cổng kiểm 3: nộp thử hồ sơ từ điện thoại với các loại file, nộp trùng, mất mạng giữa chừng. Không còn file mồ côi, không còn hồ sơ lỗi.

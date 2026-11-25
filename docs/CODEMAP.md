@@ -9,6 +9,16 @@
 - Chốt dừng toàn kế hoạch nếu orphan >20% tổng file thường được quét hoặc bảng files rỗng mà đĩa >10 file; --force không bypass. DB/lỗi kiểm tra abort, không diễn giải thành không có tham chiếu. Mỗi run log UUID, scanned/candidates/deleted/skipped/reasons, cả khi lỗi; không log exception thô.
 - Production --force bị chặn mặc định tới khi `CANDIDATE_CLEANUP_PRODUCTION_FORCE=true` sau review dry-run thật. `CANDIDATE_CLEANUP_SCHEDULED=false`, chưa gắn scheduler (T42 mới nối lịch, phải tôn trọng cờ). Cleanup chỉ xóa orphan; không thay retention T42/T46.
 
+## Worker và trạng thái file T27
+
+- `CandidateFile` chỉ metadata; migration 000015 thêm error/preview/counters/review/version/hash. File cũ chưa có provenance quét được giữ bytes nhưng chuyển error/verification_required; infected không đổi.
+- `SubmitApplication` → `EnqueueCandidateFile`: enqueue database/candidate-files trong cùng transaction PostgreSQL, payload file ID/version; không chạy scanner trong request. Cấu hình queue DB phải cùng kết nối DB nghiệp vụ.
+- `ProcessCandidateFile` lấy cache lock theo file, `ProcessStoredFile` giữ filesystem lease/hash; ba lượt thực chạy, backoff 60/300s, version chống delivery cũ, preview deterministic. Virus ở cả gốc/preview khóa infected; lỗi scan hết lượt thành error; lỗi preview giữ clean/failed.
+- `DocumentSandbox` dùng lại runner Process argv/deadline/output của PdfSandbox; network none + probe TCP ENETUNREACH, rootfs read-only, cgroup 1 GiB/PID64, CPU1, tmpfs64MiB, non-root và profile UUID. Scan ClamAV definitions chỉ đọc, daily tối đa72h. LibreOffice InitialPage=0 không sinh OpenAction; không viết bộ xóa action, không sửa upload. Preview qua chính `InspectPdf` T23 rồi AV; lỗi fail closed. Cleanup T26 thêm staging riêng `storage/app/file-processing`, cùng lease UUID.
+- **`App\Support\FileReadiness::for()` là nơi DUY NHẤT quyết định trạng thái xem/tải**: scan khác clean đều false; clean tải gốc; clean + preview ready mới xem. Thông báo clean/failed lấy `files.no_preview`. **T30/T33 phải dùng lại và kiểm tra ApplicationPolicy mỗi truy cập**, không coi readiness là authorization. T27 không tạo route công khai/nhà tuyển dụng/nội dung.
+- `FileReviewResource` /app/file-can-xem-tay, `FileReviewStats`, `CandidateFilePolicy`: admin đang hoạt động; SQL projection chỉ mã/trạng thái/counters/errors/time; mã hồ sơ ULID qua `ApplicationPolicy::fileApplicationIds`. Không original_name/path/contact/link nội dung. Retry fresh policy + hash, infected cấm; clean/preview failed không scan lại nếu hash giữ nguyên.
+- `FileProcessingRetryRequested` + listener log actor/time/file/stage là điểm nối audit_logs **T35**, chưa làm T35. Log kỹ thuật worker chỉ file_id/error_code, không raw exception/nội dung/tên gốc. README/báo cáo T27/T48 ghi cấu hình demo và chốt production.
+
 ## Portfolio T25
 
 - `InspectPortfolio`: PDF/JPG/JPEG/PNG tối đa 10 MiB thật, finfo/nội dung/đuôi khớp, SHA-256. PDF gọi đúng `InspectPdf` (mọi chốt production/runner/marker giữ nguyên). PNG kiểm tra signature/chunk length/CRC/IHDR/IDAT/IEND, không trailing bytes, tối đa 2048 chunk. JPEG kiểm tra marker/segment/scan/EOI, tối đa 100.000 marker, không trailing bytes. Ảnh tối đa 16.384 px mỗi chiều, 40 triệu pixel; không giải mã pixel hoặc tuyên bố sạch malware.

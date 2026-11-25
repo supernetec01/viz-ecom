@@ -14,7 +14,8 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     $this->freezeTime();
     Storage::fake('candidate-files');
-    config(['candidate-cleanup.staging_root' => storage_path('framework/testing/cleanup-'.Str::uuid())]);
+    config(['candidate-cleanup.staging_root' => storage_path('framework/testing/cleanup-'.Str::uuid()),
+        'file-processing.staging_root' => storage_path('framework/testing/processor-cleanup-'.Str::uuid())]);
 });
 
 function cleanupTestFile(bool $referenced = false, int $age = 90000, string $kind = 'cv'): string
@@ -158,16 +159,16 @@ it('aborts without deletion if the database is unavailable and records a sanitiz
         && ! str_contains(json_encode($summary), 'private details')))->once();
 });
 
-it('only cleans owned PDF staging and skips a staging directory currently inspected', function () {
+it('only cleans owned staging and skips a staging directory currently inspected', function (string $kind, string $setting) {
     cleanupBaseline();
     $uuid = (string) Str::uuid();
-    $root = config('candidate-cleanup.staging_root');
+    $root = config($setting);
     mkdir($root.'/'.$uuid, 0700, true);
     $path = $root.'/'.$uuid.'/input.pdf';
     file_put_contents($path, 'synthetic');
     touch($path, now()->timestamp - 90000);
     chmod($path, 0444);
-    $lease = CandidateFileLease::acquire('pdf-staging:'.$uuid);
+    $lease = CandidateFileLease::acquire($kind.':'.$uuid);
     [$active] = runCandidateCleanup(true);
     expect($active['deleted'])->toBe(0);
     $lease->release();
@@ -176,7 +177,10 @@ it('only cleans owned PDF staging and skips a staging directory currently inspec
     expect(is_file($path))->toBeFalse();
     rmdir($root.'/'.$uuid);
     rmdir($root);
-});
+})->with([
+    ['pdf-staging', 'candidate-cleanup.staging_root'],
+    ['processor-staging', 'file-processing.staging_root'],
+]);
 
 it('requires production opt in even when force is supplied', function () {
     cleanupBaseline();

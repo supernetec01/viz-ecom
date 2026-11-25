@@ -55,6 +55,16 @@ Upload T24–T25: PHP-FPM `upload_max_filesize=10M`, `post_max_size=24M`, `uploa
 
 ## Số đo và các mục còn thiếu
 
+### Phụ thuộc T27 và kiểm chứng trước triển khai
+
+Build thêm `docker build -t viz-ecom-file-processor:local docker/file-processor` (ClamAV, LibreOffice Writer, fonts, CA). Trên production đặt FILE_PROCESSOR_IMAGE bằng image ID sha256 đã kiểm tra và dùng Docker rootless như qpdf; không đưa rootful socket cho ứng dụng. Runner tự kiểm tra mạng TCP không thể kết nối, rootfs không ghi được, cgroup memory 1GiB/PID64, CPU1, tmpfs64MiB, deadline35s/operation, output10MiB và trần đọc Process16MiB; timeout dừng cả container. Test lại trên chính Ubuntu mục tiêu. Không bảo đảm được thì giữ chặn và báo người dùng.
+
+Cài updater Ubuntu từ gói chính thức `clamav-freshclam`, dùng cấu hình FreshClam của máy chủ, database directory riêng; đặt CLAMAV_DATABASE_DIR trỏ vào nơi user rootless đọc được. Cập nhật main/daily qua mirror chính thức, TLS/chữ ký bật; không dùng chmod777. Tiến trình updater có mạng riêng và không đọc CV; worker chỉ mount definitions read-only, không có mạng. Theo dõi cập nhật và tuổi daily tối đa72h. Không mount thư mục CV vào updater. Cấu hình giám sát/chu kỳ updater thuộc bước vận hành T48; repo không tự cài dịch vụ host.
+
+Worker thường trực: `php artisan queue:work database --queue=candidate-files --timeout=180`, dưới Supervisor/systemd, `DB_QUEUE_RETRY_AFTER=300`, cache database dùng chung; restart worker khi phát hành. Test fail closed khi thiếu definitions/image, kiểm tra lock trên storage thật, backoff và admin retry; đừng reset pending bằng SQL để vượt kiểm tra. Migration000015 chuyển file cũ thiếu bằng chứng quét thành error/verification_required, không xóa bytes; review/scan lại bằng admin theo kế hoạch.
+
+LibreOffice xuất InitialPage=0, không sửa hậu kỳ hoặc miễn OpenAction cho PDF upload. Preview gọi đúng InspectPdf T23 rồi AV; PDF_PRODUCTION_ENABLED=false hiện cũng chặn preview PDF production. Chỉ mở sau đủ điều kiện T23 và review, không tắt chốt để có preview. T30/T33 còn phải gắn policy/audit/CSP cho route thật; T27 không có route này.
+
 Local ngày 21/11/2026, Docker Desktop Linux 29.9.2 trên Windows, qpdf 11.9.0, quota 1 CPU/256 MiB. PDF ảnh RGB tổng hợp **10.485.760 byte**, ba lượt sau build mới nhất:
 
 | Lượt | Thời gian runner, gồm cleanup | Peak cgroup memory |
