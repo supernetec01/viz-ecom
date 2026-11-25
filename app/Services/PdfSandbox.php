@@ -45,7 +45,8 @@ class PdfSandbox
                 '--cpus', '1', '--pids-limit', '32', '--read-only', '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges:true',
                 '--ulimit', 'core=0', '--ulimit', 'nofile=64:64', '--user', $uid.':'.$gid, '--log-driver', 'none',
                 '--mount', 'type=bind,source='.$scratch.'/input.pdf,target=/input.pdf,readonly', '--workdir', '/',
-                '--entrypoint', '/usr/local/bin/sandbox-probe', $image, 'hold',
+                // Independent in-container watchdog also kills the process tree if Docker IPC stalls.
+                '--entrypoint', '/usr/local/bin/sandbox-probe', $image, 'lifetime',
             ], $deadline);
             $this->command(['start', $name], $deadline);
             $settings = json_decode($this->command(['inspect', '--format', '{{json .HostConfig}}', $name], $deadline), true, 32, JSON_THROW_ON_ERROR);
@@ -130,18 +131,37 @@ class PdfSandbox
         $process = new Process([config('pdf-inspection.docker'), ...$arguments], base_path(), $environment, timeout: $remaining);
         $output = '';
         $bytes = 0;
+        $overflow = false;
         try {
-            $exit = $process->run(function (string $type, string $data) use (&$output, &$bytes): void {
+            $process->start(function (string $type, string $data) use ($process, &$output, &$bytes, &$overflow): void {
                 $bytes += strlen($data);
                 if ($bytes > config('pdf-inspection.output_bytes')) {
-                    throw new PdfInspectionFailed('output_limit');
+                    $overflow = true;
                 }
-                if ($type === Process::OUT) {
+                if (! $overflow && $type === Process::OUT) {
                     $output .= $data;
                 }
+                // Never throw from a pipe callback: stop/reap the CLI before Docker cleanup.
+                $process->clearOutput();
+                $process->clearErrorOutput();
             });
+            while ($process->isRunning()) {
+                if ($overflow) {
+                    throw new PdfInspectionFailed('output_limit');
+                }
+                $process->checkTimeout();
+                usleep(1000);
+            }
+            if ($overflow) {
+                throw new PdfInspectionFailed('output_limit');
+            }
+            $exit = $process->getExitCode() ?? -1;
         } catch (ProcessTimedOutException) {
             throw new PdfInspectionFailed('timeout');
+        } finally {
+            $process->stop(0);
+            $process->clearOutput();
+            $process->clearErrorOutput();
         }
         if (! in_array($exit, $allowed, true)) {
             throw new PdfInspectionFailed('invalid');

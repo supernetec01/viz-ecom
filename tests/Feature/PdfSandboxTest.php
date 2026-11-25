@@ -2,8 +2,8 @@
 
 use App\Exceptions\PdfInspectionFailed;
 use App\Services\InspectPdf;
-use App\Services\PdfSandbox;
 use Symfony\Component\Process\Process;
+use Tests\Support\PdfFailureProbe;
 
 require_once __DIR__.'/../Support/CvFixtures.php';
 require_once __DIR__.'/../Support/PdfFixtures.php';
@@ -30,30 +30,6 @@ it('accepts a real clean PDF with verified network isolation and memory limits w
     expect($result['peak_memory_bytes'])->toBeGreaterThan(0)->toBeLessThanOrEqual(268435456);
     expect(hash_file('sha256', $this->pdfPath))->toBe($hash);
 });
-
-class PdfFailureProbe extends PdfSandbox
-{
-    public bool $observedOom = false;
-
-    public function __construct(private string $mode) {}
-
-    protected function exec(string $container, array $arguments, float $deadline, array $allowed = [0], int &$exit = 0): string
-    {
-        if ($arguments[0] === '/usr/bin/qpdf') {
-            try {
-                return parent::exec($container, $this->mode === 'missing' ? ['/missing-qpdf'] : ['/usr/local/bin/sandbox-probe', $this->mode], $deadline, $allowed, $exit);
-            } catch (PdfInspectionFailed $exception) {
-                if ($this->mode === 'memory') {
-                    $events = parent::exec($container, ['/bin/cat', '/sys/fs/cgroup/memory.events'], $deadline);
-                    $this->observedOom = preg_match('/^oom_kill [1-9][0-9]*$/m', $events) === 1;
-                }
-                throw $exception;
-            }
-        }
-
-        return parent::exec($container, $arguments, $deadline, $allowed, $exit);
-    }
-}
 
 it('rejects a hung missing or excessive output qpdf process and removes its container and scratch', function (string $mode) {
     $probe = new PdfFailureProbe($mode);

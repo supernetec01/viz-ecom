@@ -41,7 +41,13 @@ Thêm `PdfSandboxTest.php`: PDF sạch nguyên bytes, object stream sạch; PDF 
 
 Ngày 21/11/2026: **573 test, 1828 assertions**, không skip khi `PDF_SANDBOX_TESTS=1`; `composer lint` (Pint/Larastan) và `git diff --check` xanh. CI bắt buộc build image/tải corpus checksum rồi chạy nhóm sandbox; chưa coi riêng local là bằng chứng production. Không thay asset nên không build/test lại UI không liên quan. Unit/integration dùng dữ liệu test; CV người dùng kiểm tra riêng local, không Git/CI/log nội dung, không tạo tài khoản. Unix private visibility assert trên CI Linux; Windows kiểm tra root/cấu hình, cần ACL thật khi triển khai.
 
-## Số đo và mẫu người dùng
+## Bản sửa dọn tiến trình ngày 25/11/2026
+
+CI Ubuntu ở commit `0683fe2` phát hiện còn container trong ca output quá lớn. Đã đổi sang callback chỉ đánh dấu vượt output, dừng và thu hồi tiến trình Docker CLI trong `finally` trước khi dọn container; không ném exception ngay từ callback đọc pipe. Giữ nguyên assertion không còn container/file tạm. Init trong container tự kết thúc sau 5 giây để giới hạn tiến trình bên trong kể cả khi IPC host bị treo. Helper lỗi chuyển sang `Tests\Support\PdfFailureProbe` đúng PSR-4. Không thêm dependency hay mở production PDF.
+
+Nhóm `PdfSandboxTest`: 18 test, 32 assertions đã qua local ngày 25/11/2026, gồm treo/missing/output, OOM thật và kiểm tra network. Sau khi Docker và PostgreSQL local sẵn sàng, `PDF_SANDBOX_TESTS=1 composer test` đạt **573 test, 1828 assertions** (90,66 giây), `composer lint` (Pint/Larastan) và `git diff --check` xanh. Các lần đầu khi Docker/DB chưa chạy không được tính là kết quả đạt. CI Ubuntu của commit mới cần được xác nhận riêng; không dùng CI cũ làm bằng chứng bản mới đạt.
+
+## Số đo và mẫu người dùng — ngày 21/11/2026
 
 PDF ảnh RGB hợp lệ tổng hợp đúng 10.485.760 byte, qpdf11.9.0/DockerDesktopLinux29.9.2/Windows, quota1CPU256MiB: ba lượt **2.873s / 2.839s / 2.848s**, peak **19.025.920 / 18.747.392 / 19.922.944 byte** (~17,9–19,0MiB). Median2.848s; không phải worst case/p95/tải đồng thời hoặc số đo server. Raw metrics `.runtime/t23-ten-mib-benchmark.json`.
 

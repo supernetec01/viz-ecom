@@ -11,6 +11,7 @@
 int main(int argc, char **argv) {
     if (argc != 2) return 2;
     if (geteuid() == 0) return 8;
+    if (!strcmp(argv[1], "lifetime")) { sleep(5); return 0; }
     if (!strcmp(argv[1], "hold")) { sleep(60); return 0; }
     if (!strcmp(argv[1], "network")) {
         int write_fd = open("/tmp/viz-write-probe", O_WRONLY | O_CREAT, 0600);
