@@ -237,6 +237,8 @@ Mỗi đêm một lịch chạy: chuyển tin quá hạn sang expired, gửi nh�
 
 ## 5. Lưu trữ CV và portfolio
 
+Quyết định ngày 25/11/2026: người dùng yêu cầu tiếp tục hai task T24–T25 sau khi được thông báo T23 còn thiếu mẫu. Cho phép triển khai nối tiếp trên nhánh/PR riêng từ T23 draft; không coi T23 đã hoàn tất, không merge T23 hoặc bật PDF production. Quyết định này thay điều kiện phải chờ T23 đủ mẫu mới viết T24; các tiêu chí tương thích và chốt production của T23 vẫn giữ nguyên.
+
 ### 5.1. Quy định file
 
 | Loại | Định dạng cho phép | Dung lượng tối đa |

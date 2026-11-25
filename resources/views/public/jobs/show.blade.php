@@ -38,10 +38,10 @@
                         <div><dt>{{ __('ui.jobs.published_at') }}</dt><dd>{{ \App\Support\VietnamTime::format($job->published_at, 'd/m/Y') }}</dd></div>
                         <div><dt>{{ __('ui.jobs.expires_at') }}</dt><dd>{{ $job->expires_at ? \App\Support\VietnamTime::format($job->expires_at, 'd/m/Y') : '—' }}</dd></div>
                     </dl>
-                    @if ($accepting)<section class="application-area" aria-label="{{ __('public.application_status') }}"><h3>{{ __('public.detail_states.published') }}</h3><p>{{ __('public.application_not_open') }}</p></section>@endif
                 </aside>
             </div>
         @endif
+        @if ($accepting) @include('public.jobs.application-form') @endif
         <section class="similar-section" aria-labelledby="similar-heading">
             <h2 id="similar-heading">{{ __('public.similar_jobs') }}</h2>
             @if ($similar->isEmpty())<p>{{ __('public.no_similar_jobs') }}</p>@else

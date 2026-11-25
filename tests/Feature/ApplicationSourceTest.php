@@ -36,14 +36,14 @@ it('retains the source through a canonical slug redirect without putting it into
 it('keeps public metadata and content identical for different valid sources', function () {
     $job = publishManagedJob(managedJob(jobManager()));
     $url = route('jobs.show', ['slug' => $job->slug, 'id' => $job->id]);
-    $normalize = fn (string $html): string => preg_replace('/nonce="[^"]+"/', 'nonce="request"', $html);
+    $normalize = fn (string $html): string => preg_replace('/nonce="[^"]+"|name="(?:submission_token|_token)" value="[^"]+"/', 'request-token', $html);
     expect($normalize($this->get($url.'?nguon=zalo-a')->getContent()))->toBe($normalize($this->get($url.'?nguon=zalo-b')->getContent()));
 });
 
 it('offers a fixed share URL on receiving jobs with a no-script fallback and unchanged strict CSP', function () {
     $job = publishManagedJob(managedJob(jobManager()));
     $response = $this->get(route('jobs.show', ['slug' => $job->slug, 'id' => $job->id]))->assertOk()
-        ->assertSee('id="share-url" type="url" readonly', false)->assertSee('nguon=chia-se')->assertSee(__('public.copy_link'))->assertDontSee('<form', false);
+        ->assertSee('id="share-url" type="url" readonly', false)->assertSee('nguon=chia-se')->assertSee(__('public.copy_link'))->assertSee('name="submission_token"', false);
     $csp = $response->headers->get('Content-Security-Policy');
     preg_match('/nonce="([^"]+)"/', $response->getContent(), $match);
     expect($csp)->toContain("'nonce-{$match[1]}'")->not->toContain("'unsafe-eval'");

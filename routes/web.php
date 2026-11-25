@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ApplicationSubmissionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\PublicCompanyController;
@@ -18,6 +19,8 @@ Route::get('/robots.txt', fn () => response("User-agent: *\nDisallow: /app\nDisa
 Route::get('/viec-lam', PublicJobController::class)->middleware(CaptureApplicationSource::class)->name('jobs.index');
 Route::get('/cong-ty/{id}', PublicCompanyController::class)->middleware(CaptureApplicationSource::class)->where('id', '[1-9][0-9]*')->name('companies.show');
 Route::get('/viec-lam/{slug}-{id}', PublicJobDetailController::class)->middleware(CaptureApplicationSource::class)->where('slug', '[a-z0-9-]+')->where('id', '[1-9][0-9]*')->name('jobs.show');
+Route::post('/ung-tuyen/{id}', ApplicationSubmissionController::class)->middleware('throttle:applications')->where('id', '[1-9][0-9]*')->name('applications.store');
+Route::view('/chinh-sach-du-lieu', 'public.data-policy')->name('data-policy');
 
 foreach (['admin', 'staff', 'employer'] as $role) {
     Route::view('/khu-vuc/'.$role, 'areas.index', ['role' => $role])

@@ -24,7 +24,7 @@ it('renders a published job with its complete workplace and sanitized content', 
     $job = publishManagedJob(managedJob(jobManager()));
     $this->get('/viec-lam/'.$job->slug.'-'.$job->id)->assertOk()->assertSee($job->title)->assertSee($job->workplaceAddress())
         ->assertSee(__('ui.jobs.description'))->assertSee(__('ui.jobs.requirements'))->assertSee(__('ui.jobs.benefits'))
-        ->assertSee(__('public.application_not_open'))->assertDontSee('name="robots"', false)
+        ->assertSee(__('applications.heading'))->assertSee('name="submission_token"', false)->assertDontSee('name="robots"', false)
         ->assertHeader('Cache-Control', 'no-store, private');
 });
 
@@ -146,6 +146,6 @@ it('links public list titles to canonical detail and company pages without a tem
     $job = publishManagedJob(managedJob(jobManager()));
     $url = route('jobs.show', ['slug' => $job->slug, 'id' => $job->id]);
     $this->get('/viec-lam')->assertOk()->assertSee($url);
-    $this->get($url)->assertOk()->assertSee(route('companies.show', ['id' => $job->company_id]))->assertDontSee('<form', false);
+    $this->get($url)->assertOk()->assertSee(route('companies.show', ['id' => $job->company_id]))->assertSee(route('applications.store', ['id' => $job->id]));
     $this->post('/viec-lam/'.$job->slug.'-'.$job->id)->assertStatus(405);
 });

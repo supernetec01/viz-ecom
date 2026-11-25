@@ -39,7 +39,7 @@ composer lint
 
 CI bắt buộc `PDF_SANDBOX_TESTS=1`; nếu thiếu công cụ/image/corpus thì test lỗi, không skip. Lệnh test thông thường không có biến này có thể skip nhóm sandbox để dùng được khi máy chưa chuẩn bị Docker; không lấy lần chạy đó làm bằng chứng T23 đạt. Các PDF fixture tổng hợp thật đã commit, gồm JavaScript hộp thoại vô hại trong object stream và encryption. Script tái tạo chỉ dùng fixture giả: `php scripts/generate-pdf-security-fixtures.php`; không mở các PDF action bằng trình xem chạy JavaScript.
 
-Local có thể đặt `PDF_INSPECTION_ENABLED=true` sau khi test runner đạt; chưa có form/endpoint T24 để nhận file qua web. Giữ `PDF_PRODUCTION_ENABLED=false`. Mẫu CV người dùng chỉ kiểm tra local, không commit hoặc đưa vào CI.
+Local có thể đặt `PDF_INSPECTION_ENABLED=true` sau khi test runner đạt; T24 có form/endpoint nhận CV, mặc định vẫn tắt PDF. Giữ `PDF_PRODUCTION_ENABLED=false`. Mẫu CV người dùng chỉ kiểm tra local, không commit hoặc đưa vào CI.
 
 ## Điều kiện máy chủ Ubuntu trước mở production
 
@@ -65,4 +65,4 @@ Median khoảng **2.848 giây**, peak khoảng **17,9–19,0 MiB**. Đây là m�
 
 Mẫu Word print, Google Docs và Chromium được nhận. Mẫu upstream Word 2016/LibreOffice có OpenAction bị chặn theo chính sách. Mẫu người dùng metadata Canva, 383.002 byte, bị chặn vì EmbeddedFiles/EmbeddedFile/EF/Filespec; khoảng 2.877 giây và 9.080.832 byte peak ở lần đo riêng. Không xuất nội dung hoặc tên CV vào báo cáo.
 
-**Còn thiếu:** mẫu PDF điện thoại và Canva không đính kèm, kiểm tra runner rootless trên server thật, đo tải đồng thời/đa dạng CV. Tổng thời gian nộp hồ sơ chưa đo vì T24 chưa được làm; người dùng yêu cầu chờ T23 đủ mẫu mới sang T24. Parser/denylist không chứng minh phát hiện mọi exploit của PDF renderer, nội dung giả mạo hoặc malware mới; ClamAV và sandbox xem/chuyển đổi ở T27/T33 vẫn cần thiết.
+**Còn thiếu:** mẫu PDF điện thoại và Canva không đính kèm, kiểm tra runner rootless trên server thật, đo tải đồng thời/đa dạng CV. Ngày 25/11 người dùng cho phép viết tiếp T24–T25 dù T23 còn draft, không cho mở PDF production. T24 đo pipeline server với PDF10MiB và Http::fake khoảng 1,8s trên local; chưa có số đo toàn bộ upload/mạng/Cloudflare thực. Parser/denylist không chứng minh phát hiện mọi exploit của PDF renderer, nội dung giả mạo hoặc malware mới; ClamAV và sandbox xem/chuyển đổi ở T27/T33 vẫn cần thiết.
