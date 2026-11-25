@@ -9,6 +9,7 @@ use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -26,6 +27,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias(['role' => RequireRole::class, 'csp.private-file' => PrivateFileCsp::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->render(fn (PostTooLargeException $exception) => response()->view('public.upload-too-large', [], 413, [
+            'Cache-Control' => 'no-store, private', 'X-Content-Type-Options' => 'nosniff', 'X-Frame-Options' => 'DENY',
+            'Content-Security-Policy' => "default-src 'none'; style-src 'self'; font-src 'self'; script-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+        ]));
         $exceptions->dontFlash(['code', 'recovery_code', 'token', 'cf-turnstile-response', 'submission_token']);
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),

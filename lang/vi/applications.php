@@ -1,6 +1,13 @@
 <?php
 
 return [
+    'upload_too_large_title' => 'Dữ liệu tải lên quá lớn',
+    'upload_too_large' => 'Máy chủ chưa nhận được dữ liệu vì tổng dung lượng tải lên quá lớn. Mỗi CV hoặc portfolio tối đa 10 MB. Vui lòng quay lại trang tin, chọn file nhỏ hơn rồi gửi lại.',
+    'file_upload_failed' => 'Chưa lưu được file. Vui lòng chọn lại file và thử lại.',
+    'portfolio_help' => 'Chọn liên kết HOẶC một file portfolio PDF, JPG hoặc PNG, tối đa 10 MB; cũng có thể bỏ trống cả hai. PDF có cùng điều kiện kiểm tra và giới hạn hỗ trợ như CV.',
+    'portfolio_size' => 'File portfolio phải có dung lượng từ 1 byte đến 10 MB.',
+    'portfolio_type' => 'File portfolio không hợp lệ hoặc quá giới hạn ảnh. Vui lòng dùng PDF, JPG hoặc PNG; ảnh tối đa 16.384 px mỗi chiều và 40 triệu pixel.',
+    'portfolio_pdf_rejected' => 'Chưa xác minh được PDF portfolio an toàn. Không nhận PDF mã hóa/nội dung chủ động/tệp nhúng; PDF có thể đang tắt hoặc bộ kiểm tra chưa sẵn sàng.',
     'heading' => 'Ứng tuyển vị trí này',
     'optional' => '(không bắt buộc)',
     'fields' => ['full_name' => 'Họ và tên', 'phone' => 'Số điện thoại', 'email' => 'Email', 'cv' => 'CV', 'portfolio_url' => 'Liên kết portfolio', 'portfolio_file' => 'File portfolio', 'consent' => 'Đồng ý xử lý dữ liệu', 'submission_token' => 'Mã gửi hồ sơ', 'cf-turnstile-response' => 'Xác minh chống spam'],
