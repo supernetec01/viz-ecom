@@ -1,10 +1,10 @@
 <?php
 
-function pdfFixtureBytes(bool $javascript = false, int $extraObjects = 0, bool $image = false): string
+function pdfFixtureBytes(bool $javascript = false, int $extraObjects = 0, bool $image = false, ?string $openAction = null): string
 {
     $pdf = "%PDF-1.4\n%\xE2\xE3\xCF\xD3\n";
     $objects = [
-        '<< /Type /Catalog /Pages 2 0 R'.($javascript ? ' /OpenAction 5 0 R' : '').' >>',
+        '<< /Type /Catalog /Pages 2 0 R'.($javascript ? ' /OpenAction 5 0 R' : '').($openAction === null ? '' : ' /OpenAction '.$openAction).' >>',
         '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
         '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 600 800] /Contents 4 0 R'.($image ? ' /Resources << /XObject << /Im1 5 0 R >> >>' : '').' >>',
     ];

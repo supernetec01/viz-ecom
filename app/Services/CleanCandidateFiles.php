@@ -38,7 +38,7 @@ class CleanCandidateFiles
         $report['unattached_metadata_count'] = count($ids);
         $report['unattached_metadata_ids'] = $force ? [] : $ids;
         $roots = ['candidate' => Storage::disk('candidate-files')->path(''),
-            'pdf-staging' => config('candidate-cleanup.staging_root')];
+            'pdf-staging' => config('candidate-cleanup.staging_root'), 'processor-staging' => config('file-processing.staging_root')];
         $plan = [];
         foreach ($roots as $kind => $configured) {
             if (preg_match('~(?:^|[/\\\\])\.\.(?:[/\\\\]|$)~', $configured)) {
@@ -79,7 +79,7 @@ class CleanCandidateFiles
 
                     continue;
                 }
-                $key = $kind.':'.($kind === 'pdf-staging' ? explode('/', $relative)[0] : $relative);
+                $key = $kind.':'.($kind !== 'candidate' ? explode('/', $relative)[0] : $relative);
                 $lease = CandidateFileLease::acquire($key, false);
                 if ($lease === null) {
                     $this->skip($report, 'active');
@@ -128,7 +128,7 @@ class CleanCandidateFiles
                     continue;
                 }
                 // PdfSandbox uses 0444 staging; Windows requires clearing its read-only bit.
-                if ($item['kind'] === 'pdf-staging' && ! chmod($item['path'], 0600)) {
+                if ($item['kind'] !== 'candidate' && ! chmod($item['path'], 0600)) {
                     throw new RuntimeException('Candidate staging cleanup failed.');
                 }
                 if (! unlink($item['path'])) {

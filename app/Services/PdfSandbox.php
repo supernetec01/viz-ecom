@@ -121,7 +121,7 @@ class PdfSandbox
         return $this->command(['exec', $container, ...$arguments], $deadline, $allowed, $exit);
     }
 
-    private function command(array $arguments, float $deadline, array $allowed = [0], int &$exit = 0): string
+    protected function command(array $arguments, float $deadline, array $allowed = [0], int &$exit = 0): string
     {
         $remaining = $deadline - microtime(true);
         if ($remaining <= 0) {

@@ -2,12 +2,22 @@
 
 namespace App\Policies;
 
+use App\Models\CandidateFile;
 use App\Models\Job;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
 class ApplicationPolicy
 {
+    public function fileApplicationIds(User $actor, int $fileId): array
+    {
+        Gate::forUser($actor)->authorize('viewAny', CandidateFile::class);
+
+        return DB::table('applications')->where('cv_file_id', $fileId)->orWhere('portfolio_file_id', $fileId)->pluck('id')->all();
+    }
+
     /** System maintenance only; returns metadata IDs, never candidate identity data. */
     public function unattachedFileMetadataIds(): array
     {

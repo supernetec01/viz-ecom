@@ -26,6 +26,7 @@ jobs:
           --health-retries 5
     env:
       PDF_SANDBOX_TESTS: '1'
+      FILE_PROCESSING_TESTS: '1'
       APP_ENV: testing
       DB_CONNECTION: pgsql
       DB_HOST: 127.0.0.1
@@ -37,6 +38,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build isolated qpdf inspector
         run: docker build --tag viz-ecom-qpdf:local docker/pdf-inspector
+      - name: Build isolated file processor
+        run: docker build --tag viz-ecom-file-processor:local docker/file-processor
       - uses: actions/setup-node@v4
         with:
           node-version: '22'

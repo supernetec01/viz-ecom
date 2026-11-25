@@ -53,6 +53,10 @@ Thanh toán chuyển khoản do admin xác nhận thủ công và chia sẻ link
 
 ## Điều kiện xác nhận sẵn sàng triển khai
 
+T27 đã có worker database/candidate-files, admin metadata/retry và readiness; chưa có worker thường trực trên máy chủ. Build image LibreOffice/ClamAV, chuẩn bị FreshClam definitions chính thức (daily tối đa72h), cấu hình FILE_PROCESSOR_IMAGE ID cố định/rootless, DB_QUEUE_RETRY_AFTER=300, kiểm chứng mạng/cgroup/lock trên server, giám sát queue và updater. Xem [hướng dẫn T48](pdf-inspector-t48.md). CI fake AV không chứng minh definitions production hoạt động; local đã quét thật dữ liệu tổng hợp nhưng chưa đại diện máy chủ.
+
+Không coi thông báo “tải về để xem” là route tải đã có: T33 mới tạo route có policy/audit/CSP. PDF production vẫn tắt. Migration T27 giữ bytes file cũ nhưng đánh error/verification_required nếu thiếu bằng chứng quét; cần admin xử lý theo kế hoạch trước dùng thật. T26 chỉ dọn root upload/PDF staging/processor staging riêng, mặc định dry-run và chưa bật scheduler.
+
 - [ ] Các task cần cho đợt phát hành đã hoàn tất và PR được xem lại/merge theo đúng thứ tự; không tự coi các nhánh đang mở là bản production.
 - [ ] `composer test`, `composer lint` và CI xanh trên đúng commit phát hành; build asset cần thiết và kiểm tra trình duyệt trên bản triển khai.
 - [ ] Từng hàng áp dụng ở bảng trên có bằng chứng kiểm tra môi trường thật, người xác nhận và ngày kiểm tra. Nếu chưa áp dụng phải ghi rõ lý do/tính năng nào chưa mở.

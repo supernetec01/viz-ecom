@@ -168,3 +168,21 @@ Form nhận **một link HTTP/HTTPS hoặc một file PDF/JPG/JPEG/PNG**, cũng 
 PHP phải đặt `upload_max_filesize=10M`, `post_max_size=24M` (hai file 10 MiB và dữ liệu form), `upload_tmp_dir` riêng ngoài web root và có quyền ghi của user chạy PHP. Kiểm tra file ini thật bằng `php --ini`, đổi cấu hình rồi khởi động lại server/PHP-FPM. Máy local hiện dùng `.tools/php/php.ini`, upload tạm ở `.runtime/php-upload`; đường dẫn này chỉ dành cho máy hiện tại, không sao chép lên server. Nginx dùng `client_max_body_size 24m`; PHP/Laravel vẫn kiểm tra tối đa 10 MiB cho từng file. Cấu hình trang lỗi 413 tương ứng ở Nginx khi triển khai; ứng dụng đã có 413 tiếng Việt nếu request tới PHP. Xác nhận bằng upload thật, không chỉ dựa vào UploadedFile::fake.
 
 Browser local đã gửi PNG tổng hợp đúng 10 MiB qua form và Turnstile demo sau khi sửa giới hạn/thư mục tạm. Chỉ dữ liệu mẫu, không CV thật. Test DB/ảnh/PDF/rollback và giới hạn được ghi tại [báo cáo T25](docs/bao-cao-t25.md). T26 vẫn giữ lệnh dọn mồ côi và test lỗi nhiều tầng; T27 mới quét AV/chuyển đổi, T33 mới xem/tải có policy/audit/CSP.
+
+## T27 — Worker quét virus và preview
+
+Sau pull chạy `php artisan migrate` (không migrate:fresh). Migration đánh dấu file cũ chưa có bằng chứng quét là `error`/`verification_required` để admin xử lý, giữ nguyên bytes. Nộp hồ sơ mới ghi job vào database queue cùng giao dịch, kể cả khi queue mặc định là sync. Chưa chạy worker thì file giữ pending.
+
+```sh
+docker build -t viz-ecom-file-processor:local docker/file-processor
+docker build -t viz-ecom-qpdf:local docker/pdf-inspector
+php artisan queue:work database --queue=candidate-files --timeout=180
+```
+
+Docker phải chạy Linux containers. Cần definitions ClamAV chính thức (`main.cvd/cld`, `daily.cvd/cld`) trong `storage/app/clamav-definitions`, hoặc đặt `CLAMAV_DATABASE_DIR` tới thư mục được cập nhật riêng bằng FreshClam. Daily quá 72 giờ, thiếu signatures/image, lỗi công cụ, cô lập hoặc timeout đều từ chối xử lý; không tự coi file sạch. Không commit definitions. Worker không có mạng; tiến trình cập nhật signatures có mạng riêng, không nhận CV. Giữ `DB_QUEUE_RETRY_AFTER=300` hoặc lớn hơn timeout/lock hiện tại. Hướng dẫn Ubuntu và kiểm chứng production ở [T48](docs/pdf-inspector-t48.md).
+
+DOCX tạo PDF bằng LibreOffice có profile tạm riêng, `InitialPage=0` để không sinh OpenAction; không sửa file hậu kỳ. Preview vẫn qua **đúng qpdf T23** và ClamAV. Bất kỳ OpenAction nào vẫn bị chặn, PDF ứng viên không có ngoại lệ. Không thêm Composer package. [Lý do và kiểm tra tương đương](docs/t27-libreoffice-openaction.md).
+
+Admin mở `/app/file-can-xem-tay` hoặc bộ đếm trên dashboard, chỉ có metadata trạng thái. Chạy lại chỉ bước lỗi; file infected không retry. `FileReadiness` là điểm dùng chung cho T30/T33, không thay quyền truy cập. Chưa có route xem/tải; thông báo tải gốc khi preview lỗi chỉ là trạng thái sẵn sàng để task sau tích hợp. Ba lượt thực chạy tối đa, chờ 60s/300s; hết lỗi scan thành error, chỉ lỗi preview giữ clean/failed. [Báo cáo T27](docs/bao-cao-t27.md).
+
+Test trên Windows cần Docker Desktop Linux hoặc WSL/Docker với image trên; đặt `FILE_PROCESSING_TESTS=1` và `PDF_SANDBOX_TESTS=1` rồi `composer test`. CI Ubuntu luôn bật cả hai; AV dùng fake trong test pipeline, LibreOffice/qpdf/sandbox chạy thật. Thử quét thật cần definitions đã cập nhật. PDF production **vẫn tắt** theo chốt T23; preview DOCX production cũng fail closed khi bộ qpdf chưa được mở. Không bật để chữa demo; chưa nhận dữ liệu thật trước khi đủ quyền/audit/retention.

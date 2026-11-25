@@ -46,6 +46,9 @@ class SubmitApplication
                     'consent_given' => true, 'consented_at' => now(), 'submitted_at' => now(), 'source' => $source,
                     'created_at' => now(), 'updated_at' => now(),
                 ]);
+                foreach (array_filter($fileIds) as $fileId) {
+                    app(EnqueueCandidateFile::class)->enqueue($fileId);
+                }
                 $bodyCompleted = true;
             });
         } catch (Throwable $exception) {
