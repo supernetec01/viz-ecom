@@ -1,5 +1,7 @@
 # T23 — Dịch vụ file riêng tư (đang làm, PR draft)
 
+Cập nhật quyết định ngày 25/11/2026: sau khi được thông báo phần còn thiếu, người dùng yêu cầu tiếp tục T24–T25. Cho phép viết hai task nối tiếp trên nhánh/PR riêng; vẫn giữ T23 draft và PDF production tắt. Các dòng “chờ T23 trước T24” bên dưới là lịch sử quyết định đã được thay ở điểm này, không phải xác nhận T23 đủ mẫu.
+
 ## Đã làm
 
 - Thêm disk candidate-files ngoài web root, tách disk local có route ký: serve=false, private, throw=true; không URL hoặc symlink trực tiếp.

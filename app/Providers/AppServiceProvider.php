@@ -32,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
         }
 
         RateLimiter::for('web', fn (Request $request) => Limit::perMinute(120)->by($request->ip()));
+        RateLimiter::for('applications', fn (Request $request) => Limit::perMinute(10)->by($request->ip()));
         Event::listen(Login::class, function (Login $event): void {
             if ($event->user instanceof User) {
                 $event->user->forceFill(['last_login_at' => now()])->saveQuietly();

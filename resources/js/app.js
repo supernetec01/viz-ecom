@@ -14,3 +14,22 @@ for (const section of document.querySelectorAll('[data-job-share]')) {
         }
     });
 }
+
+for (const form of document.querySelectorAll('[data-application-form]')) {
+    const button = form.querySelector('button[type="submit"]');
+    const label = button.textContent;
+    form.addEventListener('submit', (event) => {
+        if (form.dataset.submitting === 'true') {
+            event.preventDefault();
+            return;
+        }
+        form.dataset.submitting = 'true';
+        button.disabled = true;
+        button.textContent = button.dataset.submitting;
+    });
+    window.addEventListener('pageshow', () => {
+        delete form.dataset.submitting;
+        button.disabled = false;
+        button.textContent = label;
+    });
+}

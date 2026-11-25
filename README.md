@@ -128,6 +128,18 @@ npm run build
 
 ## Kiểm tra trước khi tạo pull request
 
+### T24 — thử form ứng tuyển local
+
+Mở một tin đang đăng, còn hạn và thuộc công ty đã xác minh; form ở cuối trang. Họ tên, SĐT và đồng ý xử lý dữ liệu bắt buộc; email, CV và link portfolio tùy chọn. SĐT 0/+84/84 được chuẩn hóa; nộp trùng cùng tin bị chặn. Thành công báo “Đã nhận hồ sơ”; khi lỗi giữ dữ liệu chữ và yêu cầu chọn lại file/xác minh captcha. CV pending ở disk riêng tư, chưa có giao diện đọc hoặc URL xem/tải. File portfolio thuộc T25.
+
+Form dùng **Cloudflare Turnstile**. Local/testing mặc định khóa thử nghiệm chính thức, có ghi demo trên form, vẫn gọi Siteverify ở server; không bỏ qua xác minh. Khóa demo có thể phát cùng token cố định: cơ chế một lần dùng sẽ từ chối token lặp trong 10 phút. Để kiểm tra nhiều lượt thực tế, cấu hình widget phát token thật cho tên miền phát triển thay vì tắt chống replay. Test tự động dùng `Http::fake` và token mẫu riêng. Xem [khóa thử nghiệm](https://developers.cloudflare.com/turnstile/troubleshooting/testing/) và [Siteverify](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/).
+
+Production bắt buộc đặt `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` thật và `APP_URL` đúng hostname HTTPS, `APP_DEBUG=false`; secret chỉ ở môi trường, không trong HTML. Thiếu cấu hình, khóa demo, hostname/action sai, dịch vụ lỗi hoặc timeout 5s đều chặn gửi; không log token. CSP chỉ trang có form thêm `https://challenges.cloudflare.com` cho script/frame, giữ nonce, không script inline/eval. Tham chiếu [CSP Turnstile](https://developers.cloudflare.com/turnstile/reference/content-security-policy/). Chính sách tại `/chinh-sach-du-lieu` nêu dịch vụ này.
+
+**Giữ `PDF_PRODUCTION_ENABLED=false`.** T23 còn thiếu corpus Canva sạch/điện thoại; người dùng cho phép viết tiếp T24–T25 ngày 25/11, không đồng nghĩa T23 hoàn tất hoặc cho mở production PDF. PDF local cũng mặc định tắt; chỉ bật sau chuẩn bị runner theo hướng dẫn T23. DOCX vẫn kiểm tra cấu trúc. Chưa mở nhận hồ sơ thật trước khi hoàn thành AV, quyền xem/audit và lịch xóa dữ liệu ở các task sau. Không tự gửi email báo hồ sơ mới ở T24.
+
+Sau pull chạy `php artisan migrate` và `npm run build`; không `migrate:fresh` trên DB local đang dùng. Kết quả và giới hạn ở [báo cáo T24](docs/bao-cao-t24.md).
+
 ```sh
 composer validate --strict
 composer test

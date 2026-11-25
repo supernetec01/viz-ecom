@@ -8,11 +8,19 @@
 - **DOC cũ chưa hỗ trợ**: chỉ mở lại sau khi có phương án kiểm tra được duyệt riêng, ví dụ chuyển PDF trong môi trường cô lập và chỉ giữ bản đã kiểm tra; không tự thêm thư viện đọc DOC. Form T24 phải nêu hướng dẫn xuất lại và tình trạng PDF thực tế.
 - `StoreCandidateFile::storeCv(upload, job, applicationULID)`: context server, tên UUID theo loại đã xác minh, đường dẫn `cv/company/job/application/uuid.docx`, streaming vào disk riêng, SHA-256 thật, metadata scan_status=pending. Không tự insert files/applications. DTO StoredCandidateFile giữ metadata private để không bị JSON serialize lộ path/tên gốc. `discard` chỉ xóa đường dẫn đúng dạng file do service tạo; dùng khi lưu thất bại, không phải công cụ xóa hồ sơ của ứng viên.
 
-## Quyết định T24 đã được người dùng chốt, chưa triển khai
+## Form ứng tuyển T24
+
+- Migration mới `2026_11_25_000014_add_application_submission_hash` thêm unique digest mã gửi, nullable với hồ sơ cũ; không sửa migration T22. Ràng buộc DB giữ idempotency kể cả lease cache hết hạn và payload thay đổi; không lưu mã form thô.
+
+- Người dùng cho phép tiếp tục T24–T25 ngày 25/11 dù T23 còn draft; PDF production vẫn tắt. Các dòng lịch sử về chờ T23 không còn chặn viết hai task này.
+- `ApplicationSubmissionController`: POST `/ung-tuyen/{id}`, kiểm tra scope công khai và `ApplicationPolicy::assertMaySubmit` trước dữ liệu/captcha; chỉ lấy trường cho phép. Chuẩn hóa số Việt Nam 0/+84/84, không dùng company/source/ULID do client gửi.
+- `ApplicationFormToken`: mã ngẫu nhiên sống một giờ, bind theo session/job, cache digest và khóa 30 giây chống xử lý đồng thời; chỉ tiêu thụ sau thành công. `VerifyTurnstile`: server verify timeout 5s, digest token atomic chống replay 10 phút; production chặn thiếu/khóa demo/sai hostname/action, không log token/secret.
+- `SubmitApplication`: transaction khóa/đọc lại Job qua scope và công ty; gọi lại đúng `Job::canReceiveApplications()` trong policy, mọi truy vấn trùng hồ sơ nằm trong policy. Chỉ ghi mới hồ sơ; chưa có model/endpoint đọc hồ sơ. CV pending private T23, lỗi thì rollback và bỏ file mới. Không cho QueryException/bindings PII thoát ra log.
+- Form tại `public/jobs/application-form.blade.php`, chính sách `/chinh-sach-du-lieu`; giữ old input trừ file/captcha/mã gửi. CSP chỉ trang có widget thêm `challenges.cloudflare.com` ở script/frame, vẫn nonce và không eval/inline. Form chưa nhận file portfolio ở T24.
 
 - Họ tên và SĐT bắt buộc, CV tùy chọn cho mọi tin. Không cột/cấu hình bắt buộc CV trong T24; T24B riêng làm sau.
 - Portfolio chỉ LINK tùy chọn HTTP/HTTPS, không tự fetch; file portfolio thuộc T25. T24 lưu applications/files trong giao dịch, lỗi thì rollback và xóa file vừa tạo. T26 còn lệnh dọn file mồ côi và test lỗi mở rộng, không tự làm trước.
-- Turnstile dùng HTTP client Laravel, token server verify mỗi lần/một lần dùng, timeout khoảng 5 giây, lỗi/thiếu cấu hình production chặn thân thiện, không log token. Local/testing dùng test keys chính thức và ghi demo rõ. CSP chỉ thêm đúng host cần theo tài liệu Cloudflare ở trang có form; vẫn nonce, không unsafe-inline/eval, sửa test CSP. Chính sách dữ liệu và README phải nêu Cloudflare Turnstile. Chưa thêm dependency hoặc cấu hình chạy trước khi xong T23.
+- Turnstile dùng HTTP client Laravel, token server verify mỗi lần/một lần dùng, timeout khoảng 5 giây, lỗi/thiếu cấu hình production chặn thân thiện, không log token. Local/testing dùng test keys chính thức và ghi demo rõ. CSP chỉ thêm đúng host cần theo tài liệu Cloudflare ở trang có form; vẫn nonce, không unsafe-inline/eval, sửa test CSP. Chính sách dữ liệu và README phải nêu Cloudflare Turnstile. Đã triển khai theo quyết định cho phép tiếp tục T24–T25; không thêm dependency, giữ PDF production tắt.
 
 ## Nền lưu hồ sơ và file (T22)
 

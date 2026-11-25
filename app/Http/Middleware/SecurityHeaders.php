@@ -27,11 +27,18 @@ class SecurityHeaders
             $response->headers->set('X-Content-Type-Options', 'nosniff');
             $response->headers->set('X-Frame-Options', 'DENY');
             $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
-            if ($panel || $privateFile || $request->routeIs('login', 'security', 'password.reset', 'two-factor.login', 'password.confirm', 'jobs.show', 'companies.show')) {
+            if ($panel || $privateFile || $request->routeIs('login', 'security', 'password.reset', 'two-factor.login', 'password.confirm', 'jobs.show', 'companies.show', 'applications.store')) {
                 $response->headers->set('Cache-Control', 'no-store, private');
             }
             $scripts = "'self' 'nonce-{$nonce}'".($panel ? " 'unsafe-eval'" : '');
+            $turnstile = $request->attributes->get('application-form') === true;
+            if ($turnstile) {
+                $scripts .= ' https://challenges.cloudflare.com';
+            }
             $policy = $privateFile ? PrivateFileCsp::POLICY : "default-src 'self'; script-src {$scripts}; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'";
+            if (! $privateFile && $turnstile) {
+                $policy .= '; frame-src https://challenges.cloudflare.com';
+            }
             $response->headers->set('Content-Security-Policy', $policy);
 
             return $response;
