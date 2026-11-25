@@ -152,3 +152,11 @@ composer lint
 - GitHub Actions chạy mỗi lần push và mở/cập nhật PR: PostgreSQL 18, PHP 8.4, cài dependencies từ lockfile, migration + seed, Pest, Pint và Larastan.
 
 Đọc [AGENTS.md](AGENTS.md) trước khi làm task. Mỗi task một nhánh và một PR; chờ xem lại trước khi chuyển task kế tiếp.
+
+## T25 — Portfolio và giới hạn upload
+
+Form nhận **một link HTTP/HTTPS hoặc một file PDF/JPG/JPEG/PNG**, cũng có thể bỏ trống. Không gửi link và file cùng lúc. Server không tự mở link; file lưu UUID ở disk private, trạng thái pending, chưa có xem/tải. Ảnh kiểm tra MIME/nội dung, kích thước header và cấu trúc PNG CRC/chunk hoặc JPEG marker; giới hạn 16.384 px mỗi chiều, 40 triệu pixel. Đây không phải giải mã toàn bộ pixel hoặc antivirus. PDF dùng lại qpdf T23; production vẫn tắt.
+
+PHP phải đặt `upload_max_filesize=10M`, `post_max_size=24M` (hai file 10 MiB và dữ liệu form), `upload_tmp_dir` riêng ngoài web root và có quyền ghi của user chạy PHP. Kiểm tra file ini thật bằng `php --ini`, đổi cấu hình rồi khởi động lại server/PHP-FPM. Máy local hiện dùng `.tools/php/php.ini`, upload tạm ở `.runtime/php-upload`; đường dẫn này chỉ dành cho máy hiện tại, không sao chép lên server. Nginx dùng `client_max_body_size 24m`; PHP/Laravel vẫn kiểm tra tối đa 10 MiB cho từng file. Cấu hình trang lỗi 413 tương ứng ở Nginx khi triển khai; ứng dụng đã có 413 tiếng Việt nếu request tới PHP. Xác nhận bằng upload thật, không chỉ dựa vào UploadedFile::fake.
+
+Browser local đã gửi PNG tổng hợp đúng 10 MiB qua form và Turnstile demo sau khi sửa giới hạn/thư mục tạm. Chỉ dữ liệu mẫu, không CV thật. Test DB/ảnh/PDF/rollback và giới hạn được ghi tại [báo cáo T25](docs/bao-cao-t25.md). T26 vẫn giữ lệnh dọn mồ côi và test lỗi nhiều tầng; T27 mới quét AV/chuyển đổi, T33 mới xem/tải có policy/audit/CSP.

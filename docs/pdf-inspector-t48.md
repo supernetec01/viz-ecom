@@ -43,6 +43,8 @@ Local có thể đặt `PDF_INSPECTION_ENABLED=true` sau khi test runner đạt;
 
 ## Điều kiện máy chủ Ubuntu trước mở production
 
+Upload T24–T25: PHP-FPM `upload_max_filesize=10M`, `post_max_size=24M`, `upload_tmp_dir` ngoài web root, thư mục riêng owner user PHP và quyền 0700; Nginx `client_max_body_size 24m`, trang 413 tiếng Việt tại Nginx cho request bị chặn trước PHP. Khởi động lại đúng dịch vụ sau đổi ini. Upload thật hai file gần giới hạn để kiểm tra cả lớp Nginx/PHP/Laravel; không dùng test fake làm bằng chứng đường upload thực tế. Local Windows dùng `.runtime/php-upload` sau khi kiểm tra lỗi không tạo được file tạm; không dùng đường dẫn Windows này trên Ubuntu.
+
 - qpdf phải nằm trong image đã build/kiểm tra từ nguồn cập nhật. Không chỉ cài `qpdf` trên host rồi chạy trực tiếp ngoài sandbox; driver hiện tại không có fallback native.
 - Cài Docker rootless đúng hướng dẫn chính thức, gồm uidmap/subuid/subgid và cgroup v2 delegation. Dùng account ứng dụng phù hợp để daemon rootless đọc được staging; không cấp ứng dụng quyền vào rootful Docker socket hoặc sudo Docker. Cấu hình DOCKER_HOST/context đúng account; rootless engine phải có thật trong SecurityOptions. [Docker rootless](https://docs.docker.com/engine/security/rootless/).
 - `APP_ENV=production` yêu cầu image **ID** cố định dạng `sha256:...`, không tag có thể đổi, và engine rootless; rootful engine bị từ chối ngay. Lấy ID đã kiểm tra bằng `docker image inspect --format '{{.Id}}' viz-ecom-qpdf:local`, đưa vào `PDF_INSPECTOR_IMAGE`.

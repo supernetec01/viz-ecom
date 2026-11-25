@@ -17,6 +17,10 @@
         <input id="application-cv" type="file" name="cv" accept=".pdf,.docx" aria-describedby="cv-help error-cv">
         <p id="cv-help">{{ __('applications.cv_help') }} @if (! config('pdf-inspection.enabled') || (app()->isProduction() && ! config('pdf-inspection.production_enabled'))){{ __('applications.pdf_inspection_pending') }}@endif</p>
         <p class="field-error" id="error-cv">@error('cv'){{ $message }}@enderror</p>
+        <label for="application-portfolio-file">{{ __('applications.fields.portfolio_file') }} {{ __('applications.optional') }}</label>
+        <input id="application-portfolio-file" type="file" name="portfolio_file" accept=".pdf,.jpg,.jpeg,.png" aria-describedby="portfolio-help error-portfolio-file">
+        <p id="portfolio-help">{{ __('applications.portfolio_help') }}</p>
+        <p class="field-error" id="error-portfolio-file">@error('portfolio_file'){{ $message }}@enderror</p>
         <label class="application-consent"><input type="checkbox" name="consent" value="1" @checked(old('consent')) required> <span>{{ __('applications.consent') }} <a href="{{ route('data-policy') }}" target="_blank" rel="noopener noreferrer">{{ __('applications.policy') }}</a></span></label>
         <p class="field-error">@error('consent'){{ $message }}@enderror</p>
         <p>{{ __('applications.captcha_disclosure') }}</p>

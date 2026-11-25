@@ -1,5 +1,12 @@
 # CODEMAP — điểm tích hợp nghiệp vụ
 
+## Portfolio T25
+
+- `InspectPortfolio`: PDF/JPG/JPEG/PNG tối đa 10 MiB thật, finfo/nội dung/đuôi khớp, SHA-256. PDF gọi đúng `InspectPdf` (mọi chốt production/runner/marker giữ nguyên). PNG kiểm tra signature/chunk length/CRC/IHDR/IDAT/IEND, không trailing bytes, tối đa 2048 chunk. JPEG kiểm tra marker/segment/scan/EOI, tối đa 100.000 marker, không trailing bytes. Ảnh tối đa 16.384 px mỗi chiều, 40 triệu pixel; không giải mã pixel hoặc tuyên bố sạch malware.
+- `StoreCandidateFile::storePortfolio`: `portfolio/company/job/applicationULID/uuid.pdf|jpg|png`, cùng private disk/stream/hash/pending như CV; không URL trực tiếp. Cleanup chỉ nhận đường dẫn đúng context và extension cho từng loại. Metadata không lộ qua JSON mặc định của DTO.
+- `ApplicationSubmissionController` cho file portfolio tùy chọn, `prohibits:portfolio_url`, link vẫn chỉ HTTP/HTTPS và không fetch. `SubmitApplication` theo dõi cả CV và portfolio trong một transaction; lỗi ở file thứ hai hoặc DB dọn các file mới, không bỏ qua file thứ hai nếu dọn file thứ nhất lỗi. Không tạo endpoint đọc/tải.
+- PHP upload defaults không đủ: README/T48 yêu cầu 10M/file, 24M/request và upload_tmp_dir private có quyền ghi; Nginx 24m và trang 413 riêng. `PostTooLargeException` có view độc lập trước route/session, CSP script none và no-store; lỗi uploaded/prohibits/max file có tiếng Việt.
+
 ## File CV riêng tư (T23 đang triển khai)
 
 - Disk `candidate-files`: `storage/app/candidate-files`, ngoài web root và tách khỏi disk local mặc định có route ký; serve=false, visibility=private, throw=true. Không symlink/public URL, chưa có route xem/tải file. CI Linux kiểm tra private mode; Windows kiểm tra root/cấu hình do Unix mode không ánh xạ NTFS. Khi triển khai cần quyền OS/ACL phù hợp cho worker.

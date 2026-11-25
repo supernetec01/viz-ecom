@@ -28,13 +28,13 @@ class ApplicationSubmissionController extends Controller
             'full_name' => ['required', 'string', 'max:255'], 'phone' => ['required', 'string', 'regex:/^0[35789][0-9]{8}$/D'],
             'email' => ['nullable', 'string', 'email:rfc', 'max:254'],
             'portfolio_url' => ['nullable', 'string', 'max:2048', 'url:http,https'],
-            'cv' => ['nullable', 'file', 'max:10240'], 'portfolio_file' => ['prohibited'],
+            'cv' => ['nullable', 'file', 'max:10240'], 'portfolio_file' => ['nullable', 'file', 'max:10240', 'prohibits:portfolio_url'],
             'consent' => ['accepted'], 'submission_token' => ['required', 'string', 'regex:/^[a-f0-9]{64}$/D'],
             'cf-turnstile-response' => ['required', 'string', 'max:2048'],
         ], attributes: __('applications.fields'))->validate();
         $tokens->submit($request, $job->id, $data['submission_token'], function () use ($captcha, $submit, $data, $request, $job): void {
             $captcha->verify($data['cf-turnstile-response']);
-            $submit->submit($job->id, $data, $request->file('cv'), ApplicationSource::current($request->session()));
+            $submit->submit($job->id, $data, $request->file('cv'), ApplicationSource::current($request->session()), $request->file('portfolio_file'));
         });
 
         return redirect(route('jobs.show', ['slug' => $job->slug, 'id' => $job->id]).'#ung-tuyen')
