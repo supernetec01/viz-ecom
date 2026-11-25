@@ -30,6 +30,15 @@ return [
 
     'disks' => [
 
+        'candidate-files' => [
+            'driver' => 'local',
+            'root' => storage_path('app/candidate-files'),
+            'serve' => false,
+            'visibility' => 'private',
+            'throw' => true,
+            'report' => false,
+        ],
+
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),

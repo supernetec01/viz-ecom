@@ -241,11 +241,13 @@ Mỗi đêm một lịch chạy: chuyển tin quá hạn sang expired, gửi nh�
 
 | Loại | Định dạng cho phép | Dung lượng tối đa |
 | --- | --- | --- |
-| CV | PDF, DOC, DOCX | 10 MB |
+| CV | PDF và DOCX; DOC cũ/DOCM chưa nhận | 10 MB |
 | Portfolio dạng file | PDF, JPG, PNG | 10 MB |
 | Portfolio dạng link | URL bắt đầu bằng http hoặc https | Không áp dụng |
 
 Không nhận file nén, file chạy được, hoặc file có macro.
+
+Quyết định bổ sung T23: DOC cũ bị từ chối, hướng dẫn lưu lại PDF hoặc DOCX; không thêm công cụ đọc DOC. DOCX kiểm tra package, chặn VBA/macro, OLE/ActiveX, quan hệ ngoài, path nguy hiểm và zip bomb. Người dùng đã duyệt qpdf JSON/object stream và runner cô lập, không thêm Composer package. Đã có kiểm tra sâu PDF, từ chối mã hóa (cả mật khẩu rỗng) và JS/JavaScript/OpenAction/AA/Launch/GoToR/GoToE/SubmitForm/ImportData/XFA/RichMedia/3D/EmbeddedFile cùng marker liên quan, giữ nguyên gốc. Fail closed với lỗi/thiếu công cụ/timeout/RAM/output/object/depth limit. Hướng dẫn/test/số đo ở docs/pdf-inspector-t48.md. PDF production vẫn tắt, T23 draft chờ mẫu điện thoại và Canva không đính kèm. Quyết định mới nhất: chờ T23 đủ mẫu/hoàn tất trước làm T24.
 
 ### 5.2. Xử lý khi upload
 

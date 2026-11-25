@@ -1,0 +1,41 @@
+[
+  {
+    "name": "word-2016",
+    "upstream_path": "samples/grouped-by-generator/Mostly_German_Text_Generated_By_Microsoft_Word_2016.pdf",
+    "upstream_blob": "ad2a0e2dda5459f445c3a796493b9998cdffe00f",
+    "url": "https://raw.githubusercontent.com/smalot/pdfparser/a71c6dd38e60a995fdb4d36e4433b8b3557c65dc/samples/grouped-by-generator/Mostly_German_Text_Generated_By_Microsoft_Word_2016.pdf",
+    "source_commit": "a71c6dd38e60a995fdb4d36e4433b8b3557c65dc",
+    "declared_source": "Mostly_German_Text_Generated_By_Microsoft_Word_2016.pdf"
+  },
+  {
+    "name": "chromium",
+    "upstream_path": "samples/grouped-by-generator/R2RML-Spec_Generated_by_Chromium-SaveAs-PDF.pdf",
+    "upstream_blob": "1220fe8598ffb407855be871460efa17004cb3ba",
+    "url": "https://raw.githubusercontent.com/smalot/pdfparser/a71c6dd38e60a995fdb4d36e4433b8b3557c65dc/samples/grouped-by-generator/R2RML-Spec_Generated_by_Chromium-SaveAs-PDF.pdf",
+    "source_commit": "a71c6dd38e60a995fdb4d36e4433b8b3557c65dc",
+    "declared_source": "R2RML-Spec_Generated_by_Chromium-SaveAs-PDF.pdf"
+  },
+  {
+    "name": "libreoffice",
+    "upstream_path": "samples/grouped-by-generator/RichDocument_Generated_by_Libreoffice-6.4_PDF-v1.4.pdf",
+    "upstream_blob": "1ac0eb3c3e209f22ae272f6e09fa1e9c8df49cda",
+    "url": "https://raw.githubusercontent.com/smalot/pdfparser/a71c6dd38e60a995fdb4d36e4433b8b3557c65dc/samples/grouped-by-generator/RichDocument_Generated_by_Libreoffice-6.4_PDF-v1.4.pdf",
+    "source_commit": "a71c6dd38e60a995fdb4d36e4433b8b3557c65dc",
+    "declared_source": "RichDocument_Generated_by_Libreoffice-6.4_PDF-v1.4.pdf"
+  },
+  {
+    "name": "word-print",
+    "upstream_path": "samples/Document-Word-Landscape-printedaspdf.pdf",
+    "upstream_blob": "a1dd549a6211641aba48563488e53e1f1bd8ebfc",
+    "url": "https://raw.githubusercontent.com/smalot/pdfparser/a71c6dd38e60a995fdb4d36e4433b8b3557c65dc/samples/Document-Word-Landscape-printedaspdf.pdf",
+    "source_commit": "a71c6dd38e60a995fdb4d36e4433b8b3557c65dc",
+    "declared_source": "Document-Word-Landscape-printedaspdf.pdf"
+  },
+  {
+    "name": "google-docs",
+    "url": "https://github.com/smalot/pdfparser/files/14225204/test-vgwg.pdf",
+    "source_issue": "https://github.com/smalot/pdfparser/issues/675",
+    "sha256": "c785527eb106aacca01a72f4c9eb15ef43c0f3b92d7eb90d10e60fcac47e2448",
+    "declared_source": "Author-confirmed Google Docs export, short sample text"
+  }
+]
