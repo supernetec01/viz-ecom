@@ -31,6 +31,16 @@ it('accepts a real clean PDF with verified network isolation and memory limits w
     expect(hash_file('sha256', $this->pdfPath))->toBe($hash);
 });
 
+it('fails closed with a sanitized PDF error when file lease storage is unavailable', function () {
+    $invalidRoot = tempnam(storage_path('framework/testing'), 'lock-root-');
+    config(['candidate-cleanup.lock_root' => $invalidRoot]);
+    try {
+        expect(fn () => app(InspectPdf::class)->inspect($this->pdfPath))->toThrow(PdfInspectionFailed::class);
+    } finally {
+        unlink($invalidRoot);
+    }
+});
+
 it('rejects a hung missing or excessive output qpdf process and removes its container and scratch', function (string $mode) {
     $probe = new PdfFailureProbe($mode);
     $failed = false;

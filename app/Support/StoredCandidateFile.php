@@ -2,9 +2,11 @@
 
 namespace App\Support;
 
+use App\Services\CandidateFileLease;
+
 final readonly class StoredCandidateFile
 {
-    public function __construct(private array $metadata) {}
+    public function __construct(private array $metadata, private ?CandidateFileLease $lease = null) {}
 
     public function path(): string
     {
@@ -14,5 +16,10 @@ final readonly class StoredCandidateFile
     public function metadata(): array
     {
         return $this->metadata;
+    }
+
+    public function __destruct()
+    {
+        $this->lease?->release();
     }
 }

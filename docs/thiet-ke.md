@@ -237,6 +237,8 @@ Mỗi đêm một lịch chạy: chuyển tin quá hạn sang expired, gửi nh�
 
 ## 5. Lưu trữ CV và portfolio
 
+Quyết định T26: cleanup mặc định dry-run, --force rõ ràng mới xóa; file ít nhất 24 giờ theo mtime, kiểm tra lại trước xóa, không tham chiếu files.path/preview_path và không active lease. Giữ file hồ sơ xóa mềm và metadata không gắn hồ sơ; chỉ liệt kê metadata đó trong dry-run. Root canonical riêng, không symlink/.. hoặc thư mục tạm hệ thống. Dừng toàn kế hoạch khi orphan >20% hoặc files rỗng nhưng đĩa >10 file; DB lỗi không được coi là orphan. Log số lượng/lý do, không tên gốc. Production force và lịch tự chạy mặc định tắt, chỉ bật sau review dry-run thật. Chi tiết ở CODEMAP/báo cáo T26; không phải chức năng xóa PII sau 6 tháng.
+
 Quyết định ngày 25/11/2026: người dùng yêu cầu tiếp tục hai task T24–T25 sau khi được thông báo T23 còn thiếu mẫu. Cho phép triển khai nối tiếp trên nhánh/PR riêng từ T23 draft; không coi T23 đã hoàn tất, không merge T23 hoặc bật PDF production. Quyết định này thay điều kiện phải chờ T23 đủ mẫu mới viết T24; các tiêu chí tương thích và chốt production của T23 vẫn giữ nguyên.
 
 ### 5.1. Quy định file

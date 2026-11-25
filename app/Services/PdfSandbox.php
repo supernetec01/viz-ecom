@@ -16,9 +16,11 @@ class PdfSandbox
         $start = microtime(true);
         $deadline = $start + (float) config('pdf-inspection.timeout');
         $scratch = storage_path('app/pdf-inspection/'.Str::uuid());
+        $scratchLease = null;
         $name = 'viz-pdf-'.Str::uuid();
         $created = false;
         try {
+            $scratchLease = CandidateFileLease::acquire('pdf-staging:'.basename($scratch));
             if (! mkdir($scratch, 0700, true) || ! copy($input, $scratch.'/input.pdf')) {
                 throw new PdfInspectionFailed;
             }
@@ -107,6 +109,7 @@ class PdfSandbox
             if ($cleanupFailed) {
                 throw new PdfInspectionFailed('cleanup');
             }
+            $scratchLease?->release();
         }
         $result['elapsed_ms'] = (microtime(true) - $start) * 1000;
 

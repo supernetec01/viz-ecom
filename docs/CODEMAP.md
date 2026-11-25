@@ -1,5 +1,14 @@
 # CODEMAP — điểm tích hợp nghiệp vụ
 
+## Giao dịch và dọn file T26
+
+- `SubmitApplication` phân biệt lỗi trong transaction (rollback/dọn file mới) với lỗi khi commit hoặc callback đã chạy xong thân transaction: trường hợp sau giữ bytes vì DB có thể đã commit. Không xóa file hợp lệ chỉ vì mất xác nhận; orphan được kiểm tra metadata ở lần dọn sau. Mọi lỗi được trả thông báo chung, không đẩy bindings PII vào log.
+- `CandidateFileLease` dùng flock trên lockfile hash ngoài các root dọn; `StoredCandidateFile` giữ lease tới khi service kết thúc (sau commit/rollback). `PdfSandbox` giữ lease theo UUID staging. Lệnh dọn nonblocking, bỏ qua active. Không xóa lockfile đang dùng; lockfile không chứa PII. Disk hiện tại là local; khi dùng shared filesystem phải kiểm chứng flock trên host đó.
+- `candidate-files:cleanup [--force] [--json]`: mặc định dry-run; root chỉ là disk candidate-files và staging `storage/app/pdf-inspection`. Không dọn thư mục tạm PHP/hệ thống do PHP không giữ application lease. Mtime tối thiểu 24 giờ, kiểm tra lại sau DB và ngay trước unlink. Không theo symlink, chặn `..`, canonical path phải nằm trong root. Chỉ dọn file; không xóa metadata hoặc hồ sơ.
+- Mọi `files.path`/`preview_path` giữ nguyên bytes, kể cả metadata không gắn hồ sơ và hồ sơ xóa mềm. Metadata chưa gắn hồ sơ được nhận diện qua `ApplicationPolicy::unattachedFileMetadataIds`, chỉ thống kê/liệt kê ID trong dry-run. Không ghi tên gốc vào báo cáo/log; file liệt kê bằng hash đường dẫn và mtime.
+- Chốt dừng toàn kế hoạch nếu orphan >20% tổng file thường được quét hoặc bảng files rỗng mà đĩa >10 file; --force không bypass. DB/lỗi kiểm tra abort, không diễn giải thành không có tham chiếu. Mỗi run log UUID, scanned/candidates/deleted/skipped/reasons, cả khi lỗi; không log exception thô.
+- Production --force bị chặn mặc định tới khi `CANDIDATE_CLEANUP_PRODUCTION_FORCE=true` sau review dry-run thật. `CANDIDATE_CLEANUP_SCHEDULED=false`, chưa gắn scheduler (T42 mới nối lịch, phải tôn trọng cờ). Cleanup chỉ xóa orphan; không thay retention T42/T46.
+
 ## Portfolio T25
 
 - `InspectPortfolio`: PDF/JPG/JPEG/PNG tối đa 10 MiB thật, finfo/nội dung/đuôi khớp, SHA-256. PDF gọi đúng `InspectPdf` (mọi chốt production/runner/marker giữ nguyên). PNG kiểm tra signature/chunk length/CRC/IHDR/IDAT/IEND, không trailing bytes, tối đa 2048 chunk. JPEG kiểm tra marker/segment/scan/EOI, tối đa 100.000 marker, không trailing bytes. Ảnh tối đa 16.384 px mỗi chiều, 40 triệu pixel; không giải mã pixel hoặc tuyên bố sạch malware.

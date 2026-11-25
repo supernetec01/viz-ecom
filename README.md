@@ -153,6 +153,14 @@ composer lint
 
 Đọc [AGENTS.md](AGENTS.md) trước khi làm task. Mỗi task một nhánh và một PR; chờ xem lại trước khi chuyển task kế tiếp.
 
+## T26 — Kiểm tra và dọn file mồ côi
+
+Chạy `php artisan candidate-files:cleanup --json` để **dry-run**. Không cờ thì không xóa; `--force` mới xóa file đủ điều kiện. Chỉ file tối thiểu 24 giờ theo mtime, không còn tham chiếu trong files.path/preview_path và không có lease đang dùng. Giữ file hồ sơ xóa mềm và metadata chưa gắn hồ sơ; metadata đó chỉ liệt kê ID khi dry-run, không bị xóa.
+
+Lệnh chỉ đi trong disk candidate-files và PDF staging riêng; không theo symlink/đường dẫn `..`, không dọn thư mục tạm PHP/hệ thống hoặc dữ liệu hồ sơ. Chốt dừng khi orphan >20% tổng file quét hoặc files rỗng nhưng đĩa >10 file. `--force` không vượt chốt; DB lỗi cũng dừng. Báo cáo chỉ có hash định danh file/mtime và số lượng/lý do, không tên file gốc.
+
+Production mặc định không cho xóa thật (`CANDIDATE_CLEANUP_PRODUCTION_FORCE=false`), lịch tự động tắt (`CANDIDATE_CLEANUP_SCHEDULED=false`). Lần đầu chỉ chạy dry-run trên server thật, người dùng xem kết quả rồi mới bật cấu hình xóa. Chưa gắn lịch ở T26; T42 mới thực hiện. Không bật các cờ chỉ để chữa demo hoặc vượt chốt bất thường. Xem [báo cáo T26](docs/bao-cao-t26.md).
+
 ## T25 — Portfolio và giới hạn upload
 
 Form nhận **một link HTTP/HTTPS hoặc một file PDF/JPG/JPEG/PNG**, cũng có thể bỏ trống. Không gửi link và file cùng lúc. Server không tự mở link; file lưu UUID ở disk private, trạng thái pending, chưa có xem/tải. Ảnh kiểm tra MIME/nội dung, kích thước header và cấu trúc PNG CRC/chunk hoặc JPEG marker; giới hạn 16.384 px mỗi chiều, 40 triệu pixel. Đây không phải giải mã toàn bộ pixel hoặc antivirus. PDF dùng lại qpdf T23; production vẫn tắt.

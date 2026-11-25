@@ -20,8 +20,9 @@ class SubmitApplication
     public function submit(int $jobId, array $data, ?UploadedFile $cv, ?string $source, ?UploadedFile $portfolio = null): void
     {
         $stored = [];
+        $bodyCompleted = false;
         try {
-            DB::transaction(function () use ($jobId, $data, $cv, $source, $portfolio, &$stored): void {
+            DB::transaction(function () use ($jobId, $data, $cv, $source, $portfolio, &$stored, &$bodyCompleted): void {
                 $job = Job::publiclyViewable()->lockForUpdate()->findOrFail($jobId);
                 $company = Company::whereKey($job->company_id)->sharedLock()->firstOrFail();
                 abort_unless($company->verified_at !== null, 404);
@@ -45,8 +46,14 @@ class SubmitApplication
                     'consent_given' => true, 'consented_at' => now(), 'submitted_at' => now(), 'source' => $source,
                     'created_at' => now(), 'updated_at' => now(),
                 ]);
+                $bodyCompleted = true;
             });
         } catch (Throwable $exception) {
+            if ($bodyCompleted) {
+                // Commit may have succeeded before its acknowledgement/callback failed.
+                // Preserve bytes; the later orphan check must consult committed metadata.
+                throw ValidationException::withMessages(['application' => __('applications.save_failed')]);
+            }
             $cleanupFailed = false;
             foreach ($stored as $file) {
                 try {
