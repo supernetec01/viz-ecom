@@ -8,6 +8,14 @@ use Illuminate\Validation\ValidationException;
 
 class ApplicationPolicy
 {
+    /** System maintenance only; returns metadata IDs, never candidate identity data. */
+    public function unattachedFileMetadataIds(): array
+    {
+        return DB::table('files')->whereNotExists(fn ($query) => $query->selectRaw('1')->from('applications')
+            ->whereColumn('applications.cv_file_id', 'files.id')->orWhereColumn('applications.portfolio_file_id', 'files.id'))
+            ->pluck('id')->all();
+    }
+
     // Guest submission only. Reading candidate records remains denied until T30.
     public function assertMaySubmit(Job $job, ?string $phone = null): void
     {

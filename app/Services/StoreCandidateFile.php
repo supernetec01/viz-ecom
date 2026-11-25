@@ -37,6 +37,7 @@ class StoreCandidateFile
     private function store(UploadedFile $upload, Job $job, string $applicationId, array $checked, string $kind, string $field): StoredCandidateFile
     {
         $path = $kind.'/'.$job->company_id.'/'.$job->id.'/'.$applicationId.'/'.Str::uuid().'.'.$checked['extension'];
+        $lease = CandidateFileLease::acquire('candidate:'.$path);
         $stream = fopen($upload->getPathname(), 'rb');
         if ($stream === false) {
             throw ValidationException::withMessages([$field => __('applications.file_upload_failed')]);
@@ -56,7 +57,7 @@ class StoreCandidateFile
         return new StoredCandidateFile([
             'path' => $path, 'original_name' => mb_substr(basename(str_replace('\\', '/', $upload->getClientOriginalName())), 0, 255),
             'mime_type' => $checked['mime_type'], 'size' => $checked['size'], 'sha256' => $checked['sha256'], 'scan_status' => 'pending',
-        ]);
+        ], $lease);
     }
 
     public function discard(StoredCandidateFile $file): void
