@@ -16,7 +16,12 @@ class Application extends Model
 
     protected $guarded = ['*'];
 
-    protected $visible = ['id'];
+    protected $visible = ['id', 'full_name', 'job_id', 'job_title', 'submitted_at'];
+
+    protected function casts(): array
+    {
+        return ['submitted_at' => 'immutable_datetime'];
+    }
 
     /** @return BelongsTo<Company, $this> */
     public function company(): BelongsTo
