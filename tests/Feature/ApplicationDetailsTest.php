@@ -7,6 +7,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
+use Livewire\Livewire;
 
 require_once __DIR__.'/../Support/ApplicationPolicyFixtures.php';
 
@@ -14,6 +15,12 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     config(['app.debug' => false]);
+});
+
+afterEach(function () {
+    // HTTP renders of the new summary link leave Livewire's static asset flags set
+    // inside Pest's shared PHP process; a new real request starts with fresh flags.
+    Livewire::flushState();
 });
 
 it('denies unpaid detail access without returning candidate contacts or notes', function () {
