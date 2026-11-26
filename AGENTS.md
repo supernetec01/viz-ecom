@@ -1,5 +1,7 @@
 # Quy tắc làm việc
 
+Quyết định T32 đã duyệt: detail Blade riêng; admin active/staff phụ trách/employer grant còn hạn đọc và sửa. Status thủ công5 giá trị, không tự đổi khi mở. Notes chung công ty2000 ký tự/escape + editor role/time. Save recheck policy, khóa dòng/edit_version chống ghi đè. Audit tối thiểu T32 qua RecordAudit append-only, fail closed trước trả detail, status/note audits cùng transaction; T35 bổ sung. Nút yêu cầu/đơn chờT37; T31 chỉ link khi có quyền hoặc nhãn Chưa mở khóa. T43 nối cờ vi phạm qua ApplicationRestriction duy nhất, non-admin bị chặn; hiện chưa có cờ và helper false.
+
 - Đọc `docs/thiet-ke.md`, đặc biệt mục 3–6, và các quyết định đã chốt trước khi làm.
 - Làm từng task T00–T48: một task, một nhánh, một pull request. Không làm trước task sau. Dừng sau báo cáo để người dùng xem lại.
 - Chỉ làm đúng phạm vi task. Việc ngoài phạm vi ghi vào đề xuất. Không rõ về phân quyền, file, thanh toán hoặc xóa dữ liệu thì hỏi.

@@ -180,6 +180,8 @@ it('enforces unique slugs foreign keys valid states and dates in PostgreSQL', fu
 
 it('preserves queue rows through migration up and down and keeps database queue usable', function () {
     // Roll back the later child table first, matching the real migrator's reverse order.
+    $detail = require database_path('migrations/2026_11_26_000019_add_application_edit_version_and_audit_logs.php');
+    $detail->down();
     $grants = require database_path('migrations/2026_11_26_000017_create_orders_and_access_grants.php');
     $grants->down();
     $mail = require database_path('migrations/2026_11_26_000016_create_application_mail_counters.php');
@@ -203,4 +205,5 @@ it('preserves queue rows through migration up and down and keeps database queue 
     $storage->up();
     $mail->up();
     $grants->up();
+    $detail->up();
 });

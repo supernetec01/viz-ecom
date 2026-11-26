@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ApplicationDetailController;
 use App\Http\Controllers\ApplicationSubmissionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
@@ -21,6 +22,8 @@ Route::get('/cong-ty/{id}', PublicCompanyController::class)->middleware(CaptureA
 Route::get('/viec-lam/{slug}-{id}', PublicJobDetailController::class)->middleware(CaptureApplicationSource::class)->where('slug', '[a-z0-9-]+')->where('id', '[1-9][0-9]*')->name('jobs.show');
 Route::post('/ung-tuyen/{id}', ApplicationSubmissionController::class)->middleware('throttle:applications')->where('id', '[1-9][0-9]*')->name('applications.store');
 Route::view('/cam-on-ung-tuyen', 'public.application-thanks')->name('applications.thanks');
+Route::get('/app/ho-so/{id}', [ApplicationDetailController::class, 'show'])->middleware('auth')->name('applications.detail');
+Route::post('/app/ho-so/{id}', [ApplicationDetailController::class, 'update'])->middleware('auth')->name('applications.detail.update');
 Route::view('/chinh-sach-du-lieu', 'public.data-policy')->name('data-policy');
 
 foreach (['admin', 'staff', 'employer'] as $role) {
