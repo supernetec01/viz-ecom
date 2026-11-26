@@ -9,6 +9,14 @@
 - Chốt dừng toàn kế hoạch nếu orphan >20% tổng file thường được quét hoặc bảng files rỗng mà đĩa >10 file; --force không bypass. DB/lỗi kiểm tra abort, không diễn giải thành không có tham chiếu. Mỗi run log UUID, scanned/candidates/deleted/skipped/reasons, cả khi lỗi; không log exception thô.
 - Production --force bị chặn mặc định tới khi `CANDIDATE_CLEANUP_PRODUCTION_FORCE=true` sau review dry-run thật. `CANDIDATE_CLEANUP_SCHEDULED=false`, chưa gắn scheduler (T42 mới nối lịch, phải tôn trọng cờ). Cleanup chỉ xóa orphan; không thay retention T42/T46.
 
+## Phân quyền hồ sơ T30
+
+- `ApplicationPolicy::{viewSummary,viewDetails,download}` nhận User/null + ULID chuỗi (download thêm file ID); Gate dùng `[Application::class, $ulid, $fileId]`. Không bind/hydrate toàn bộ hồ sơ trước kiểm tra. Application model guarded, serialize chỉ id; context SQL chỉ id/company/job.
+- Actor active/role lấy lại DB mỗi lời gọi; scope công ty active (không xóa mềm), membership employer/phân công staff hiện tại. Admin/staff assigned không cần grant; employer details/file dùng AccessGrant::effective theo job/company, không xét ngày nộp. Summary không cần mua.
+- Application/company soft deleted deny mọi role. Job soft deleted/paused/expired/closed giữ quyền theo hồ sơ; mất xác minh công ty chưa chặn hồ sơ cũ (đã duyệt). Unknown/foreign/malformed ULID đều false/403 qua Gate, không phân biệt tồn tại.
+- Download chỉ file thật gắn cv_file_id/portfolio_file_id của application đã được phép, kiểm tra status mới và FileReadiness.can_download. Admin không bypass readiness. T33 inline phải thêm FileReadiness.can_view; kiểm tra lại policy, path, CSP/audit ở mỗi request. Chưa có route phục vụ thật ở T30; route `_test/application-policy` chỉ trong test.
+- T32/T33 ghi audit ở lớp phục vụ truy cập thật khi T35 nối vào, không side effect trong policy bool. T31 sẽ thêm projection query trong policy; không chọn PII rồi ẩn ở UI/JSON.
+
 ## Đơn và hiệu lực quyền T29
 
 - Migration000017 tạo orders/access_grants mới. Amount là số nguyên VND không âm; phương thức bank_transfer, free_trial/gift dành cho0đ có reason không rỗng. Paid bắt buộc confirmed_by/at; FK người xác nhận/người cấp. FK kép order/company và job/company, unique order_id, ends_at>starts_at, enum CHECK và index tra quyền theo công ty/tin/trạng thái/thời gian. Không sửa migration trước.
