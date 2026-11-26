@@ -132,6 +132,21 @@ class ApplicationPolicy
         return $record;
     }
 
+    public function fileRecord(User $actor, string $id, int $fileId, bool $inline): CandidateFile
+    {
+        abort_unless($this->download($actor, $id, $fileId), 403);
+        $context = $this->context($this->activeActor($actor), $id);
+        abort_unless($context !== null, 403);
+        $file = CandidateFile::query()->find($fileId);
+        abort_unless($file !== null, 403);
+        abort_unless(FileReadiness::for($file)[$inline ? 'can_view' : 'can_download'], 403);
+        $prefix = '(?:cv|portfolio)/'.$context->company_id.'/'.$context->job_id.'/'.$id.'/';
+        abort_unless(preg_match('~\A'.$prefix.'[a-f0-9-]{36}\.(?:docx|pdf|jpg|png)\z~D', $file->path) === 1, 403);
+        $file->setAttribute('application_company_id', $context->company_id);
+
+        return $file;
+    }
+
     public function saveDetailRecord(User $actor, string $id, array $values): void
     {
         $this->detailRecord($actor, $id, true)->forceFill($values)->save();

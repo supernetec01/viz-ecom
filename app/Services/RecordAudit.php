@@ -12,10 +12,12 @@ class RecordAudit
     public function record(User $actor, string $action, string $id, int $companyId, Request $request, array $metadata = []): void
     {
         $status = ['new', 'viewed', 'interview', 'hired', 'rejected'];
-        if (! in_array($action, ['application.viewed_detail', 'application.status_changed', 'application.note_updated'], true)
+        if (! in_array($action, ['application.viewed_detail', 'application.status_changed', 'application.note_updated', 'application.file_viewed', 'application.file_downloaded'], true)
             || ($action === 'application.status_changed'
                 ? (array_keys($metadata) !== ['old', 'new'] || ! in_array($metadata['old'], $status, true) || ! in_array($metadata['new'], $status, true))
-                : $metadata !== [])) {
+                : (in_array($action, ['application.file_viewed', 'application.file_downloaded'], true)
+                    ? (array_keys($metadata) !== ['file_id'] || ! is_int($metadata['file_id']) || $metadata['file_id'] < 1)
+                    : $metadata !== []))) {
             throw new InvalidArgumentException('Invalid audit event.');
         }
         $current = User::query()->findOrFail($actor->id, ['id', 'role']);

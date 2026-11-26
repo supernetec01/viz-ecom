@@ -4,6 +4,7 @@ use App\Http\Controllers\ApplicationDetailController;
 use App\Http\Controllers\ApplicationSubmissionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\PrivateFileController;
 use App\Http\Controllers\PublicCompanyController;
 use App\Http\Controllers\PublicJobController;
 use App\Http\Controllers\PublicJobDetailController;
@@ -24,6 +25,8 @@ Route::post('/ung-tuyen/{id}', ApplicationSubmissionController::class)->middlewa
 Route::view('/cam-on-ung-tuyen', 'public.application-thanks')->name('applications.thanks');
 Route::get('/app/ho-so/{id}', [ApplicationDetailController::class, 'show'])->middleware('auth')->name('applications.detail');
 Route::post('/app/ho-so/{id}', [ApplicationDetailController::class, 'update'])->middleware('auth')->name('applications.detail.update');
+Route::get('/app/ho-so/{id}/tep/{file}/{mode}', PrivateFileController::class)
+    ->middleware(['csp.private-file', 'auth', 'signed'])->name('applications.file');
 Route::view('/chinh-sach-du-lieu', 'public.data-policy')->name('data-policy');
 
 foreach (['admin', 'staff', 'employer'] as $role) {
