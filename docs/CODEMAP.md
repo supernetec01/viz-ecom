@@ -9,6 +9,14 @@
 - Chốt dừng toàn kế hoạch nếu orphan >20% tổng file thường được quét hoặc bảng files rỗng mà đĩa >10 file; --force không bypass. DB/lỗi kiểm tra abort, không diễn giải thành không có tham chiếu. Mỗi run log UUID, scanned/candidates/deleted/skipped/reasons, cả khi lỗi; không log exception thô.
 - Production --force bị chặn mặc định tới khi `CANDIDATE_CLEANUP_PRODUCTION_FORCE=true` sau review dry-run thật. `CANDIDATE_CLEANUP_SCHEDULED=false`, chưa gắn scheduler (T42 mới nối lịch, phải tôn trọng cờ). Cleanup chỉ xóa orphan; không thay retention T42/T46.
 
+## Đơn và hiệu lực quyền T29
+
+- Migration000017 tạo orders/access_grants mới. Amount là số nguyên VND không âm; phương thức bank_transfer, free_trial/gift dành cho0đ có reason không rỗng. Paid bắt buộc confirmed_by/at; FK người xác nhận/người cấp. FK kép order/company và job/company, unique order_id, ends_at>starts_at, enum CHECK và index tra quyền theo công ty/tin/trạng thái/thời gian. Không sửa migration trước.
+- `Order`, `AccessGrant` không mass-assign; save kể cả saveQuietly đi qua `OrderGrantIntegrity` transaction. Service khóa order trước grant, đọc/merge dòng hiện tại với dirty fields để stale model không ghi lùi trạng thái. Xác nhận paid/người cấp mới phải là admin active và shared-lock dòng user tới commit. Không có controller, UI hoặc luồng thanh toán/cấp quyền T37–T39.
+- Grant bắt buộc order cùng công ty, paid, type access_grant. Binding order/company/job/creator giữ nguyên sau tạo; chỉ sửa thời hạn/trạng thái/notes theo workflow được duyệt ở task sau. Paid order không được đổi trạng thái/type/company khi bất kỳ grant chưa revoked (kể cả đã hết hạn). Cần revoked trước; FK vẫn giữ lịch sử khi revoked.
+- **`AccessGrant::scopeEffective()` và `isEffective()`** kiểm tra fresh DB: active, starts_at<=now<ends_at, order còn paid/đúng loại/cùng công ty; timestamp UTC microsecond. Không lọc ngày nộp hồ sơ nên không loại hồ sơ nộp trước mua. Đây chỉ hiệu lực dữ liệu/thời gian, **T30 vẫn phải kiểm tra actor/company/job/application qua ApplicationPolicy mỗi yêu cầu**, không dùng helper này thay authorization.
+- Paid/type/admin/không đổi đơn khi còn grant là guard trong service/model vì không thể diễn đạt bằng FK thông thường. DB trực tiếp chỉ bảo đảm các CHECK/FK/unique đã nêu; ứng dụng tương lai không dùng QueryBuilder/raw SQL cập nhật orders/grants để bỏ qua guard. SQL bảo trì ngoài app có thể phá điều kiện paid; helper fresh vẫn fail closed. Không tự tạo trigger hoặc API/giao diện T39.
+
 ## Cảm ơn và email tóm tắt T28
 
 - POST thành công redirect `applications.thanks` `/cam-on-ung-tuyen`: trang tĩnh chung, noindex/no-store, không ID/PII/query phản chiếu; không captcha/JobPosting/sitemap. Không truy vấn hồ sơ, tải lại không gửi lại POST.
