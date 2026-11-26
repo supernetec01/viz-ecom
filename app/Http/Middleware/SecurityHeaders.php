@@ -27,7 +27,7 @@ class SecurityHeaders
             $response->headers->set('X-Content-Type-Options', 'nosniff');
             $response->headers->set('X-Frame-Options', 'DENY');
             $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
-            if ($panel || $privateFile || $request->routeIs('login', 'security', 'password.reset', 'two-factor.login', 'password.confirm', 'jobs.show', 'companies.show', 'applications.store')) {
+            if ($panel || $privateFile || $request->routeIs('login', 'security', 'password.reset', 'two-factor.login', 'password.confirm', 'jobs.show', 'companies.show', 'applications.store', 'applications.thanks')) {
                 $response->headers->set('Cache-Control', 'no-store, private');
             }
             $scripts = "'self' 'nonce-{$nonce}'".($panel ? " 'unsafe-eval'" : '');

@@ -598,6 +598,8 @@ Cổng kiểm 2: mở link tin trên điện thoại thật từ Zalo, lọc, b�
 | T27 ⚠ | Worker ClamAV, chỉ chuyển DOCX bằng LibreOffice cô lập; scan pending/clean/infected/error, preview pending/ready/failed; admin metadata/retry | Ba lượt thực chạy, backoff 60/300s; infected không retry; error chặn readiness; chỉ lỗi preview vẫn tải gốc clean. Khóa/idempotent, qpdf T23 + AV trước ready, test 403, không route nội dung. Chi tiết ở 5.2/báo cáo T27 |
 | T28 | Trang cảm ơn sau khi nộp. Email tóm tắt cho nhà tuyển dụng (chỉ nói có hồ sơ mới ở vị trí nào) | Test: nội dung email không chứa tên, SĐT, email của ứng viên. Email gửi bằng hàng đợi |
 
+Quyết định T28 ngày26/11: mọi employer active thuộc công ty, đọc lại vai trò/trạng thái/liên kết khi worker chạy; không staff/admin. Email chỉ tên công ty/tiêu đề vị trí/số mới/link /app, chưa link hồ sơ. Gộp một lô mỗi tin/người nhận mỗi giờ, counter/watermark DB; lỗi email không chặn nộp. Retry trước SMTP tối đa3 lượt; đã bắt đầu SMTP mà kết quả chưa rõ thì không tự phát lại cùng lô, log mã lỗi/đối soát vận hành. Chưa có exactly-once SMTP; uncertain có thể mất thông báo, lô sau tính phần mới hơn watermark đã thử. Không gửi mail thật khi test local; MAIL_MAILER=log cần cấu hình lại khi triển khai.
+
 Cổng kiểm 3: nộp thử hồ sơ từ điện thoại với các loại file, nộp trùng, mất mạng giữa chừng. Không còn file mồ côi, không còn hồ sơ lỗi.
 
 ### 12.8. Giai đoạn 4: xem hồ sơ và phân quyền

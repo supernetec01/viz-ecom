@@ -37,7 +37,6 @@ class ApplicationSubmissionController extends Controller
             $submit->submit($job->id, $data, $request->file('cv'), ApplicationSource::current($request->session()), $request->file('portfolio_file'));
         });
 
-        return redirect(route('jobs.show', ['slug' => $job->slug, 'id' => $job->id]).'#ung-tuyen')
-            ->with('application_received', true);
+        return redirect()->route('applications.thanks');
     }
 }

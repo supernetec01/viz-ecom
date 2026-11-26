@@ -150,12 +150,15 @@ it('accepts the maximum file size and all documented application and scan status
 
 it('can roll back and reapply only the new storage migration without losing existing company or job records', function () {
     $job = managedJob(jobManager());
+    $mail = require database_path('migrations/2026_11_26_000016_create_application_mail_counters.php');
+    $mail->down();
     $migration = require database_path('migrations/2026_11_21_000013_create_files_and_applications.php');
     $migration->down();
     expect(Schema::hasTable('files'))->toBeFalse();
     expect(Schema::hasTable('applications'))->toBeFalse();
     expect(DB::table('jobs')->where('id', $job->id)->exists())->toBeTrue();
     $migration->up();
+    $mail->up();
     DB::table('applications')->insert(applicationStorageRow($job));
     expect(DB::table('applications')->count())->toBe(1);
 });

@@ -20,8 +20,8 @@ it('enqueues IDs in the same database transaction and never scans inside the sub
     app()->instance(VirusScanner::class, $scanner);
     $job = publishManagedJob(managedJob(jobManager()));
     app(SubmitApplication::class)->submit($job->id, ['full_name' => 'Synthetic', 'phone' => '0912345678', 'submission_token' => str_repeat('c', 64)], docxUpload(), null);
-    expect($scanner->calls)->toBe(0)->and(DB::table('queue_jobs')->count())->toBe(1);
-    $queue = DB::table('queue_jobs')->first();
+    expect($scanner->calls)->toBe(0)->and(DB::table('queue_jobs')->where('queue', 'candidate-files')->count())->toBe(1);
+    $queue = DB::table('queue_jobs')->where('queue', 'candidate-files')->first();
     expect($queue->queue)->toBe('candidate-files');
     expect($queue->payload)->not->toContain('0912345678', 'Synthetic', 'cv.docx');
     expect(DB::table('files')->value('scan_status'))->toBe('pending');
