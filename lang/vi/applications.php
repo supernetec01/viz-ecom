@@ -1,6 +1,16 @@
 <?php
 
 return [
+    'contact_hidden' => '[ẩn liên hệ]',
+    'summary_singular' => 'Hồ sơ ứng tuyển',
+    'summary_title' => 'Hồ sơ ứng tuyển',
+    'summary_job' => 'Vị trí tuyển dụng',
+    'summary_submitted' => 'Thời gian nộp',
+    'summary_search' => 'Tìm theo họ tên hoặc vị trí',
+    'summary_dates' => 'Ngày nộp hồ sơ',
+    'summary_from' => 'Từ ngày',
+    'summary_until' => 'Đến ngày',
+    'summary_empty' => 'Chưa có hồ sơ phù hợp',
     'mail_subject' => 'Có hồ sơ ứng tuyển mới',
     'mail_count' => 'Có :count hồ sơ mới cho vị trí này.',
     'mail_action' => 'Vào trang quản trị',

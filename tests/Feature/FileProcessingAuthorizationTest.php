@@ -98,6 +98,7 @@ it('shows the review count on the admin dashboard and does not create candidate 
     $file->forceFill(['scan_status' => 'error', 'review_required' => true])->save();
     Livewire::actingAs(jobManager(Role::Admin))->test(FileReviewStats::class)->assertSee(__('files.manual_review'))->assertSee('1');
     foreach (Route::getRoutes() as $route) {
-        expect($route->uri())->not->toMatch('~(?:^|/)(?:cv|portfolio|ho-so|candidate-files)(?:/|$)~');
+        // The employer summary index /app/ho-so is legitimate from T31; file serving is still T33.
+        expect($route->uri())->not->toMatch('~(?:^|/)(?:cv|portfolio|candidate-files)(?:/|$)~');
     }
 });

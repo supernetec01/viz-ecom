@@ -12,7 +12,7 @@ function applicationAccessFixture(): array
     $job = publishManagedJob(managedJob($admin));
     $employer = jobManager(Role::Employer);
     $job->company->employers()->attach($employer);
-    $fileId = DB::table('files')->insertGetId(['path' => 'PRIVATE_CV_PATH', 'original_name' => 'PRIVATE_CV_NAME.pdf',
+    $fileId = DB::table('files')->insertGetId(['path' => 'PRIVATE_CV_PATH/'.Str::uuid(), 'original_name' => 'PRIVATE_CV_NAME.pdf',
         'mime_type' => 'application/pdf', 'size' => 5, 'sha256' => hash('sha256', 'bytes'), 'scan_status' => 'clean', 'preview_status' => 'ready',
         'preview_path' => 'PRIVATE_PREVIEW_PATH', 'created_at' => now(), 'updated_at' => now()]);
     $applicationId = (string) Str::ulid();

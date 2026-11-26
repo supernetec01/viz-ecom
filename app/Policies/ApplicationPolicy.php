@@ -10,13 +10,76 @@ use App\Models\CandidateFile;
 use App\Models\Job;
 use App\Models\User;
 use App\Support\FileReadiness;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class ApplicationPolicy
 {
+    public function viewAny(?User $actor): bool
+    {
+        return $this->activeActor($actor)?->role === Role::Employer;
+    }
+
+    private function summaryNameExpression(): string
+    {
+        return "replace(application_summary_name(applications.full_name), '[contact]', ?)";
+    }
+
+    /** @return Builder<Application> */
+    public function employerSummaryQuery(User $actor): Builder
+    {
+        $current = $this->activeActor($actor);
+        abort_unless($current && $current->role === Role::Employer, 403);
+
+        return $this->scopedApplications($current)->join('jobs', 'jobs.id', '=', 'applications.job_id')
+            ->select(['applications.id', 'applications.job_id', 'applications.submitted_at', 'jobs.title as job_title'])
+            ->selectRaw($this->summaryNameExpression().' AS full_name', [__('applications.contact_hidden')]);
+    }
+
+    public function employerSummaryJobs(User $actor): array
+    {
+        return $this->employerSummaryQuery($actor)->reorder()->select(['jobs.id', 'jobs.title'])->distinct()->orderBy('jobs.title')
+            ->get()->pluck('title', 'id')->all();
+    }
+
+    /** @param Builder<Application> $query @return Builder<Application> */
+    public function searchSummaries(Builder $query, string $search): Builder
+    {
+        Validator::make(['search' => $search], ['search' => ['string', 'max:200', 'regex:/\A[^\x00-\x1F\x7F]*\z/u']], attributes: ['search' => __('applications.summary_search')])->validate();
+        $pattern = '%'.addcslashes($search, '\\%_').'%';
+
+        return $query->where(fn (Builder $where) => $where->whereRaw($this->summaryNameExpression().' ILIKE ?', [__('applications.contact_hidden'), $pattern])
+            ->orWhere('jobs.title', 'ilike', $pattern));
+    }
+
+    /** @param Builder<Application> $query @return Builder<Application> */
+    public function filterSummaryJob(Builder $query, mixed $jobId): Builder
+    {
+        Validator::make(['job' => $jobId], ['job' => ['nullable', 'integer', 'min:1']], attributes: ['job' => __('applications.summary_job')])->validate();
+
+        return $jobId === null || $jobId === '' ? $query : $query->where('applications.job_id', $jobId);
+    }
+
+    /** @param Builder<Application> $query @return Builder<Application> */
+    public function filterSummaryDates(Builder $query, array $dates): Builder
+    {
+        Validator::make($dates, ['from' => ['nullable', 'date_format:Y-m-d'], 'until' => ['nullable', 'date_format:Y-m-d', ...(! empty($dates['from']) ? ['after_or_equal:from'] : [])]],
+            attributes: ['from' => __('applications.summary_from'), 'until' => __('applications.summary_until')])->validate();
+        $zone = config('app.display_timezone');
+        if (! empty($dates['from'])) {
+            $query->where('applications.submitted_at', '>=', CarbonImmutable::createFromFormat('!Y-m-d', $dates['from'], $zone)->utc());
+        }
+        if (! empty($dates['until'])) {
+            $query->where('applications.submitted_at', '<', CarbonImmutable::createFromFormat('!Y-m-d', $dates['until'], $zone)->addDay()->utc());
+        }
+
+        return $query;
+    }
+
     public function viewSummary(?User $actor, string $id): bool
     {
         return $this->context($this->activeActor($actor), $id) !== null;
