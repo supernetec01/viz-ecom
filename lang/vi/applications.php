@@ -1,6 +1,12 @@
 <?php
 
 return [
+    'mail_subject' => 'Có hồ sơ ứng tuyển mới',
+    'mail_count' => 'Có :count hồ sơ mới cho vị trí này.',
+    'mail_action' => 'Vào trang quản trị',
+    'thanks_title' => 'Cảm ơn bạn đã ứng tuyển',
+    'thanks_next' => 'Nhà tuyển dụng sẽ xem xét hồ sơ và liên hệ nếu phù hợp. Bạn không cần gửi lại hồ sơ cho cùng vị trí.',
+    'browse_jobs' => 'Xem các vị trí khác',
     'upload_too_large_title' => 'Dữ liệu tải lên quá lớn',
     'upload_too_large' => 'Máy chủ chưa nhận được dữ liệu vì tổng dung lượng tải lên quá lớn. Mỗi CV hoặc portfolio tối đa 10 MB. Vui lòng quay lại trang tin, chọn file nhỏ hơn rồi gửi lại.',
     'file_upload_failed' => 'Chưa lưu được file. Vui lòng chọn lại file và thử lại.',

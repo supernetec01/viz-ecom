@@ -20,6 +20,7 @@ Route::get('/viec-lam', PublicJobController::class)->middleware(CaptureApplicati
 Route::get('/cong-ty/{id}', PublicCompanyController::class)->middleware(CaptureApplicationSource::class)->where('id', '[1-9][0-9]*')->name('companies.show');
 Route::get('/viec-lam/{slug}-{id}', PublicJobDetailController::class)->middleware(CaptureApplicationSource::class)->where('slug', '[a-z0-9-]+')->where('id', '[1-9][0-9]*')->name('jobs.show');
 Route::post('/ung-tuyen/{id}', ApplicationSubmissionController::class)->middleware('throttle:applications')->where('id', '[1-9][0-9]*')->name('applications.store');
+Route::view('/cam-on-ung-tuyen', 'public.application-thanks')->name('applications.thanks');
 Route::view('/chinh-sach-du-lieu', 'public.data-policy')->name('data-policy');
 
 foreach (['admin', 'staff', 'employer'] as $role) {

@@ -49,6 +49,7 @@ class SubmitApplication
                 foreach (array_filter($fileIds) as $fileId) {
                     app(EnqueueCandidateFile::class)->enqueue($fileId);
                 }
+                app(ApplicationSummaryQueue::class)->record($job->id, $job->company_id);
                 $bodyCompleted = true;
             });
         } catch (Throwable $exception) {

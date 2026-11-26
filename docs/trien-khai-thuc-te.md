@@ -53,6 +53,8 @@ Thanh toán chuyển khoản do admin xác nhận thủ công và chia sẻ link
 
 ## Điều kiện xác nhận sẵn sàng triển khai
 
+T28 bổ sung queue application-mail riêng, local vẫn MAIL_MAILER=log, không chứng minh nhận thư. Cần worker `queue:work database --queue=application-mail --timeout=60`, SMTP thật/MAIL_TIMEOUT10s và giám sát failed jobs + receipts uncertain/sending bỏ dở. Command `application-summaries:dispatch` phục hồi từ counter, chưa tự có lịch. Lô SMTP chưa rõ kết quả không tự gửi lại; kiểm tra với nhà cung cấp trước xử lý tay. Kiểm tra gửi thật tới hộp thư thử do mình kiểm soát, số gộp và giới hạn một giờ trước mở production.
+
 T27 đã có worker database/candidate-files, admin metadata/retry và readiness; chưa có worker thường trực trên máy chủ. Build image LibreOffice/ClamAV, chuẩn bị FreshClam definitions chính thức (daily tối đa72h), cấu hình FILE_PROCESSOR_IMAGE ID cố định/rootless, DB_QUEUE_RETRY_AFTER=300, kiểm chứng mạng/cgroup/lock trên server, giám sát queue và updater. Xem [hướng dẫn T48](pdf-inspector-t48.md). CI fake AV không chứng minh definitions production hoạt động; local đã quét thật dữ liệu tổng hợp nhưng chưa đại diện máy chủ.
 
 Không coi thông báo “tải về để xem” là route tải đã có: T33 mới tạo route có policy/audit/CSP. PDF production vẫn tắt. Migration T27 giữ bytes file cũ nhưng đánh error/verification_required nếu thiếu bằng chứng quét; cần admin xử lý theo kế hoạch trước dùng thật. T26 chỉ dọn root upload/PDF staging/processor staging riêng, mặc định dry-run và chưa bật scheduler.

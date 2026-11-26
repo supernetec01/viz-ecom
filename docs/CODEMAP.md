@@ -9,6 +9,14 @@
 - Chốt dừng toàn kế hoạch nếu orphan >20% tổng file thường được quét hoặc bảng files rỗng mà đĩa >10 file; --force không bypass. DB/lỗi kiểm tra abort, không diễn giải thành không có tham chiếu. Mỗi run log UUID, scanned/candidates/deleted/skipped/reasons, cả khi lỗi; không log exception thô.
 - Production --force bị chặn mặc định tới khi `CANDIDATE_CLEANUP_PRODUCTION_FORCE=true` sau review dry-run thật. `CANDIDATE_CLEANUP_SCHEDULED=false`, chưa gắn scheduler (T42 mới nối lịch, phải tôn trọng cờ). Cleanup chỉ xóa orphan; không thay retention T42/T46.
 
+## Cảm ơn và email tóm tắt T28
+
+- POST thành công redirect `applications.thanks` `/cam-on-ung-tuyen`: trang tĩnh chung, noindex/no-store, không ID/PII/query phản chiếu; không captcha/JobPosting/sitemap. Không truy vấn hồ sơ, tải lại không gửi lại POST.
+- `ApplicationSummaryQueue::record` tăng counter theo tin trong transaction nộp; sau commit enqueue database/application-mail, lỗi enqueue chỉ log mã kỹ thuật, không làm hỏng nộp. Counter bền vững không chứa định danh ứng viên. `application-summaries:dispatch` phục hồi enqueue từ counters, chưa gắn scheduler T42.
+- `QueueApplicationSummaries` đọc người nhận khi worker chạy; `SendApplicationSummaryMail` kiểm tra lại active/employer/company ngay trước gửi. Chỉ mail riêng từng người, không CC/BCC, không admin/staff. `ApplicationSummaryMail` chỉ tên công ty/vị trí/số mới/link /app, không đọc applications/file/portfolio.
+- `application_mail_receipts` unique job/user, khóa DB và cache, watermark + attempted_at trước SMTP. Tối đa một lô mỗi giờ tính từ lần thử, đúng biên một giờ được gửi tiếp; job chờ được release tới hạn. Retry lỗi trước gửi tối đa ba lượt, 60/300s. Đã vào SMTP mà lỗi hoặc chết thì không phát lại cùng lô; trạng thái uncertain hoặc sending bị bỏ dở cần vận hành kiểm tra. Lô không rõ kết quả được tính là đã thử; lô sau chỉ đếm hồ sơ mới hơn, có thể mất thông báo thay vì trùng (đánh đổi SMTP đã trao đổi).
+- MAIL_TIMEOUT mặc định10s, worker application-mail timeout60s; local MAIL_MAILER=log chưa gửi hộp thư thật. T48 kiểm tra SMTP/worker/recovery và log lỗi, không coi Mail::fake là chứng minh giao thư. Không tự bật SMTP/gửi thư bên ngoài khi test.
+
 ## Worker và trạng thái file T27
 
 - `CandidateFile` chỉ metadata; migration 000015 thêm error/preview/counters/review/version/hash. File cũ chưa có provenance quét được giữ bytes nhưng chuyển error/verification_required; infected không đổi.

@@ -1,6 +1,5 @@
 <section class="application-section detail-section" id="ung-tuyen" aria-labelledby="application-heading">
     <h2 id="application-heading">{{ __('applications.heading') }}</h2>
-    @if (session('application_received'))<p class="job-status-notice" role="status">{{ __('applications.received') }}</p>@endif
     @if ($errors->any())<div class="job-status-notice" role="alert"><p>{{ __('applications.correct_errors') }}</p><ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
     <form method="POST" action="{{ route('applications.store', ['id' => $job->id]) }}" enctype="multipart/form-data" data-application-form>
         @csrf

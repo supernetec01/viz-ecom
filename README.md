@@ -46,7 +46,7 @@ PHP 8.4 được chọn để chạy Pest 5. Phiên bản dependencies cụ th�
 ```sh
 git clone https://github.com/supernetec01/viz-ecom.git
 cd viz-ecom
-git switch codex/t22-application-storage
+git switch codex/t28-application-receipt
 composer install
 npm ci
 npm run build
@@ -169,7 +169,15 @@ PHP phải đặt `upload_max_filesize=10M`, `post_max_size=24M` (hai file 10 Mi
 
 Browser local đã gửi PNG tổng hợp đúng 10 MiB qua form và Turnstile demo sau khi sửa giới hạn/thư mục tạm. Chỉ dữ liệu mẫu, không CV thật. Test DB/ảnh/PDF/rollback và giới hạn được ghi tại [báo cáo T25](docs/bao-cao-t25.md). T26 vẫn giữ lệnh dọn mồ côi và test lỗi nhiều tầng; T27 mới quét AV/chuyển đổi, T33 mới xem/tải có policy/audit/CSP.
 
-## T27 — Worker quét virus và preview
+## T28 — Cảm ơn và email hồ sơ mới
+
+POST thành công chuyển tới `/cam-on-ung-tuyen`, không chứa dữ liệu ứng viên. Email gộp tối đa một lô mỗi tin/người nhận trong một giờ; chỉ công ty, vị trí, số hồ sơ mới và link `/app`. Người nhận được kiểm tra lại ngay lúc worker chạy: employer active thuộc công ty, không admin/staff.
+
+Chạy worker mail ở terminal riêng: `php artisan queue:work database --queue=application-mail --timeout=60`. Không chỉ chạy queue candidate-files. `MAIL_MAILER=log` trên local **không gửi tới hộp thư**. Production cần SMTP thật, MAIL_TIMEOUT10s, giám sát worker/failed jobs và DB_QUEUE_RETRY_AFTER300s. Sau deploy restart worker.
+
+Lỗi mail không làm hỏng việc nộp; counter được giữ trong DB. Nếu enqueue lỗi hoặc cần phục hồi sau khi worker dừng, chạy `php artisan application-summaries:dispatch`; chưa tự gắn lịch T42. Retry lỗi trước SMTP tối đa ba lượt; đã bắt đầu SMTP mà kết quả chưa rõ thì không tự gửi lại lô đó để tránh trùng. Kiểm tra receipts uncertain/sending bị bỏ dở và log mã lỗi; lô sau chỉ tính hồ sơ mới hơn watermark đã thử. Đây là đánh đổi ưu tiên không gửi trùng, có thể mất một thông báo khi SMTP không rõ kết quả. [Báo cáo T28](docs/bao-cao-t28.md).
+
+## Cấu hình worker file T27
 
 Sau pull chạy `php artisan migrate` (không migrate:fresh). Migration đánh dấu file cũ chưa có bằng chứng quét là `error`/`verification_required` để admin xử lý, giữ nguyên bytes. Nộp hồ sơ mới ghi job vào database queue cùng giao dịch, kể cả khi queue mặc định là sync. Chưa chạy worker thì file giữ pending.
 
