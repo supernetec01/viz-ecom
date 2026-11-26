@@ -1,5 +1,12 @@
 # CODEMAP — điểm tích hợp nghiệp vụ
 
+## Phục vụ file T33
+
+- `PrivateFileLinks::temporary(User, applicationULID, fileID, inline|download)` check policy/readiness rồi ký5 phút gắn actor. T34 dùng helper, không lấy Storage::url. Chưa nút/viewer trongT33.
+- `PrivateFileController` route applications.file dưới/app/ho-so/{id}/tep/{file}/{mode}: private-file CSP + auth + signed, actor phải khớp; ApplicationPolicy::fileRecord kiểm tra fresh quyền/attachment/readiness và path context. Không route-bind application model. File metadata được đọc sau Gate, không đọc contact/notes để phục vụ bytes.
+- Original canonical + scanned SHA/size check; preview chỉ original hoặc deterministic previews/{id}/{originalHash}.pdf, canonical/size. Lease candidate:path dùng chung worker/cleanup, giữ cả original và preview đến cuối stream, busy503. MIME allowlist + generic filename, stream64KiB, no-store/noindex/nosniff, CSP sandbox không eval/inline, không range/cache. Quyền thu hồi chặn request kế tiếp, không rút lại bytes đã tải.
+- RecordAudit writer duy nhất thêm file_viewed/file_downloaded, metadata chỉ file_id; insert thành công trước stream, lỗi503 không bytes. T35 rate limit/cảnh báo. Private root/metadata worker trusted; preview chưa hash riêng lưu, original kiểm tra SHA từng lượt. Không bật PDF productionT23.
+
 ## Chi tiết và audit T32
 
 - `ApplicationDetailController` GET/POST `/app/ho-so/{id}` là trang Blade riêng, không resource View/EditRecord. ApplicationPolicy::detailRecord dùng whitelist chi tiết sau quyền; saveDetailRecord kiểm tra lại policy sau khóa dòng. Bảng tóm tắt vẫn projection5 cột và snapshot không PII. Link chỉ khi policy cho phép, unpaid có nhãn, T37 mới nút mua.
