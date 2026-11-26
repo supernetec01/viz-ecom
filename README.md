@@ -46,7 +46,7 @@ PHP 8.4 được chọn để chạy Pest 5. Phiên bản dependencies cụ th�
 ```sh
 git clone https://github.com/supernetec01/viz-ecom.git
 cd viz-ecom
-git switch codex/t28-application-receipt
+git switch codex/t29-orders-access-grants
 composer install
 npm ci
 npm run build
@@ -168,6 +168,10 @@ Form nhận **một link HTTP/HTTPS hoặc một file PDF/JPG/JPEG/PNG**, cũng 
 PHP phải đặt `upload_max_filesize=10M`, `post_max_size=24M` (hai file 10 MiB và dữ liệu form), `upload_tmp_dir` riêng ngoài web root và có quyền ghi của user chạy PHP. Kiểm tra file ini thật bằng `php --ini`, đổi cấu hình rồi khởi động lại server/PHP-FPM. Máy local hiện dùng `.tools/php/php.ini`, upload tạm ở `.runtime/php-upload`; đường dẫn này chỉ dành cho máy hiện tại, không sao chép lên server. Nginx dùng `client_max_body_size 24m`; PHP/Laravel vẫn kiểm tra tối đa 10 MiB cho từng file. Cấu hình trang lỗi 413 tương ứng ở Nginx khi triển khai; ứng dụng đã có 413 tiếng Việt nếu request tới PHP. Xác nhận bằng upload thật, không chỉ dựa vào UploadedFile::fake.
 
 Browser local đã gửi PNG tổng hợp đúng 10 MiB qua form và Turnstile demo sau khi sửa giới hạn/thư mục tạm. Chỉ dữ liệu mẫu, không CV thật. Test DB/ảnh/PDF/rollback và giới hạn được ghi tại [báo cáo T25](docs/bao-cao-t25.md). T26 vẫn giữ lệnh dọn mồ côi và test lỗi nhiều tầng; T27 mới quét AV/chuyển đổi, T33 mới xem/tải có policy/audit/CSP.
+
+## T29 — Dữ liệu đơn và quyền
+
+Sau pull chạy `php artisan migrate`. T29 chỉ thêm schema/model/kiểm tra hiệu lực, **chưa có nút thanh toán hoặc cấp quyền**. Mọi quyền gắn đúng một đơn paid, đúng công ty/loại;0đ tặng/dùng thử vẫn cần reason và admin duyệt. Một đơn tối đa một quyền. Thời hạn starts_at<=now<ends_at và status active, revoke/hết hạn có hiệu lực ở lần kiểm tra DB kế tiếp. Đây chưa thay policy xem hồ sơ T30. Không tự nhập SQL cấp quyền để thử giao diện chưa có; xem [báo cáo T29](docs/bao-cao-t29.md).
 
 ## T28 — Cảm ơn và email hồ sơ mới
 
