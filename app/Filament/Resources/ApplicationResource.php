@@ -84,6 +84,9 @@ class ApplicationResource extends Resource
             TextColumn::make('full_name')->label(__('applications.fields.full_name'))->sortable(query: fn (Builder $query, string $direction) => $query->orderBy('full_name', $direction)),
             TextColumn::make('job_title')->label(__('applications.summary_job'))->wrap()->sortable(),
             TextColumn::make('submitted_at')->label(__('applications.summary_submitted'))->formatStateUsing(fn ($state) => VietnamTime::format($state))->sortable(),
+            TextColumn::make('detail_access')->label(__('applications.summary_singular'))
+                ->state(fn (Application $record) => $policy->viewDetails(self::actor(), $record->id) ? __('applications.detail_unlocked') : __('applications.detail_locked'))
+                ->url(fn (Application $record) => $policy->viewDetails(self::actor(), $record->id) ? route('applications.detail', ['id' => $record->id]) : null),
         ])->searchable()->searchUsing(fn (Builder $query, string $search) => $policy->searchSummaries($query, $search))
             ->searchPlaceholder(__('applications.summary_search'))->searchDebounce('500ms')
             ->filters([

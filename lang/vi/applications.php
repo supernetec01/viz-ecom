@@ -1,6 +1,20 @@
 <?php
 
 return [
+    'detail_denied' => 'Bạn không có quyền truy cập hồ sơ này hoặc quyền đã hết hạn. Thao tác chưa được thực hiện.',
+    'roles' => ['admin' => 'Quản trị viên', 'staff' => 'Nhân viên phụ trách', 'employer' => 'Nhà tuyển dụng'],
+    'detail_status' => 'Trạng thái hồ sơ',
+    'detail_notes' => 'Ghi chú nội bộ (tối đa 2000 ký tự)',
+    'detail_save' => 'Lưu thay đổi',
+    'detail_invalid' => 'Dữ liệu không hợp lệ. Trạng thái phải thuộc danh sách và ghi chú tối đa 2000 ký tự. Vui lòng quay lại kiểm tra.',
+    'detail_conflict' => 'Hồ sơ vừa được người khác cập nhật. Chưa lưu thay đổi của bạn. Vui lòng mở lại hồ sơ trước khi sửa.',
+    'detail_unavailable' => 'Chưa thể xử lý hồ sơ. Vui lòng thử lại sau.',
+    'detail_unlocked' => 'Xem chi tiết',
+    'detail_locked' => 'Chưa mở khóa',
+    'external_warning' => 'Liên kết bên ngoài, hãy cẩn thận khi mở',
+    'note_editor' => 'Sửa ghi chú: :name (:role), :time',
+    'unknown_editor' => 'Tài khoản không còn tồn tại',
+    'statuses' => ['new' => 'Mới', 'viewed' => 'Đã xem', 'interview' => 'Phỏng vấn', 'hired' => 'Đã tuyển', 'rejected' => 'Từ chối'],
     'contact_hidden' => '[ẩn liên hệ]',
     'summary_singular' => 'Hồ sơ ứng tuyển',
     'summary_title' => 'Hồ sơ ứng tuyển',

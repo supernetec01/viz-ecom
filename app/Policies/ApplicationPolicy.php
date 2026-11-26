@@ -9,6 +9,7 @@ use App\Models\Application;
 use App\Models\CandidateFile;
 use App\Models\Job;
 use App\Models\User;
+use App\Support\ApplicationRestriction;
 use App\Support\FileReadiness;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
@@ -93,6 +94,10 @@ class ApplicationPolicy
             return false;
         }
 
+        if ($current->role !== Role::Admin && app(ApplicationRestriction::class)->blocked($application->company_id, $application->job_id)) {
+            return false;
+        }
+
         return $current->role !== Role::Employer || AccessGrant::query()->effective()
             ->where('company_id', $application->company_id)->where('job_id', $application->job_id)->exists();
     }
@@ -110,6 +115,26 @@ class ApplicationPolicy
         $file = CandidateFile::query()->whereKey($fileId)->first(['id', 'scan_status', 'preview_status']);
 
         return $file && FileReadiness::for($file)['can_download'];
+    }
+
+    public function detailRecord(User $actor, string $id, bool $lock = false): Application
+    {
+        abort_unless($this->viewDetails($actor, $id), 403);
+        $query = $this->scopedApplications($this->activeActor($actor))->whereKey($id);
+        if ($lock) {
+            $query->lockForUpdate();
+        }
+        $record = $query->first(['id', 'company_id', 'job_id', 'full_name', 'phone_normalized', 'email', 'portfolio_url',
+            'status', 'internal_notes', 'submitted_at', 'edit_version', 'note_updated_by', 'note_updated_role', 'note_updated_at']);
+        abort_unless($record !== null, 403);
+        Gate::forUser($actor)->authorize('viewDetails', [Application::class, $id]);
+
+        return $record;
+    }
+
+    public function saveDetailRecord(User $actor, string $id, array $values): void
+    {
+        $this->detailRecord($actor, $id, true)->forceFill($values)->save();
     }
 
     private function activeActor(?User $actor): ?User

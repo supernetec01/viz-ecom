@@ -1,5 +1,12 @@
 # CODEMAP — điểm tích hợp nghiệp vụ
 
+## Chi tiết và audit T32
+
+- `ApplicationDetailController` GET/POST `/app/ho-so/{id}` là trang Blade riêng, không resource View/EditRecord. ApplicationPolicy::detailRecord dùng whitelist chi tiết sau quyền; saveDetailRecord kiểm tra lại policy sau khóa dòng. Bảng tóm tắt vẫn projection5 cột và snapshot không PII. Link chỉ khi policy cho phép, unpaid có nhãn, T37 mới nút mua.
+- POST chỉ status/internal_notes/edit_version; khóa dòng + compare version, 409 không ghi đè, validation422 không flash data. Không tự new→viewed. Notes2000/escape, editor id/role/time. GET no-store/noindex. Chưa bytes/file URLs/viewer T33–34.
+- `RecordAudit::record` writer duy nhất audit_logs, append-only ở app, không endpoint sửa/xóa. GET bắt buộc insert thành công trước response; status/note audits cùng transaction với save. Metadata whitelist enum old/new, không note/name/contact, user agent chỉ family, IP qua trusted-proxy-aware Request::ip (default không trust client headers). T35 thêm action khác/rate limit, T42 mới retention. Không audit side effect trong policy bool.
+- `ApplicationRestriction::blocked(companyId, jobId)` điểm duy nhất đọc cờ vi phạm tương lai T43, hiện false và test mặc định. Khi có flags, non-admin bị chặn chi tiết/file theo helper; softdelete company/application vẫn deny mọi vai trò qua scope, job softdelete thông thường không chặn; mất verification không chặn hồ sơ cũ.
+
 ## Giao dịch và dọn file T26
 
 - `SubmitApplication` phân biệt lỗi trong transaction (rollback/dọn file mới) với lỗi khi commit hoặc callback đã chạy xong thân transaction: trường hợp sau giữ bytes vì DB có thể đã commit. Không xóa file hợp lệ chỉ vì mất xác nhận; orphan được kiểm tra metadata ở lần dọn sau. Mọi lỗi được trả thông báo chung, không đẩy bindings PII vào log.
