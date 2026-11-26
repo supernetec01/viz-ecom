@@ -604,6 +604,8 @@ Cổng kiểm 3: nộp thử hồ sơ từ điện thoại với các loại fil
 
 ### 12.8. Giai đoạn 4: xem hồ sơ và phân quyền
 
+Quyết định T30–T31 đã duyệt: application/company xóa mềm chặn mọi vai trò; job xóa mềm vẫn giữ khả năng đọc hồ sơ theo quyền; thu hồi xác minh công ty chưa chặn hồ sơ cũ. Admin/staff phụ trách active không cần mua; employer details/file phải grant đúng tin/company còn hiệu lực, summary không cần mua. T30 chỉ policy/backend, route test không vào production; T31 chỉ Filament danh sách employer (họ tên/vị trí/thời gian), tìm tên/vị trí, lọc tin/khoảng ngày nộp; chưa link chi tiết T32 hoặc nút mua T37.
+
 Quyết định T29 ngày26/11: order_id bắt buộc, một đơn tối đa một quyền; FK kép đơn/công ty và tin/công ty. Đơn phải paid và loại access_grant, kiểm tra trong transaction có khóa dòng. Tặng/dùng thử vẫn dùng đơn0đ phương thức gift/free_trial, reason bắt buộc và admin duyệt. Đơn paid không đổi trạng thái khi còn grant chưa revoked, kể cả grant đã hết hạn. T29 chỉ schema/model/guard dữ liệu và hiệu lực, không giao diện hoặc luồng thanh toán/cấp quyền T37–T39. Scope quyền chỉ theo tin; active và starts_at<=now<ends_at, đọc lại DB. Binding grant giữ nguyên sau tạo để không đổi phạm vi của đơn đã cấp.
 
 | Mã | Việc cần làm | Tiêu chí hoàn thành và test bắt buộc |
