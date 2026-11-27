@@ -8,9 +8,12 @@ use App\Events\FileProcessingRetryRequested;
 use App\Models\User;
 use App\Services\ContentScanner;
 use App\Services\DocumentSandbox;
+use App\Services\EmployerSessions;
 use App\Services\RecordAudit;
 use App\Services\RecordSuccessfulLogin;
+use Illuminate\Auth\Events\CurrentDeviceLogout;
 use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
@@ -49,6 +52,11 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('applications', fn (Request $request) => Limit::perMinute(10)->by($request->ip()));
         Event::listen(Login::class, function (Login $event): void {
             app(RecordSuccessfulLogin::class)->record($event, request());
+        });
+        Event::listen([Logout::class, CurrentDeviceLogout::class], function (Logout|CurrentDeviceLogout $event): void {
+            if ($event->guard === 'web' && $event->user instanceof User) {
+                app(EmployerSessions::class)->revoke($event->user, request());
+            }
         });
     }
 }

@@ -53,6 +53,8 @@ Thanh toán chuyển khoản do admin xác nhận thủ công và chia sẻ link
 
 ## Điều kiện xác nhận sẵn sàng triển khai
 
+T36: chạy migration000021 trước mã, dùng chung PostgreSQL/session driver giữa các instance; thông báo employer cần đăng nhập lại một lần. Kiểm tra bằng ba hồ sơ trình duyệt độc lập: phiên đăng nhập cũ nhất mất hiệu lực ở request kế tiếp (cả Livewire/file), hai phiên còn lại hoạt động; thử cookie ghi nhớ cũ không phục hồi phiên. Admin/staff không giới hạn. Test HTTP database session đã có; kiểm chứng đa máy/đa instance thực tế và dọn registry cũ chờ T42/T48, chưa coi là hoàn tất production.
+
 T31: deploy migration000018 tạo function application_summary_name trên PostgreSQL18 UTF-8 trước mã UI/query. Cần quyền tạo function, không thêm extension/Composer. Thử tài khoản hai công ty, mất membership/role khi tab đang mở; kiểm tra cả Livewire JSON, không chỉ DOM. Search/query chỉ dùng tên đã che liên hệ, dữ liệu gốc không đổi. Kiểm chứng collation Unicode và benchmark trên dữ liệu thật; theo dõi mẫu né hoặc false positive, bổ sung regression, không tắt che tên để chữa demo. UI hiện chưa có chi tiết/file/mua quyền (task sau).
 
 T28 bổ sung queue application-mail riêng, local vẫn MAIL_MAILER=log, không chứng minh nhận thư. Cần worker `queue:work database --queue=application-mail --timeout=60`, SMTP thật/MAIL_TIMEOUT10s và giám sát failed jobs + receipts uncertain/sending bỏ dở. Command `application-summaries:dispatch` phục hồi từ counter, chưa tự có lịch. Lô SMTP chưa rõ kết quả không tự gửi lại; kiểm tra với nhà cung cấp trước xử lý tay. Kiểm tra gửi thật tới hộp thư thử do mình kiểm soát, số gộp và giới hạn một giờ trước mở production.

@@ -19,6 +19,7 @@ class RecordSuccessfulLogin
         try {
             DB::transaction(function () use ($event, $request) {
                 app(RecordAudit::class)->login($event->user, $request);
+                app(EmployerSessions::class)->register($event->user, $request);
                 $event->user->forceFill(['last_login_at' => now()])->saveQuietly();
             });
         } catch (Throwable) {
