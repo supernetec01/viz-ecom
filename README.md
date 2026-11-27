@@ -227,3 +227,8 @@ ACCESS_ALERT_COOLDOWN_SECONDS=900
 Hạn mức theo tài khoản cho mọi vai trò, không theo IP hay phiên; file inline/download cộng chung. Vượt ngưỡng trả 429 và Retry-After, admin nhận cảnh báo trong chuông và `/app/canh-bao-truy-cap`. Thông báo ghi database đồng bộ, không cần queue worker hoặc SMTP. Không tự khóa tài khoản/thu hồi quyền. Audit chỉ thêm dòng, không nội dung ứng viên; company_id null dành cho sự kiện toàn hệ thống. Chưa tự xóa nhật ký/cảnh báo. Hook cấp/thu hồi sẽ được nối vào workflow T38/T39.
 
 Đối chiếu [báo cáo T34](docs/bao-cao-t34.md), [báo cáo T35](docs/bao-cao-t35.md) và [CODEMAP](docs/CODEMAP.md) trước triển khai thực tế. Kiểm tra điện thoại thật, proxy và tải production vẫn thuộc T48.
+## T36: giới hạn phiên nhà tuyển dụng
+
+Nhánh T36: `codex/t36-employer-session-limit`. Chạy migration trước khi phục vụ mã mới (`php artisan migrate`); không dùng migrate:fresh trên DB demo/production. Nhà tuyển dụng hiện có đăng nhập lại một lần. Mỗi tài khoản tối đa hai phiên; đăng nhập thứ ba thu hồi phiên đăng nhập cũ nhất ở yêu cầu kế tiếp, kể cả Livewire/xem/tải file. Admin và nhân viên không chịu giới hạn này. Các tab cùng cookie là một phiên, không phải một phiên mỗi tab.
+
+Thu hồi do vượt giới hạn vô hiệu cookie ghi nhớ cũ toàn tài khoản để không tự phục hồi phiên bị thu hồi; hai phiên còn hiệu lực tiếp tục qua cookie phiên hiện tại. Hết thời gian không hoạt động dùng SESSION_LIFETIME; không lưu JWT hay quyền xem hồ sơ trong session. T42 sẽ bổ sung dọn registry; không tự xóa ở T36. Kiểm tra local bằng ba hồ sơ trình duyệt độc lập; trang ẩn danh của cùng một trình duyệt có thể dùng chung cookie, nên không tính là ba hồ sơ độc lập.

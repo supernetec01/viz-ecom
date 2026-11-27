@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureActiveAccount;
+use App\Http\Middleware\EnsureEmployerSession;
 use App\Http\Middleware\EnsurePrivilegedMfa;
 use App\Http\Middleware\PrivateFileCsp;
 use App\Http\Middleware\RequireHttps;
@@ -22,7 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trimStrings(except: ['nguon']);
         $middleware->append(SecurityHeaders::class);
         $middleware->append(RequireHttps::class);
-        $middleware->web(append: ['throttle:web', EnsureActiveAccount::class, EnsurePrivilegedMfa::class]);
+        $middleware->web(append: ['throttle:web', EnsureActiveAccount::class, EnsureEmployerSession::class, EnsurePrivilegedMfa::class]);
         $middleware->redirectGuestsTo('/app/login');
         $middleware->alias(['role' => RequireRole::class, 'csp.private-file' => PrivateFileCsp::class]);
     })

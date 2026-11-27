@@ -6,6 +6,7 @@ use App\Filament\LocalAvatarProvider;
 use App\Filament\Widgets\FileReviewStats;
 use App\Http\Controllers\AuthController;
 use App\Http\Middleware\EnsureActiveAccount;
+use App\Http\Middleware\EnsureEmployerSession;
 use App\Http\Middleware\EnsurePrivilegedMfa;
 use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
@@ -37,10 +38,10 @@ class AppPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->middleware([
                 EncryptCookies::class, AddQueuedCookiesToResponse::class, StartSession::class,
-                EnsureActiveAccount::class, AuthenticateSession::class, ShareErrorsFromSession::class,
+                EnsureActiveAccount::class, EnsureEmployerSession::class, AuthenticateSession::class, ShareErrorsFromSession::class,
                 PreventRequestForgery::class, SubstituteBindings::class,
                 DisableBladeIconComponents::class, DispatchServingFilamentEvent::class, 'throttle:web',
             ])
-            ->authMiddleware([Authenticate::class, EnsurePrivilegedMfa::class], isPersistent: true);
+            ->authMiddleware([Authenticate::class, EnsureEmployerSession::class, EnsurePrivilegedMfa::class], isPersistent: true);
     }
 }

@@ -621,6 +621,8 @@ Quyết định T29 ngày26/11: order_id bắt buộc, một đơn tối đa m�
 | T35 ⚠ | Nhật ký truy cập audit_logs: ghi mọi lần xem chi tiết, xem file, tải file, cấp, thu hồi quyền, đăng nhập. Giới hạn tốc độ tải file, cảnh báo khi một tài khoản xem hoặc tải bất thường | Test: mỗi hành động tạo đúng một dòng nhật ký. Nhật ký không chứa SĐT hay nội dung CV. Vượt giới hạn tốc độ bị chặn và có cảnh báo cho admin |
 | T36 | Giới hạn số phiên đăng nhập đồng thời của tài khoản công ty (ví dụ tối đa 2) | Test: đăng nhập phiên thứ ba thì phiên cũ nhất bị đăng xuất |
 
+Quyết định T36–T37 ngày 27/11/2026: duyệt cả ba điểm trong `docs/de-xuat-t36-t37.md`. T36 tối đa hai phiên mỗi employer, thu hồi phiên đăng nhập lâu nhất, admin/staff không giới hạn; thu hồi chặn ở request kế tiếp, kể cả Livewire/file. Cookie ghi nhớ cũ bị vô hiệu khi vượt giới hạn; phiên employer trước triển khai phải đăng nhập lại. T37 yêu cầu cấu hình giá/ngân hàng, thiếu thì chặn; phạm vi tin published/paused/expired/closed thuộc công ty và chưa xóa mềm; dùng lại pending, không tạo khi grant còn hiệu lực. Không xác nhận thanh toán/cấp quyền trước T38.
+
 Cổng kiểm 4: dùng hai tài khoản công ty khác nhau, thử mọi cách để xem hồ sơ của nhau (đổi id, dán link file của nhau, dùng link cũ). Tất cả phải bị chặn. Đây là cổng quan trọng nhất, nên có người ngoài thử phá.
 
 ### 12.9. Giai đoạn 5: thanh toán thủ công và gói đẩy tin
