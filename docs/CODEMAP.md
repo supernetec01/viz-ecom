@@ -1,5 +1,12 @@
 # CODEMAP — điểm tích hợp nghiệp vụ
 
+## Audit và hạn mức T35
+
+- RecordAudit là writer duy nhất audit_logs (append-only app). RecordSuccessfulLogin nhậnLogin web mộtlần từAppServiceProvider, auth.login + last_login_at cùngtransaction, lỗi thìlogoutCurrentDevice/503; khôngmetadataemail/credentials. FileProcessingRetryRequested nối auditfile.processing_retry trongtransactionT27.
+- AccessLimits::consume gọi sauApplicationPolicy trước I/O/returncontacts, bucketsfile chunginline/download vàdetails. Configaccess-limits defaults10/30/60s/900s. Bảngaccess_limit_states uniqueactor + FORUPDATE khóa chungcảbuckets, không cache/quyềntrongsession. Requestpolicydeny khôngcount; acceptedrequestcounttrướcI/O dùI/Osauđólỗi. Vượtngưỡngghi auditblocked vàalert/notifyNowadminactive trongtransaction, commitrồi mới429/RetryAfter, tránhrollbackcảnhbáo. LỗiDB/audit/notify failclosed503.
+- AccessAlertResource /app/canh-bao-truy-cap adminactivefresh quaAccessAlertPolicy, readonly metadata, khôngPIIứngviên/CRUD/globalsearch; thôngbáochuônggeneric/link, gộpactor15phút cả2bucket. Khônglockuser/revokegrant tựđộng. T42mới retention; state/alerts khôngauto-delete ởT35.
+- RecordAudit::grantChange(actor, issued|revoked, grantID, operationULID, Request): hookT38/T39 phải gọi cùngtransactionmutation. Lockgrant/statuscheck/adminfresh, operation_keyunique chốngduplicate, kiểmtraactor/subjectkhioperationđãcó. Khônginferactor từcreated_by, khôngtựghi audit quaModel savevì chưa cóworkflowactor. Companynull chỉlogin/retrykhôngcôngty; migrationdown20dừng nếu cóglobalrow đểgiữaudit.
+
 ## Viewer T34
 
 - ApplicationPolicy::fileStates trả id/label/mime/readiness sau quyền detail, khôngpath/contact. Detail nối view/download; PrivateFileViewerController shell không đọcbytes; /xem/{file} cho trạng thái vàcanvas, /tai/{file} checkpolicy + kýURLmới rồiredirect. Mỗi bytesrequest vẫnT33/audit/readiness; không audit fileview khi chỉshell.

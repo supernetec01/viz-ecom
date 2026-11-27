@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Policies\ApplicationPolicy;
+use App\Services\AccessLimits;
 use App\Services\CandidateFileLease;
 use App\Services\InspectCv;
 use App\Services\RecordAudit;
@@ -26,6 +27,7 @@ class PrivateFileController extends Controller
             abort_unless($fileId !== false && in_array($mode, ['inline', 'download'], true), 403);
             $inline = $mode === 'inline';
             $metadata = $policy->fileRecord($request->user(), $id, $fileId, $inline);
+            app(AccessLimits::class)->consume($request->user(), 'file', $id, $metadata->getAttribute('application_company_id'), $request);
             $lease = CandidateFileLease::acquire('candidate:'.$metadata->path, false);
             abort_unless($lease !== null, 503);
             $leases[] = $lease;

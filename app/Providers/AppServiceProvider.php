@@ -8,6 +8,8 @@ use App\Events\FileProcessingRetryRequested;
 use App\Models\User;
 use App\Services\ContentScanner;
 use App\Services\DocumentSandbox;
+use App\Services\RecordAudit;
+use App\Services\RecordSuccessfulLogin;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -35,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Event::listen(FileProcessingRetryRequested::class, function (FileProcessingRetryRequested $event): void {
+            app(RecordAudit::class)->processingRetry(User::query()->findOrFail($event->actorId), $event->fileId, $event->stage, request());
             Log::info('candidate_file_retry_audit', ['actor_id' => $event->actorId, 'file_id' => $event->fileId,
                 'stage' => $event->stage, 'occurred_at' => $event->occurredAt]);
         });
@@ -45,9 +48,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('web', fn (Request $request) => Limit::perMinute(120)->by($request->ip()));
         RateLimiter::for('applications', fn (Request $request) => Limit::perMinute(10)->by($request->ip()));
         Event::listen(Login::class, function (Login $event): void {
-            if ($event->user instanceof User) {
-                $event->user->forceFill(['last_login_at' => now()])->saveQuietly();
-            }
+            app(RecordSuccessfulLogin::class)->record($event, request());
         });
     }
 }
