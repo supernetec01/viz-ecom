@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+/** @property array<array-key, mixed>|null $payment_instructions JSONB decoded by the array cast. */
 class Order extends Model
 {
     public const TYPES = ['access_grant', 'job_boost'];
@@ -21,7 +22,7 @@ class Order extends Model
 
     protected function casts(): array
     {
-        return ['amount' => 'integer', 'company_id' => 'integer', 'confirmed_by' => 'integer', 'confirmed_at' => 'immutable_datetime'];
+        return ['amount' => 'integer', 'company_id' => 'integer', 'job_id' => 'integer', 'payment_instructions' => 'array', 'confirmed_by' => 'integer', 'confirmed_at' => 'immutable_datetime'];
     }
 
     public function save(array $options = [])
@@ -33,6 +34,12 @@ class Order extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    /** @return BelongsTo<Job, $this> */
+    public function job(): BelongsTo
+    {
+        return $this->belongsTo(Job::class);
     }
 
     /** @return BelongsTo<User, $this> */

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccessOrderController;
 use App\Http\Controllers\ApplicationDetailController;
 use App\Http\Controllers\ApplicationSubmissionController;
 use App\Http\Controllers\AuthController;
@@ -25,6 +26,8 @@ Route::get('/viec-lam/{slug}-{id}', PublicJobDetailController::class)->middlewar
 Route::post('/ung-tuyen/{id}', ApplicationSubmissionController::class)->middleware('throttle:applications')->where('id', '[1-9][0-9]*')->name('applications.store');
 Route::view('/cam-on-ung-tuyen', 'public.application-thanks')->name('applications.thanks');
 Route::get('/app/ho-so/{id}', [ApplicationDetailController::class, 'show'])->middleware('auth')->name('applications.detail');
+Route::post('/app/mo-ho-so/{job}', [AccessOrderController::class, 'store'])->middleware('auth')->where('job', '[1-9][0-9]*')->name('access-orders.store');
+Route::get('/app/don-mo-ho-so/{id}', [AccessOrderController::class, 'show'])->middleware('auth')->where('id', '[1-9][0-9]*')->name('access-orders.show');
 Route::post('/app/ho-so/{id}', [ApplicationDetailController::class, 'update'])->middleware('auth')->name('applications.detail.update');
 Route::get('/app/ho-so/{id}/tep/{file}/{mode}', PrivateFileController::class)
     ->middleware(['csp.private-file', 'auth', 'signed'])->name('applications.file');

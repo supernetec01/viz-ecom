@@ -46,7 +46,7 @@ PHP 8.4 được chọn để chạy Pest 5. Phiên bản dependencies cụ th�
 ```sh
 git clone https://github.com/supernetec01/viz-ecom.git
 cd viz-ecom
-git switch codex/t35-access-audit-limits
+git switch codex/t37-access-request-orders
 composer install
 npm ci
 npm run build
@@ -232,3 +232,20 @@ Hạn mức theo tài khoản cho mọi vai trò, không theo IP hay phiên; fil
 Nhánh T36: `codex/t36-employer-session-limit`. Chạy migration trước khi phục vụ mã mới (`php artisan migrate`); không dùng migrate:fresh trên DB demo/production. Nhà tuyển dụng hiện có đăng nhập lại một lần. Mỗi tài khoản tối đa hai phiên; đăng nhập thứ ba thu hồi phiên đăng nhập cũ nhất ở yêu cầu kế tiếp, kể cả Livewire/xem/tải file. Admin và nhân viên không chịu giới hạn này. Các tab cùng cookie là một phiên, không phải một phiên mỗi tab.
 
 Thu hồi do vượt giới hạn vô hiệu cookie ghi nhớ cũ toàn tài khoản để không tự phục hồi phiên bị thu hồi; hai phiên còn hiệu lực tiếp tục qua cookie phiên hiện tại. Hết thời gian không hoạt động dùng SESSION_LIFETIME; không lưu JWT hay quyền xem hồ sơ trong session. T42 sẽ bổ sung dọn registry; không tự xóa ở T36. Kiểm tra local bằng ba hồ sơ trình duyệt độc lập; trang ẩn danh của cùng một trình duyệt có thể dùng chung cookie, nên không tính là ba hồ sơ độc lập.
+
+## T37: yêu cầu mở hồ sơ và đơn chuyển khoản chờ xác nhận
+
+Nhánh mới nhất: `codex/t37-access-request-orders`, nối tiếp T36; các PR vẫn draft, chưa merge main. Nhà tuyển dụng mở menu **Mở quyền xem hồ sơ** tại `/app/mo-ho-so` hoặc link ở đầu danh sách hồ sơ. Mỗi dòng là một tin published/paused/expired/closed của công ty mình, kể cả chưa có hồ sơ. Bấm **Yêu cầu mở hồ sơ** gửi POST có CSRF, tạo đơn pending và mở hướng dẫn chuyển khoản. Có quyền còn hạn không tạo thêm; yêu cầu lặp hoặc tài khoản khác cùng công ty dùng lại đơn chờ cùng tin. Không mở quyền chỉ vì tạo đơn; xác nhận/cấp quyền và thời hạn do T38 thực hiện.
+
+Chạy migration000022 trước mã (`php artisan migrate`), không dùng migrate:fresh trên DB cần giữ. Cấu hình bốn biến dưới đây trong `.env`, dùng giá VND nguyên dương và tài khoản nhận do chủ hệ thống quyết định, sau đó `php artisan config:clear` (production tạo lại config cache):
+
+```dotenv
+ACCESS_PRICE_VND=
+ACCESS_BANK_NAME=
+ACCESS_BANK_ACCOUNT=
+ACCESS_BANK_HOLDER=
+```
+
+**Không có giá hoặc ngân hàng giả mặc định.** Thiếu/sai cấu hình thì báo503 tiếng Việt và không tạo đơn, cả local và production. Dữ liệu ngân hàng và số tiền giả chỉ có trong test tự động. Đơn lưu số tiền, ngân hàng và mã nội dung chuyển khoản tại thời điểm tạo; thay cấu hình không đổi đơn cũ. Đơn chờ cũ chưa có job_id cần admin đối chiếu trước khi tạo đơn mới cùng công ty, không đoán phạm vi. Migration chỉ backfill job_id khi đã có access_grants làm bằng chứng; không mất bản ghi cũ. Rollback dừng nếu còn hướng dẫn thanh toán đã lưu để không làm mất dữ liệu đối chiếu.
+
+T37 chưa có UI xác nhận paid/cấp quyền, gửi tiền, API thanh toán, QR ngân hàng hay email đơn hàng. Xem [báo cáo T37](docs/bao-cao-t37.md); kiểm tra thực tế chuyển khoản, đối chiếu và xử lý cấu hình sai thuộc checklist T38/T48.
