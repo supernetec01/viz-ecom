@@ -5,6 +5,7 @@ use App\Http\Controllers\ApplicationSubmissionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\PrivateFileController;
+use App\Http\Controllers\PrivateFileViewerController;
 use App\Http\Controllers\PublicCompanyController;
 use App\Http\Controllers\PublicJobController;
 use App\Http\Controllers\PublicJobDetailController;
@@ -27,6 +28,8 @@ Route::get('/app/ho-so/{id}', [ApplicationDetailController::class, 'show'])->mid
 Route::post('/app/ho-so/{id}', [ApplicationDetailController::class, 'update'])->middleware('auth')->name('applications.detail.update');
 Route::get('/app/ho-so/{id}/tep/{file}/{mode}', PrivateFileController::class)
     ->middleware(['csp.private-file', 'auth', 'signed'])->name('applications.file');
+Route::get('/app/ho-so/{id}/xem/{file}', [PrivateFileViewerController::class, 'show'])->middleware('auth')->name('applications.file.viewer');
+Route::get('/app/ho-so/{id}/tai/{file}', [PrivateFileViewerController::class, 'download'])->middleware('auth')->name('applications.file.download');
 Route::view('/chinh-sach-du-lieu', 'public.data-policy')->name('data-policy');
 
 foreach (['admin', 'staff', 'employer'] as $role) {

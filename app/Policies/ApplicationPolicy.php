@@ -147,6 +147,26 @@ class ApplicationPolicy
         return $file;
     }
 
+    public function fileStates(User $actor, string $id): array
+    {
+        abort_unless($this->viewDetails($actor, $id), 403);
+        $record = Application::query()->whereKey($id)->first(['id', 'cv_file_id', 'portfolio_file_id']);
+        abort_unless($record !== null, 403);
+        $states = [];
+        foreach (['cv' => $record->cv_file_id, 'portfolio_file' => $record->portfolio_file_id] as $label => $fileId) {
+            if ($fileId === null) {
+                continue;
+            }
+            $file = CandidateFile::query()->find($fileId, ['id', 'mime_type', 'scan_status', 'preview_status']);
+            if ($file) {
+                $states[] = ['id' => $file->id, 'label' => __('applications.fields.'.$label), 'mime' => $file->mime_type] + FileReadiness::for($file);
+            }
+        }
+        Gate::forUser($actor)->authorize('viewDetails', [Application::class, $id]);
+
+        return $states;
+    }
+
     public function saveDetailRecord(User $actor, string $id, array $values): void
     {
         $this->detailRecord($actor, $id, true)->forceFill($values)->save();

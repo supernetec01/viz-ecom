@@ -1,5 +1,11 @@
 # CODEMAP — điểm tích hợp nghiệp vụ
 
+## Viewer T34
+
+- ApplicationPolicy::fileStates trả id/label/mime/readiness sau quyền detail, khôngpath/contact. Detail nối view/download; PrivateFileViewerController shell không đọcbytes; /xem/{file} cho trạng thái vàcanvas, /tai/{file} checkpolicy + kýURLmới rồiredirect. Mỗi bytesrequest vẫnT33/audit/readiness; không audit fileview khi chỉshell.
+- resources/js/private-file-viewer.js dùngPDF.js6.5.438 canvas, workerassetVite, CMap/fonts build/pdfjs tựhost. Không scripting/annotationHTML/Wasm/FontFace, không dữ liệuCV tronglog/storage. Giới hạncanvas8Mpixel/render1trang/1000trang, chặn fetchkhácorigin vàredirect, no-store; pagehide dọnworker/canvas vàbfcachereload.
+- SecurityHeaders nhận marker server private-viewer, loại eval tại routeviewer, thêmworker-srcself/object-none/frame-none. CSP bytesT33 giữsandbox/scriptnone. Khôngápmarker quaqueryclient. T35 sẽ tính hạn mức ở requestserver thực, không mỗi lầnđổi trang/zoom client.
+
 ## Phục vụ file T33
 
 - `PrivateFileLinks::temporary(User, applicationULID, fileID, inline|download)` check policy/readiness rồi ký5 phút gắn actor. T34 dùng helper, không lấy Storage::url. Chưa nút/viewer trongT33.

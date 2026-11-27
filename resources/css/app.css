@@ -1,5 +1,16 @@
 @import 'tailwindcss';
 
+.viewer-shell { max-width: 1050px; margin: 0 auto; padding: 24px 16px; font-family: 'Segoe UI', sans-serif; }
+.viewer-shell h1 { font-size: 24px; font-weight: 700; margin: 18px 0; }
+.viewer-shell a { text-decoration: underline; }
+.viewer-button, .viewer-controls button, .viewer-controls select { display: inline-block; min-height: 44px; padding: 10px 14px; border: 1px solid #94a3b8; border-radius: 6px; background: white; }
+.viewer-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-block: 20px; }
+.viewer-controls[hidden] { display: none; }
+.viewer-surface { overflow: auto; max-width: 100%; margin-top: 16px; background: #e2e8f0; }
+.viewer-surface canvas, .viewer-surface img { max-width: 100%; height: auto; margin: auto; background: white; }
+.viewer-surface canvas { max-width: none; }
+.viewer-controls button:disabled { opacity: .45; }
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
