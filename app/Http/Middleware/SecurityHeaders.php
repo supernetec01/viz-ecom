@@ -30,7 +30,8 @@ class SecurityHeaders
             if ($panel || $privateFile || $request->routeIs('login', 'security', 'password.reset', 'two-factor.login', 'password.confirm', 'jobs.show', 'companies.show', 'applications.store', 'applications.thanks')) {
                 $response->headers->set('Cache-Control', 'no-store, private');
             }
-            $scripts = "'self' 'nonce-{$nonce}'".($panel ? " 'unsafe-eval'" : '');
+            $viewer = $request->attributes->get('private-viewer') === true;
+            $scripts = "'self' 'nonce-{$nonce}'".($panel && ! $viewer ? " 'unsafe-eval'" : '');
             $turnstile = $request->attributes->get('application-form') === true;
             if ($turnstile) {
                 $scripts .= ' https://challenges.cloudflare.com';
@@ -38,6 +39,9 @@ class SecurityHeaders
             $policy = $privateFile ? PrivateFileCsp::POLICY : "default-src 'self'; script-src {$scripts}; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'";
             if (! $privateFile && $turnstile) {
                 $policy .= '; frame-src https://challenges.cloudflare.com';
+            }
+            if ($viewer && ! $privateFile) {
+                $policy .= "; worker-src 'self'; object-src 'none'; frame-src 'none'";
             }
             $response->headers->set('Content-Security-Policy', $policy);
 

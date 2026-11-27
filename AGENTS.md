@@ -1,5 +1,7 @@
 # Quy tắc làm việc
 
+Người dùng duyệt T34–T35: PDF.js npm chính thức, asset tự host, không script trongPDF/khôngunsafe-eval, CSP file giữ nguyên. T35 mọi vai trò chung ngưỡng10 lượt xem/tải file và30 lượt chi tiết/tài khoản/cửa sổ60s,429/Retry-After, cảnh báo admin trong hệ thống gộp15phút, cấu hình được, không tự khóa/thu hồi. Đăng nhập audit fail closed; hook cấp/thu hồi có actor rõ và test, T38–T39 mới nối workflow thật, không làm UI thanh toán trước.
+
 Quyết định T32 đã duyệt: detail Blade riêng; admin active/staff phụ trách/employer grant còn hạn đọc và sửa. Status thủ công5 giá trị, không tự đổi khi mở. Notes chung công ty2000 ký tự/escape + editor role/time. Save recheck policy, khóa dòng/edit_version chống ghi đè. Audit tối thiểu T32 qua RecordAudit append-only, fail closed trước trả detail, status/note audits cùng transaction; T35 bổ sung. Nút yêu cầu/đơn chờT37; T31 chỉ link khi có quyền hoặc nhãn Chưa mở khóa. T43 nối cờ vi phạm qua ApplicationRestriction duy nhất, non-admin bị chặn; hiện chưa có cờ và helper false.
 
 - Đọc `docs/thiet-ke.md`, đặc biệt mục 3–6, và các quyết định đã chốt trước khi làm.

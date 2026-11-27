@@ -14,6 +14,20 @@
         <dt>{{ __('applications.fields.email') }}</dt><dd>{{ $record->email }}</dd>
         <dt>{{ __('applications.summary_submitted') }}</dt><dd>{{ \App\Support\VietnamTime::format($record->submitted_at) }}</dd>
     </dl>
+    <section aria-label="{{ __('viewer.files') }}" class="space-y-4">
+        @foreach ($files as $file)
+            <article class="rounded border bg-white p-4">
+                <h2 class="font-bold">{{ $file['label'] }}</h2>
+                <p>{{ $file['message'] }}</p>
+                @if ($file['can_view'])
+                    <a class="underline" href="{{ route('applications.file.viewer', ['id' => $record->id, 'file' => $file['id']]) }}">{{ __('viewer.open') }}</a>
+                @endif
+                @if ($file['can_download'])
+                    <a class="underline" href="{{ route('applications.file.download', ['id' => $record->id, 'file' => $file['id']]) }}">{{ __('viewer.download') }}</a>
+                @endif
+            </article>
+        @endforeach
+    </section>
     @if ($record->portfolio_url && filter_var($record->portfolio_url, FILTER_VALIDATE_URL) && in_array(strtolower(parse_url($record->portfolio_url, PHP_URL_SCHEME) ?? ''), ['http', 'https'], true))
         <p><a href="{{ $record->portfolio_url }}" target="_blank" rel="noopener noreferrer">{{ __('applications.fields.portfolio_url') }}</a></p>
         <p>{{ __('applications.external_warning') }}</p>

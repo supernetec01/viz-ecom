@@ -20,8 +20,9 @@ class ApplicationDetailController extends Controller
             $record = $policy->detailRecord($request->user(), $id);
             $audit->record($request->user(), 'application.viewed_detail', $id, $record->company_id, $request);
             $editor = $record->note_updated_by ? User::query()->whereKey($record->note_updated_by)->value('name') : null;
+            $files = $policy->fileStates($request->user(), $id);
 
-            return response()->view('applications.detail', compact('record', 'editor'))->withHeaders([
+            return response()->view('applications.detail', compact('record', 'editor', 'files'))->withHeaders([
                 'Cache-Control' => 'no-store, private', 'X-Robots-Tag' => 'noindex, nofollow',
             ]);
         } catch (HttpExceptionInterface $exception) {
