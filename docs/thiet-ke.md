@@ -638,6 +638,8 @@ Cổng kiểm 4: dùng hai tài khoản công ty khác nhau, thử mọi cách �
 
 Cổng kiểm 5: chạy trọn vòng: công ty yêu cầu, admin xác nhận, công ty xem được hồ sơ, admin thu hồi, công ty bị chặn. Mua gói đẩy, tin lên đầu, hết hạn, tin về chỗ cũ.
 
+T37 triển khai theo quyết định đã duyệt ngày27/11: tin published/paused/expired/closed chưa xóa, employer active thuộc công ty; có effective grant không tạo thêm. Pending cùng company/job dùng lại cho mọi tài khoản của công ty; khóa và unique DB, không tin dữ liệu POST về công ty/số tiền/trạng thái. Giá VND nguyên dương và ngân hàng đủ qua config bắt buộc; không mặc định demo. Đơn giữ snapshot giá/hướng dẫn/reference khi tạo. Thiếu cấu hình trả503 và không tạo; đơn legacy pending chưa có phạm vi cần admin đối chiếu, không tự suy ra. Chỉ pending, chưa paid/cấp quyền/email/thanh toán tự động. T38 mới chọn thời hạn. Điểm tích hợp: docs/CODEMAP.md; báo cáo docs/bao-cao-t37.md.
+
 ### 12.10. Giai đoạn 6: hoàn thiện
 
 | Mã | Việc cần làm | Tiêu chí hoàn thành và test bắt buộc |

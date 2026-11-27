@@ -38,7 +38,8 @@ class AccessGrant extends Model
 
         return $query->where('access_grants.status', 'active')->where('starts_at', '<=', $at)->where('ends_at', '>', $at)
             ->whereHas('order', fn (Builder $order) => $order->where('status', 'paid')->where('type', 'access_grant')
-                ->whereColumn('orders.company_id', 'access_grants.company_id'));
+                ->whereColumn('orders.company_id', 'access_grants.company_id')
+                ->where(fn (Builder $scope) => $scope->whereNull('orders.job_id')->orWhereColumn('orders.job_id', 'access_grants.job_id')));
     }
 
     /** @return BelongsTo<Order, $this> */

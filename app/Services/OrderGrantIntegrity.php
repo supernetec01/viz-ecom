@@ -22,6 +22,13 @@ class OrderGrantIntegrity
         return DB::transaction(function () use ($order, $persist): bool {
             $previous = $order->exists ? DB::table('orders')->where('id', $order->getKey())->lockForUpdate()->first() : null;
             $this->mergeCurrent($order, $previous);
+            if ($previous && $previous->job_id !== null) {
+                foreach (['company_id', 'job_id', 'type', 'amount', 'method', 'payment_reference', 'payment_instructions'] as $field) {
+                    if ($order->isDirty($field)) {
+                        $this->invalid($field, 'immutable_order');
+                    }
+                }
+            }
             Validator::make($order->getAttributes(), [
                 'company_id' => ['required', 'integer'], 'type' => ['required', Rule::in(Order::TYPES)],
                 'amount' => ['required', 'integer', 'min:0'], 'status' => ['required', Rule::in(Order::STATUSES)],
@@ -63,7 +70,8 @@ class OrderGrantIntegrity
                 'notes' => ['nullable', 'string', 'max:2000'],
             ])->validate();
             $order = Order::whereKey($grant->order_id)->lockForUpdate()->first();
-            if (! $order || $order->company_id !== $grant->company_id || $order->type !== 'access_grant' || $order->status !== 'paid') {
+            if (! $order || $order->company_id !== $grant->company_id || $order->type !== 'access_grant' || $order->status !== 'paid'
+                || ($order->job_id !== null && $order->job_id !== $grant->job_id)) {
                 $this->invalid('order_id', 'paid_order');
             }
             if ($current) {
