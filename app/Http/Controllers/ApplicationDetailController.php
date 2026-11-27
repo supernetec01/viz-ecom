@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Policies\ApplicationPolicy;
+use App\Services\AccessLimits;
 use App\Services\RecordAudit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +19,7 @@ class ApplicationDetailController extends Controller
     {
         try {
             $record = $policy->detailRecord($request->user(), $id);
+            app(AccessLimits::class)->consume($request->user(), 'details', $id, $record->company_id, $request);
             $audit->record($request->user(), 'application.viewed_detail', $id, $record->company_id, $request);
             $editor = $record->note_updated_by ? User::query()->whereKey($record->note_updated_by)->value('name') : null;
             $files = $policy->fileStates($request->user(), $id);

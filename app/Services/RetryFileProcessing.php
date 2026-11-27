@@ -37,7 +37,7 @@ class RetryFileProcessing
                     'preview_attempts' => 0, 'preview_status' => 'pending', 'preview_error_code' => null, 'preview_path' => null,
                     'review_required' => false, ...($previewOnly ? [] : ['scan_status' => 'pending', 'scan_attempts' => 0, 'scan_error_code' => null, 'scanned_sha256' => null])])->save();
                 app(EnqueueCandidateFile::class)->enqueue($id, $file->processing_version);
-                // Domain audit hook: T35 can persist this without introducing audit_logs early.
+                // T35 persists the domain audit in this same transaction.
                 event(new FileProcessingRetryRequested($actor->id, $id, $stage, now()->utc()->toIso8601String()));
             });
         } finally {

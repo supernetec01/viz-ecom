@@ -46,7 +46,7 @@ PHP 8.4 được chọn để chạy Pest 5. Phiên bản dependencies cụ th�
 ```sh
 git clone https://github.com/supernetec01/viz-ecom.git
 cd viz-ecom
-git switch codex/t34-private-file-viewer
+git switch codex/t35-access-audit-limits
 composer install
 npm ci
 npm run build
@@ -208,3 +208,22 @@ DOCX tạo PDF bằng LibreOffice có profile tạm riêng, `InitialPage=0` đ�
 Admin mở `/app/file-can-xem-tay` hoặc bộ đếm trên dashboard, chỉ có metadata trạng thái. Chạy lại chỉ bước lỗi; file infected không retry. `FileReadiness` là điểm dùng chung cho T30/T33, không thay quyền truy cập. Chưa có route xem/tải; thông báo tải gốc khi preview lỗi chỉ là trạng thái sẵn sàng để task sau tích hợp. Ba lượt thực chạy tối đa, chờ 60s/300s; hết lỗi scan thành error, chỉ lỗi preview giữ clean/failed. [Báo cáo T27](docs/bao-cao-t27.md).
 
 Test trên Windows cần Docker Desktop Linux hoặc WSL/Docker với image trên; đặt `FILE_PROCESSING_TESTS=1` và `PDF_SANDBOX_TESTS=1` rồi `composer test`. CI Ubuntu luôn bật cả hai; AV dùng fake trong test pipeline, LibreOffice/qpdf/sandbox chạy thật. Thử quét thật cần definitions đã cập nhật. PDF production **vẫn tắt** theo chốt T23; preview DOCX production cũng fail closed khi bộ qpdf chưa được mở. Không bật để chữa demo; chưa nhận dữ liệu thật trước khi đủ quyền/audit/retention.
+
+## Viewer và nhật ký truy cập T34–T35
+
+Sau pull, chạy `php artisan migrate --force` rồi `php artisan config:clear` trước khi đăng nhập bằng mã mới. Không dùng `migrate:fresh` với database đang có dữ liệu. Audit đăng nhập bắt buộc ghi thành công; thiếu schema hoặc DB lỗi sẽ trả 503 và không hoàn tất đăng nhập.
+
+Chạy `npm ci` và `npm run build`, deploy cả thư mục `public/build`, gồm worker PDF.js và `build/pdfjs` (CMap, font, giấy phép). PDF.js 6.5.438 được khóa phiên bản, asset tự host. Trang chi tiết có trạng thái file, viewer và nút tải bản gốc khi được phép. Viewer dùng canvas; response file T33 vẫn giữ CSP sandbox. Không bật PDF production T23 để sửa demo.
+
+Các giá trị mặc định có thể thêm vào `.env` khi cần điều chỉnh:
+
+```dotenv
+ACCESS_FILE_LIMIT=10
+ACCESS_DETAIL_LIMIT=30
+ACCESS_WINDOW_SECONDS=60
+ACCESS_ALERT_COOLDOWN_SECONDS=900
+```
+
+Hạn mức theo tài khoản cho mọi vai trò, không theo IP hay phiên; file inline/download cộng chung. Vượt ngưỡng trả 429 và Retry-After, admin nhận cảnh báo trong chuông và `/app/canh-bao-truy-cap`. Thông báo ghi database đồng bộ, không cần queue worker hoặc SMTP. Không tự khóa tài khoản/thu hồi quyền. Audit chỉ thêm dòng, không nội dung ứng viên; company_id null dành cho sự kiện toàn hệ thống. Chưa tự xóa nhật ký/cảnh báo. Hook cấp/thu hồi sẽ được nối vào workflow T38/T39.
+
+Đối chiếu [báo cáo T34](docs/bao-cao-t34.md), [báo cáo T35](docs/bao-cao-t35.md) và [CODEMAP](docs/CODEMAP.md) trước triển khai thực tế. Kiểm tra điện thoại thật, proxy và tải production vẫn thuộc T48.
