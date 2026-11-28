@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\Role;
 use App\Enums\UserStatus;
 use App\Models\AccessGrant;
+use App\Models\JobBoost;
 use App\Models\Order;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -96,6 +97,21 @@ class RecordAudit
         });
     }
 
+    public function boostConfirmed(User $actor, Order $order, JobBoost $boost, string $operation, Request $request): void
+    {
+        $this->requirePaymentAdmin($actor, $operation);
+        $saved = JobBoost::query()->whereKey($boost->id)->lockForUpdate()->firstOrFail();
+        $paid = Order::query()->whereKey($order->id)->firstOrFail();
+        if ($paid->type !== 'job_boost' || $paid->status !== 'paid' || $paid->confirmed_by !== $actor->id
+            || $saved->order_id !== $paid->id || $saved->company_id !== $paid->company_id || $saved->job_id !== $paid->job_id || $saved->created_by !== $actor->id) {
+            throw new InvalidArgumentException('Invalid boost audit binding.');
+        }
+        $metadata = ['order_id' => $paid->id, 'boost_id' => $saved->id, 'company_id' => $saved->company_id, 'job_id' => $saved->job_id,
+            'plan_id' => $saved->plan_id, 'priority' => $saved->priority, 'starts_at' => $saved->starts_at->toIso8601String(), 'ends_at' => $saved->ends_at->toIso8601String()];
+        $this->appendPaymentOnce($actor, 'order.paid_confirmed', 'order', (string) $paid->id, $saved->company_id, $request, $metadata, $operation);
+        $this->appendPaymentOnce($actor, 'job_boost.created', 'job_boost', (string) $saved->id, $saved->company_id, $request, $metadata, $operation);
+    }
+
     public function expiryOverride(User $actor, Order $order, ?CarbonImmutable $default, CarbonImmutable $selected, string $operation, Request $request): void
     {
         $this->requirePaymentAdmin($actor, $operation);
@@ -107,7 +123,7 @@ class RecordAudit
     {
         DB::transaction(function () use ($actor, $orderId, $operation, $request, $reason, $details): void {
             $this->requirePaymentAdmin($actor, $operation);
-            if (! in_array($reason, ['scope_missing', 'paid_without_grant', 'ineligible', 'amount_mismatch', 'bank_missing', 'zero_reason', 'overlap', 'duplicate_reference', 'renewal_missing'], true)) {
+            if (! in_array($reason, ['scope_missing', 'paid_without_grant', 'ineligible', 'amount_mismatch', 'bank_missing', 'zero_reason', 'overlap', 'duplicate_reference', 'renewal_missing', 'paid_without_boost', 'boost_ineligible'], true)) {
                 throw new InvalidArgumentException('Invalid payment rejection reason.');
             }
             $order = Order::query()->whereKey($orderId)->firstOrFail(['id', 'company_id', 'job_id']);

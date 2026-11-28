@@ -275,7 +275,7 @@ Ngân hàng định danh bằng tên và account snapshot sau normalize; giữ t
 
 ## T39 — gia hạn và thu hồi quyền
 
-Nhánh mới nhất `codex/t39-access-grant-lifecycle` (PR draft, chưa merge main). Sau khi lấy đúng nhánh, chạy `php artisan migrate` và `php artisan config:clear`; không chạy migrate:fresh trên DB đang dùng. Chỉ thêm migration000024, giữ nguyên tài khoản và dữ liệu trước đó.
+Nhánh T39 `codex/t39-access-grant-lifecycle` (PR draft, chưa merge main). Sau khi lấy đúng nhánh, chạy `php artisan migrate` và `php artisan config:clear`; không chạy migrate:fresh trên DB đang dùng. Chỉ thêm migration000024, giữ nguyên tài khoản và dữ liệu trước đó.
 
 Admin vào **Quyền xem hồ sơ** tại `/app/quyen-xem-ho-so`, chọn quyền của tin:
 
@@ -283,3 +283,15 @@ Admin vào **Quyền xem hồ sơ** tại `/app/quyen-xem-ho-so`, chọn quyền
 - **Thu hồi**: xem toàn bộ mã quyền và khoảng đang hiệu lực/lên lịch của tin, chọn lý do, xác nhận. Danh sách đổi thì phải xem lại. Đơn paid không đổi; không hoàn tiền tự động. Phiên employer đang mở và URL file đã ký bị chặn ở yêu cầu kế tiếp. Các quyền hết hạn/tin khác giữ nguyên.
 
 Không bật lại revoked, không gia hạn khi không còn quyền chưa thu hồi; cần cấp mới qua T37/T38. Nếu có pending gia hạn cũ sau khi thu hồi hết, dừng đối chiếu; hủy/thay thế chờ T38B, không sửa DB tay. Thu hồi cả công ty vì vi phạm để T43. Lý do audit dùng danh mục, tránh thông tin cá nhân. Xem [quyết định T39](docs/de-xuat-t39.md) và [báo cáo](docs/bao-cao-t39.md). Cấu hình demo SMTP/PDF production vẫn theo các lưu ý triển khai trước đó.
+
+
+## T40 — quản lý gói và đơn đẩy tin
+
+Nhánh mới nhất `codex/t40-boost-plans` (draft, chưa merge main). Lấy đúng nhánh rồi chạy `php artisan migrate`, `php artisan config:clear`, `npm run build`. Migration mới000025, không migrate:fresh trên DB đang dùng và không thay tài khoản demo.
+
+1. Admin vào **Gói đẩy tin** `/app/goi-day-tin`: tạo gói, nhập tên/số ngày/priority/giá VND thật. Không có giá demo tự điền. Dùng “Đang bán” để ngừng bán; không xóa gói đã dùng.
+2. Admin hoặc staff phụ trách vào **Đẩy tin** `/app/day-tin`, chọn tin published/paused còn đủ hạn và gói để tạo đơn pending. Các yêu cầu trùng theo tin dùng lại đơn cũ. Staff được đề nghị gift/trial0đ với lý do, vẫn phải chờ admin duyệt.
+3. Admin vào **Đơn đẩy tin** `/app/don-day-tin`, mở đơn và đối chiếu số tiền thực nhận/mã giao dịch. Mã chuẩn hóa chống dùng trùng cả với đơn quyền hồ sơ. Gift/trial0đ có reason, không mã chuyển khoản. Paid và boost được tạo cùng audit, lỗi rollback, bấm lại không cấp thêm.
+4. Xem **Gói đẩy đã gán** `/app/goi-da-gan`: thời gian và priority đã chụp, không sửa trực tiếp. N ngày là N×24h từ xác nhận (UTC lưu/VN hiển thị), tin phải đủ hạn. Paused không bù ngày, duplicate không sao chép gói.
+
+Ngân hàng dùng ACCESS_BANK_NAME/ACCOUNT/HOLDER đã cấu hình T37; giá/ngày/priority từ catalog, không dùng ACCESS_PRICE_VND hoặc ACCESS_DURATION_DAYS của quyền hồ sơ. Thay gói sau này không đổi invoice/boost cũ. Một tin được nhiều boost chồng nhau, nhưng **thứ tự công khai/nhãn Nổi bật chưa thay đổi trong T40**, chờ T41 lấy mức ưu tiên cao nhất còn hiệu lực. Không tự hủy/thay đơn khi thiếu hạn, không hoàn tiền/email/API thanh toán. Xem [quyết định](docs/de-xuat-t40.md) và [báo cáo T40](docs/bao-cao-t40.md).

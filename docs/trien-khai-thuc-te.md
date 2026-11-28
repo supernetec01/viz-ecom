@@ -88,3 +88,14 @@ Nếu task dùng giả lập, mailer log, dữ liệu mẫu, đường dẫn loc
 Chạy migration000024 trước mã mới, không đổi migration đã chạy; không backfill parent chuỗi cũ. Không rollback xóa lịch sử renewal/revocation: migration sẽ dừng nếu có dữ liệu mới. Dùng backup/quy trình đối chiếu trước mọi rollback. T39 không yêu cầu thư viện hay biến môi trường mới, dùng cấu hình ACCESS_* đã có. Không thêm giá/số ngày/ngân hàng giả vào production.
 
 Chỉ admin active + 2FA có giao diện `/app/quyen-xem-ho-so`; CSRF cho POST, kiểm role lại trong transaction. Trước thu hồi xem danh sách active/future của tin và chọn lý do. Có409 do tập quyền đổi thì xem lại; audit lỗi503 thì không hoàn tất. Giữ paid orders; hoàn tiền xử lý bên ngoài hệ thống, không có nút tự hoàn. Gia hạn tạo đơn mới qua đối chiếu T38; pending không tự chuyển loại sau thu hồi, hủy/thay thế thuộc T38B. Không tự bật production PDF hay job cleanup từ task này.
+
+
+## T40 — triển khai gói đẩy tin
+
+Chạy migration000025 trước mã mới; FK/check/unique không được bỏ qua. Không sửa migration cũ, không backfill đoán gói cho đơn job_boost legacy, không rollback catalog hoặc lịch sử mới (down sẽ dừng). Không thêm gói Composer/npm.
+
+Admin phải nhập catalog và ngân hàng thật, chưa có gói/thiếu ngân hàng thì chưa chạy bán bank transfer. Khoảng kỹ thuật days1–366, priority1–1.000.000, giá nguyên VND dương. Gift/trial0đ đi đơn có reason, chỉ admin xác nhận. Staff chỉ tạo yêu cầu thuộc công ty đang phụ trách, không xác nhận tiền, không sửa catalog hoặc tự nhận boost.
+
+Đối chiếu tiền thủ công vẫn do người vận hành; test không chứng minh đã nhận chuyển khoản. Mã giao dịch unique dùng chung với T38. Nếu đơn còn pending nhưng tin hết đủ hạn lúc confirm, dừng và đối chiếu, không tự kéo hạn/cắt ngày hoặc hủy/thay; T38B sẽ quyết việc thay thế. Không hoàn tiền/email/API. Ngừng bán plan không xóa snapshot cũ.
+
+Sau T40 public list chưa đẩy tin/nhãn nổi bật: T41 mới nối effective MAXpriority. Khi tin paused, gói vẫn chạy, không bù ngày hoặc thay thứ tự khi tiếp tục. PDF production và các cấu hình demo trước đó giữ nguyên; không bật tự động từ T40.
