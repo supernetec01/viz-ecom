@@ -24,7 +24,7 @@ class OrderGrantIntegrity
         return DB::transaction(function () use ($order, $persist): bool {
             $previous = $order->exists ? DB::table('orders')->where('id', $order->getKey())->lockForUpdate()->first() : null;
             $this->mergeCurrent($order, $previous);
-            if ($previous && ($order->isDirty('duration_days') || $order->isDirty('duration_max_days'))) {
+            if ($previous && ($order->isDirty('duration_days') || $order->isDirty('duration_max_days') || $order->isDirty('is_renewal'))) {
                 $this->invalid('duration_days', 'immutable_order');
             }
             if (! $previous && $order->duration_days !== null) {
@@ -92,17 +92,33 @@ class OrderGrantIntegrity
                 || ($order->job_id !== null && $order->job_id !== $grant->job_id)) {
                 $this->invalid('order_id', 'paid_order');
             }
+            if ($order->is_renewal !== ($grant->previous_grant_id !== null)) {
+                $this->invalid('previous_grant_id', 'immutable_binding');
+            }
             if ($current) {
                 $latest = DB::table('access_grants')->where('id', $grant->id)->lockForUpdate()->first();
-                foreach (['order_id', 'company_id', 'job_id', 'created_by'] as $field) {
+                foreach (['order_id', 'company_id', 'job_id', 'created_by', 'previous_grant_id'] as $field) {
                     if ($grant->$field !== $latest->$field) {
                         $this->invalid($field, 'immutable_binding');
                     }
+                }
+                if ($latest->status === 'revoked' && $grant->status !== 'revoked') {
+                    $this->invalid('status', 'immutable_binding');
+                }
+                if ($grant->isDirty('starts_at') || $grant->isDirty('ends_at')) {
+                    $this->invalid('ends_at', 'immutable_binding');
                 }
                 // Refresh non-dirty fields after acquiring the row lock as well.
                 $this->mergeCurrent($grant, $latest);
             } else {
                 $this->requireAdmin((int) $grant->created_by, 'created_by');
+                if ($grant->previous_grant_id !== null) {
+                    $prior = AccessGrant::query()->whereKey($grant->previous_grant_id)->first();
+                    if (! $prior || $prior->company_id !== $grant->company_id || $prior->job_id !== $grant->job_id
+                        || $prior->status === 'revoked' || $prior->ends_at->gt($grant->starts_at)) {
+                        $this->invalid('previous_grant_id', 'immutable_binding');
+                    }
+                }
             }
 
             return (bool) $persist();

@@ -631,7 +631,7 @@ Cổng kiểm 4: dùng hai tài khoản công ty khác nhau, thử mọi cách �
 | --- | --- | --- |
 | T37 | Nhà tuyển dụng bấm yêu cầu mở hồ sơ, hệ thống tạo orders trạng thái pending kèm hướng dẫn chuyển khoản | Test: một công ty không tạo trùng đơn đang chờ cho cùng phạm vi. Đơn gắn đúng công ty của tài khoản |
 | T38 ⚠ | Admin xác nhận thanh toán: cập nhật đơn thành paid và tạo access_grants trong cùng một giao dịch | Test: bấm xác nhận hai lần chỉ tạo một quyền. Lỗi giữa chừng thì đơn vẫn pending. Chỉ admin xác nhận được. Ghi nhật ký người xác nhận |
-| T39 ⚠ | Admin thu hồi hoặc gia hạn quyền. Hiệu lực tức thì | Test: thu hồi xong, tải file và xem chi tiết bị chặn ngay ở yêu cầu kế tiếp, không cần đăng xuất. Gia hạn nối tiếp đúng ngày |
+| T39 ⚠ | Admin gia hạn bằng đơn mới/quyền mới và thu hồi toàn bộ quyền hiện tại/tương lai theo tin | Quyết định 28/11: starts=max(now, ends cuối chưa revoked), nửa mở [starts,ends), lưu previous_grant_id. Xem danh sách trước thu hồi, lý do bắt buộc, audit từng quyền, không sửa đơn paid/không hoàn tiền. Chi tiết ở docs/de-xuat-t39.md; không employer self-renewal hoặc thu hồi cả công ty |
 | T40 | Migration và Filament cho plans (3 ngày, 7 ngày…) và job_boosts | Test ràng buộc ngày. Chỉ admin hoặc nhân viên phụ trách gán gói cho tin |
 | T41 | Thứ tự hiển thị có gói đẩy: tin có gói đang hiệu lực lên trước (mức cao hơn trước), rồi đến ngày đăng, rồi id. Nhãn "Nổi bật" | Test: gói hết hạn thì tin về đúng thứ tự thường, không phụ thuộc lịch chạy. Đúng thứ tự khi có nhiều gói cùng lúc. Phân trang vẫn ổn định |
 | T42 | Lịch chạy hằng đêm: chuyển tin hết hạn, nhắc gia hạn trước 3 ngày, đánh dấu quyền hết hạn, dọn file tạm, xóa hồ sơ quá thời gian lưu trữ | Test với Carbon::setTestNow ở ngày giờ biên. Chạy hai lần liên tiếp không gây thay đổi thừa. Lệnh xóa hồ sơ xóa cả file đi kèm |
@@ -706,3 +706,10 @@ Có điều khoản sử dụng, chính sách dữ liệu, ô đồng ý của �
 ### 13.5. Task bổ sung T38B — hủy đơn chờ và tạo đơn thay thế
 
 Người dùng tách riêng ngày28/11/2026. T38 chỉ chặn/báo lỗi tiền lệch, giữ pending/no grant. T38B mới xây thao tác admin hủy pending và lập đơn thay thế với số tiền mới; chưa triển khai, không làm kèm T38. Chi tiết và test cần chốt trước task đó. Không tự sửa amount/ngân hàng đơn hiện có.
+
+
+### Quyết định T39 ngày 28/11/2026
+
+Người dùng duyệt: mỗi gia hạn có đơn mới và grant mới, giữ nguyên lịch sử; nullable previous_grant_id qua migration mới. Admin tạo pending theo giá/số ngày/ngân hàng hiện tại, xác nhận theo T38. Gift/trial0đ cần reason; không tạo trùng pending theo tin. Quyền nối tiếp theo khoảng nửa mở [starts_at, ends_at), starts=max(thời điểm xác nhận, ends quyền cuối chưa thu hồi), không lùi ngày, không bật lại revoked. Khi không còn quyền chưa thu hồi phải cấp mới; không tự sửa pending gia hạn thành cấp mới.
+
+Thu hồi theo company/job: toàn bộ active có ends_at > now, gồm quyền tương lai. Xem mã quyền/khoảng trước xác nhận; lý do bắt buộc theo danh mục an toàn, không PII. Danh sách thay đổi phải xem lại. Audit access_grant.revoked mỗi quyền, metadata ID quyền/tin/đơn + lý do; access_grant.created của gia hạn có previous_grant_id. Lỗi audit rollback. Đơn paid giữ nguyên; không tự hoàn tiền. Chi tiết/xem/tải chặn ngay yêu cầu kế tiếp, không cần logout. Thu hồi toàn công ty vì vi phạm để T43; hủy/thay thế đơn để T38B. Xem docs/de-xuat-t39.md và báo cáo T39.

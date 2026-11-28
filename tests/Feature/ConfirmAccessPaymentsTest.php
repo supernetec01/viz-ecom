@@ -346,9 +346,12 @@ it('never accepts a stale former admin actor or missing and overflowing order id
 it('keeps duration columns empty for old orders through the new migration round trip', function () {
     $f = t38Pending(legacy: true);
     $migration = require database_path('migrations/2026_11_28_000023_add_payment_confirmation_integrity.php');
+    $lifecycle = require database_path('migrations/2026_11_28_000024_add_grant_lifecycle_history.php');
+    $lifecycle->down();
     $migration->down();
     expect(Schema::hasColumn('orders', 'duration_days'))->toBeFalse();
     $migration->up();
+    $lifecycle->up();
     expect($f['order']->fresh()->duration_days)->toBeNull();
     expect($f['order']->fresh()->duration_max_days)->toBeNull();
     expect($f['order']->fresh()->status)->toBe('pending');

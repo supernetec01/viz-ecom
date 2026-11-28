@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exceptions\PaymentConfirmationRejected;
 use App\Models\Order;
 use App\Models\User;
+use App\Services\AccessGrantLifecycle;
 use App\Services\ConfirmAccessOrder;
 use App\Support\GrantDuration;
 use Carbon\CarbonImmutable;
@@ -61,7 +62,7 @@ class PaymentConfirmationController
         abort_unless($actor instanceof User, 403);
         $order = $payments->order($actor, $id);
         $duration = app(GrantDuration::class);
-        $suggested = $duration->suggested($order, CarbonImmutable::now('UTC'));
+        $suggested = $duration->suggested($order, $order->status === 'paid' ? CarbonImmutable::now('UTC') : app(AccessGrantLifecycle::class)->start($order, CarbonImmutable::now('UTC')));
         $default = $suggested?->setTimezone(GrantDuration::TIMEZONE)->format('Y-m-d\TH:i:s') ?? '';
         $signature = $duration->signDefault($actor->id, $order->id, $default);
         $values = $status === 200 ? [] : array_map(fn ($value): string => is_string($value) || is_int($value) ? (string) $value : '',

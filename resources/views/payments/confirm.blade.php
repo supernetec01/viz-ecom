@@ -41,7 +41,7 @@
             @csrf
             <input type="hidden" name="default_ends_at" value="{{ $default }}">
             <input type="hidden" name="default_signature" value="{{ $signature }}">
-            <p>{{ __('payments.starts_server') }}</p>
+            <p>{{ __($order->is_renewal ? 'grants.starts_server' : 'payments.starts_server') }}</p>
             <label class="block">{{ __('payments.ends_at') }}
                 <input class="block w-full rounded border p-2" type="datetime-local" step="1" name="ends_at" value="{{ $values['ends_at'] ?? $default }}" required>
             </label>

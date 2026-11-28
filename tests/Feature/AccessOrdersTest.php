@@ -247,6 +247,8 @@ it('enforces the order job company binding in PostgreSQL', function () {
 it('backfills only known old grant scopes without losing legacy records', function () {
     $f = applicationAccessFixture();
     $grant = applicationAccessGrant($f);
+    $lifecycle = require database_path('migrations/2026_11_28_000024_add_grant_lifecycle_history.php');
+    $lifecycle->down();
     $confirmation = require database_path('migrations/2026_11_28_000023_add_payment_confirmation_integrity.php');
     $confirmation->down();
     $migration = require database_path('migrations/2026_11_27_000022_scope_access_orders_to_jobs.php');
@@ -254,6 +256,7 @@ it('backfills only known old grant scopes without losing legacy records', functi
     expect(Schema::hasColumn('orders', 'job_id'))->toBeFalse();
     $migration->up();
     $confirmation->up();
+    $lifecycle->up();
     expect(Order::findOrFail($grant->order_id)->job_id)->toBe($f['job']->id);
     expect($grant->fresh()->isEffective())->toBeTrue();
     expect(DB::table('applications')->where('id', $f['applicationId'])->exists())->toBeTrue();
