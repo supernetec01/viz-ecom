@@ -3,10 +3,15 @@
 namespace App\Models;
 
 use App\Services\OrderGrantIntegrity;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property CarbonImmutable $starts_at
+ * @property CarbonImmutable $ends_at
+ */
 class AccessGrant extends Model
 {
     protected $guarded = ['*'];

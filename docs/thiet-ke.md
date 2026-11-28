@@ -638,6 +638,10 @@ Cổng kiểm 4: dùng hai tài khoản công ty khác nhau, thử mọi cách �
 
 Cổng kiểm 5: chạy trọn vòng: công ty yêu cầu, admin xác nhận, công ty xem được hồ sơ, admin thu hồi, công ty bị chặn. Mua gói đẩy, tin lên đầu, hết hạn, tin về chỗ cũ.
 
+T38 chốt ngày28/11/2026: starts_at server lúc xác nhận; ends_at giờVN trong min/max cấu hình (mặc định1–366ngày). Đơn mới snapshot duration_days từ ACCESS_DURATION_DAYS và duration_max_days cho CHECKDB; bất biến, không backfill cũ. Gợi ý +Nngày tới23:59:59VN; admin có thể đổi và audit default/selected. Cũnull nhập tay. Mã giao dịch bỏ whitespace/uppercase, partial unique bank/account snapshot cho paid tại DB. Tiền lệch giữ pending/no grant, báo cảhai số tiền và audit order.confirm_rejected reason_code amount_mismatch metadata chỉ order_id/order_amount/received_amount. Hủy/tạo thay thế thuộc T38B.
+
+T38 chỉ pending đúng scope/type, company/job chưa xóa hoặc chặn vi phạm (ApplicationRestriction, T43 mới cờ thật), giữ các trạng tháiT37, không thêm verifiedgate. Thiếu scope/paid thiếu grant/overlap dừng+báo lỗi+audit, không tự sửa; paid có grant replay trả cũ, không đổi ngày/phục hồi revoked. Paid+grant+order.paid_confirmed+access_grant.created qua RecordAudit cùng transaction, metadataIDs/thời hạn, lỗi audit rollback. Không email, gia hạn/thu hồi hoặc sửa UI muaT37. Chi tiết docs/de-xuat-t38.md và CODEMAP.
+
 T37 triển khai theo quyết định đã duyệt ngày27/11: tin published/paused/expired/closed chưa xóa, employer active thuộc công ty; có effective grant không tạo thêm. Pending cùng company/job dùng lại cho mọi tài khoản của công ty; khóa và unique DB, không tin dữ liệu POST về công ty/số tiền/trạng thái. Giá VND nguyên dương và ngân hàng đủ qua config bắt buộc; không mặc định demo. Đơn giữ snapshot giá/hướng dẫn/reference khi tạo. Thiếu cấu hình trả503 và không tạo; đơn legacy pending chưa có phạm vi cần admin đối chiếu, không tự suy ra. Chỉ pending, chưa paid/cấp quyền/email/thanh toán tự động. T38 mới chọn thời hạn. Điểm tích hợp: docs/CODEMAP.md; báo cáo docs/bao-cao-t37.md.
 
 ### 12.10. Giai đoạn 6: hoàn thiện
@@ -696,3 +700,9 @@ Mọi trang nhập liệu có chống CSRF, chống XSS, giới hạn tốc đ�
 Chạy được trên điện thoại thật, kết nối chậm.
 
 Có điều khoản sử dụng, chính sách dữ liệu, ô đồng ý của ứng viên.
+
+## 13. Quyết định bổ sung
+
+### 13.5. Task bổ sung T38B — hủy đơn chờ và tạo đơn thay thế
+
+Người dùng tách riêng ngày28/11/2026. T38 chỉ chặn/báo lỗi tiền lệch, giữ pending/no grant. T38B mới xây thao tác admin hủy pending và lập đơn thay thế với số tiền mới; chưa triển khai, không làm kèm T38. Chi tiết và test cần chốt trước task đó. Không tự sửa amount/ngân hàng đơn hiện có.

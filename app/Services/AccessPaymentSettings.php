@@ -3,10 +3,11 @@
 namespace App\Services;
 
 use App\Exceptions\AccessPaymentUnavailable;
+use App\Support\GrantDuration;
 
 class AccessPaymentSettings
 {
-    /** @return array{amount: int, instructions: array{bank: string, account: string, holder: string}} */
+    /** @return array{amount: int, duration_days: int, instructions: array{bank: string, account: string, holder: string}} */
     public function snapshot(): array
     {
         $configured = config('access-payments.amount_vnd');
@@ -26,6 +27,11 @@ class AccessPaymentSettings
             $instructions[$key] = trim($value);
         }
 
-        return ['amount' => $amount, 'instructions' => $instructions];
+        $duration = filter_var(config('access-payments.duration_days'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => app(GrantDuration::class)->bounds()['max']]]);
+        if ($duration === false || is_bool(config('access-payments.duration_days'))) {
+            throw new AccessPaymentUnavailable;
+        }
+
+        return ['amount' => $amount, 'duration_days' => $duration, 'instructions' => $instructions];
     }
 }

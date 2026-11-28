@@ -5,7 +5,9 @@ namespace App\Services;
 use App\Enums\Role;
 use App\Enums\UserStatus;
 use App\Models\AccessGrant;
+use App\Models\Order;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -74,16 +76,85 @@ class RecordAudit
         });
     }
 
-    private function append(User $actor, string $action, string $type, string $id, ?int $companyId, Request $request, array $metadata, ?string $operation = null): void
+    public function paymentConfirmed(User $actor, Order $order, AccessGrant $grant, string $operation, Request $request): void
+    {
+        $this->requirePaymentAdmin($actor, $operation);
+        DB::transaction(function () use ($actor, $order, $grant, $operation, $request): void {
+            $savedOrder = Order::query()->whereKey($order->id)->lockForUpdate()->firstOrFail();
+            $savedGrant = AccessGrant::query()->whereKey($grant->id)->lockForUpdate()->firstOrFail();
+            if ($savedOrder->status !== 'paid' || $savedOrder->confirmed_by !== $actor->id || $savedGrant->order_id !== $savedOrder->id
+                || $savedGrant->company_id !== $savedOrder->company_id || $savedGrant->job_id !== $savedOrder->job_id || $savedGrant->created_by !== $actor->id) {
+                throw new InvalidArgumentException('Invalid payment audit binding.');
+            }
+            $metadata = ['order_id' => $savedOrder->id, 'grant_id' => $savedGrant->id, 'company_id' => $savedOrder->company_id,
+                'job_id' => $savedOrder->job_id, 'starts_at' => $savedGrant->starts_at->toIso8601String(), 'ends_at' => $savedGrant->ends_at->toIso8601String()];
+            $this->appendPaymentOnce($actor, 'order.paid_confirmed', 'order', (string) $savedOrder->id, $savedOrder->company_id, $request, $metadata, $operation);
+            $this->appendPaymentOnce($actor, 'access_grant.created', 'access_grant', (string) $savedGrant->id, $savedOrder->company_id, $request, $metadata, $operation);
+        });
+    }
+
+    public function expiryOverride(User $actor, Order $order, ?CarbonImmutable $default, CarbonImmutable $selected, string $operation, Request $request): void
+    {
+        $this->requirePaymentAdmin($actor, $operation);
+        $this->appendPaymentOnce($actor, 'order.expiry_overridden', 'order', (string) $order->id, $order->company_id, $request,
+            ['default_ends_at' => $default?->toIso8601String(), 'selected_ends_at' => $selected->toIso8601String()], $operation);
+    }
+
+    public function paymentRejected(User $actor, int $orderId, string $operation, Request $request, string $reason, array $details = []): void
+    {
+        DB::transaction(function () use ($actor, $orderId, $operation, $request, $reason, $details): void {
+            $this->requirePaymentAdmin($actor, $operation);
+            if (! in_array($reason, ['scope_missing', 'paid_without_grant', 'ineligible', 'amount_mismatch', 'bank_missing', 'zero_reason', 'overlap', 'duplicate_reference'], true)) {
+                throw new InvalidArgumentException('Invalid payment rejection reason.');
+            }
+            $order = Order::query()->whereKey($orderId)->firstOrFail(['id', 'company_id', 'job_id']);
+            $metadata = ['order_id' => $orderId, 'company_id' => $order->company_id, 'job_id' => $order->job_id];
+            if ($reason === 'amount_mismatch') {
+                if (array_keys($details) !== ['order_amount', 'received_amount'] || ! is_int($details['order_amount']) || ! is_int($details['received_amount'])) {
+                    throw new InvalidArgumentException('Invalid amount rejection audit.');
+                }
+                $metadata = ['order_id' => $orderId] + $details;
+            }
+            $this->appendPaymentOnce($actor, 'order.confirm_rejected', 'order', (string) $orderId, $order->company_id, $request, $metadata, $operation, $reason);
+        });
+    }
+
+    private function requirePaymentAdmin(User $actor, string $operation): void
+    {
+        abort_unless(User::query()->whereKey($actor->id)->where('role', Role::Admin->value)->where('status', UserStatus::Active->value)->exists(), 403);
+        if (! Str::isUlid($operation)) {
+            throw new InvalidArgumentException('Invalid payment audit operation.');
+        }
+    }
+
+    private function appendPaymentOnce(User $actor, string $action, string $type, string $id, int $companyId, Request $request, array $metadata, string $operation, ?string $reason = null): void
+    {
+        $key = $action.':'.$operation;
+        $previous = DB::table('audit_logs')->where('operation_key', $key)->first(['actor_id', 'subject_type', 'subject_id']);
+        if ($previous) {
+            if ($previous->actor_id !== $actor->id || $previous->subject_type !== $type || $previous->subject_id !== $id) {
+                throw new InvalidArgumentException('Conflicting payment audit operation.');
+            }
+
+            return;
+        }
+        $this->append($actor, $action, $type, $id, $companyId, $request, $metadata, $key, $reason);
+    }
+
+    private function append(User $actor, string $action, string $type, string $id, ?int $companyId, Request $request, array $metadata, ?string $operation = null, ?string $reason = null): void
     {
         $current = User::query()->whereKey($actor->id)->where('status', UserStatus::Active->value)->firstOrFail(['id', 'role']);
-        DB::table('audit_logs')->insert([
+        $row = [
             'actor_id' => $current->id, 'actor_role' => $current->role->value, 'action' => $action,
             'subject_type' => $type, 'subject_id' => $id, 'company_id' => $companyId, 'operation_key' => $operation,
             'ip' => $request->ip(),
             // Raw user agents can contain attacker supplied contact data: retain only a coarse family.
             'user_agent' => preg_match('/Firefox|Edg|Chrome|Safari/', $request->userAgent() ?? '', $match) ? $match[0] : 'Other',
             'metadata' => json_encode($metadata, JSON_THROW_ON_ERROR), 'created_at' => now(),
-        ]);
+        ];
+        if ($reason !== null) {
+            $row['reason_code'] = $reason;
+        }
+        DB::table('audit_logs')->insert($row);
     }
 }

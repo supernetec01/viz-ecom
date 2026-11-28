@@ -1,0 +1,31 @@
+<?php
+
+return [
+    'confirmed_at' => 'Đã xác nhận lúc (giờ Việt Nam)', 'starts_at' => 'Bắt đầu (giờ Việt Nam)',
+    'invalid_reference' => 'Mã giao dịch không hợp lệ.', 'bank_missing' => 'Đơn thiếu thông tin ngân hàng để đối chiếu.',
+    'invalid_end' => 'Vui lòng nhập ngày giờ kết thúc hợp lệ theo giờ Việt Nam.',
+    'end_outside_bounds' => 'Thời hạn phải từ :min ngày và không vượt quá ngày thứ :max (23:59:59 giờ Việt Nam).',
+    'refresh_form' => 'Biểu mẫu đã thay đổi. Vui lòng tải lại trang rồi kiểm tra thời hạn.',
+    'unavailable' => 'Chưa thể hoàn tất xác nhận. Vui lòng thử lại sau; không tự cấp lại quyền.',
+    'invalid' => 'Vui lòng kiểm tra thông tin xác nhận.', 'already_confirmed' => 'Đơn đã được xác nhận; không cấp thêm hoặc thay đổi quyền.',
+    'grant_code' => 'Mã quyền', 'ends_at' => 'Kết thúc (giờ Việt Nam)',
+    'starts_server' => 'Quyền bắt đầu ngay tại thời điểm server xác nhận, không lùi ngày.',
+    'end_hint' => 'Thời hạn từ :min đến :max ngày; ngày cuối được tính hết 23:59:59 giờ Việt Nam.',
+    'legacy_end' => 'Đơn chưa có số ngày. Bạn cần nhập thời điểm kết thúc, không có giá trị gợi ý.',
+    'received_amount' => 'Số tiền thực nhận (VND)', 'transaction_reference' => 'Mã giao dịch ngân hàng thực tế',
+    'zero_reason' => 'Lý do tặng hoặc dùng thử', 'confirm_button' => 'Xác nhận đã đối chiếu và cấp quyền',
+    'rejections' => [
+        'scope_missing' => 'Đơn thiếu hoặc sai phạm vi tin tuyển dụng. Dừng để kiểm tra, không tự gán tin.',
+        'paid_without_grant' => 'Đơn đã paid nhưng thiếu quyền hợp lệ. Dừng để kiểm tra, không tự cấp bù.',
+        'ineligible' => 'Đơn, công ty hoặc tin không còn đủ điều kiện xác nhận.',
+        'amount_mismatch' => 'Số tiền đơn: :order_amount VND. Số tiền nhập: :received_amount VND. Chưa xác nhận được; vui lòng chờ chức năng hủy và tạo đơn thay thế.',
+        'bank_missing' => 'Đơn thiếu thông tin ngân hàng để đối chiếu. Dừng để kiểm tra.',
+        'zero_reason' => 'Đơn tặng hoặc dùng thử phải có số tiền 0 đồng và lý do rõ ràng.',
+        'overlap' => 'Tin đã có khoảng quyền trùng thời gian. Giữ đơn chờ để xử lý gia hạn theo T39.',
+        'duplicate_reference' => 'Mã giao dịch này đã được dùng cho đơn khác tại cùng ngân hàng và tài khoản nhận.',
+    ],
+    'title' => 'Xác nhận thanh toán', 'status' => 'Trạng thái đơn', 'method' => 'Phương thức', 'created_at' => 'Ngày tạo đơn',
+    'unavailable_scope' => 'Phạm vi cần kiểm tra',
+    'states' => ['pending' => 'Chờ xác nhận', 'paid' => 'Đã xác nhận', 'cancelled' => 'Đã hủy'],
+    'methods' => ['bank_transfer' => 'Chuyển khoản', 'gift' => 'Tặng', 'free_trial' => 'Dùng thử'],
+];
