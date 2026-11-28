@@ -12,6 +12,7 @@ use App\Support\ApplicationRestriction;
 use App\Support\GrantDuration;
 use App\Support\PaymentTransactionIdentity;
 use Carbon\CarbonImmutable;
+use Closure;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -65,7 +66,12 @@ class ConfirmAccessOrder
                 }
                 $data = Validator::make($input, [
                     'starts_at' => ['prohibited'], 'ends_at' => ['required', 'string', 'max:40'],
-                    'received_amount' => ['required', 'integer', $order->method === 'bank_transfer' ? 'min:1' : 'min:0'], 'transaction_reference' => ['nullable', 'string', 'max:255'],
+                    'received_amount' => ['required', 'integer', function (string $attribute, mixed $value, Closure $fail): void {
+                        if (! is_int($value) && ! is_string($value)) {
+                            $fail(__('payments.invalid_amount'));
+                        }
+                    }, $order->method === 'bank_transfer' ? 'min:1' : 'min:0'],
+                    'transaction_reference' => ['nullable', 'string', 'max:255'],
                 ])->validate();
                 if ((string) $data['received_amount'] !== (string) $order->amount) {
                     throw new PaymentConfirmationRejected('amount_mismatch', ['order_amount' => $order->amount, 'received_amount' => (int) $data['received_amount']]);

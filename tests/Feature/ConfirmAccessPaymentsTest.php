@@ -448,6 +448,38 @@ it('shows confirmed start end and bank reference in Vietnam time without candida
         ->assertSee('05/12/2026 23:59:59')->assertSee('BANKREF001')->assertDontSee('PRIVATE_CONTACT')->assertDontSee('0912345678');
 });
 
+it('rejects a JSON boolean instead of treating it as a one VND received amount', function () {
+    config(['access-payments.amount_vnd' => '1']);
+    $f = t38Pending();
+    $this->actingAs($f['admin'])->postJson('/app/xac-nhan-thanh-toan/'.$f['order']->id, t38Input(['received_amount' => true]))->assertUnprocessable();
+    expect($f['order']->fresh()->status)->toBe('pending');
+    expect(AccessGrant::count())->toBe(0);
+});
+
+it('refreshes an untouched expiry suggestion after an amount error across midnight without logging a false override', function () {
+    $this->travelTo(CarbonImmutable::parse('2026-11-28T16:59:59Z'));
+    $f = t38Pending();
+    $oldDefault = '2026-12-05T23:59:59';
+    $signature = app(GrantDuration::class)->signDefault($f['admin']->id, $f['order']->id, $oldDefault);
+    $this->travel(2)->seconds();
+    $response = $this->actingAs($f['admin'])->post('/app/xac-nhan-thanh-toan/'.$f['order']->id, t38Input([
+        'received_amount' => 122999, 'ends_at' => $oldDefault, 'default_ends_at' => $oldDefault, 'default_signature' => $signature,
+    ]))->assertConflict();
+    expect($response->viewData('values')['ends_at'])->toBe('2026-12-06T23:59:59');
+    $this->postJson('/app/xac-nhan-thanh-toan/'.$f['order']->id, t38Input([
+        'ends_at' => $response->viewData('values')['ends_at'], 'default_ends_at' => $response->viewData('default'), 'default_signature' => $response->viewData('signature'),
+    ]))->assertOk();
+    expect(AccessGrant::firstOrFail()->ends_at->utc()->format('Y-m-d H:i:s'))->toBe('2026-12-06 16:59:59');
+    expect(DB::table('audit_logs')->where('action', 'order.expiry_overridden')->count())->toBe(0);
+});
+
+it('renders a safe validation error for nonscalar native form fields', function (string $field) {
+    $f = t38Pending();
+    $this->actingAs($f['admin'])->post('/app/xac-nhan-thanh-toan/'.$f['order']->id, t38Input([$field => ['forged']]))->assertUnprocessable();
+    expect($f['order']->fresh()->status)->toBe('pending');
+    expect(AccessGrant::count())->toBe(0);
+})->with(['ends_at', 'received_amount', 'transaction_reference']);
+
 it('renders only order scope fields in the admin confirmation list and Livewire payload', function () {
     $fixture = applicationAccessFixture();
     $order = app(RequestApplicationAccess::class)->request($fixture['employer'], (string) $fixture['job']->id);

@@ -64,7 +64,16 @@ class PaymentConfirmationController
         $suggested = $duration->suggested($order, CarbonImmutable::now('UTC'));
         $default = $suggested?->setTimezone(GrantDuration::TIMEZONE)->format('Y-m-d\TH:i:s') ?? '';
         $signature = $duration->signDefault($actor->id, $order->id, $default);
-        $values = $status === 200 ? [] : $request->only(['ends_at', 'received_amount', 'transaction_reference']);
+        $values = $status === 200 ? [] : array_map(fn ($value): string => is_string($value) || is_int($value) ? (string) $value : '',
+            $request->only(['ends_at', 'received_amount', 'transaction_reference']));
+        $priorDefault = $request->input('default_ends_at');
+        $priorSignature = $request->input('default_signature');
+        if ($status !== 200 && is_string($priorDefault) && is_string($priorSignature)
+            && ($values['ends_at'] ?? null) === $priorDefault
+            && hash_equals($duration->signDefault($actor->id, $order->id, $priorDefault), $priorSignature)) {
+            // Preserve manual edits, but refresh an untouched suggestion on error rerenders.
+            $values['ends_at'] = $default;
+        }
         $bounds = $duration->bounds();
 
         return response()->view('payments.confirm', compact('order', 'default', 'signature', 'errors', 'values', 'bounds'), $status)

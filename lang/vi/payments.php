@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'invalid_amount' => 'Vui lòng nhập số tiền nguyên hợp lệ.',
     'confirmed_at' => 'Đã xác nhận lúc (giờ Việt Nam)', 'starts_at' => 'Bắt đầu (giờ Việt Nam)',
     'invalid_reference' => 'Mã giao dịch không hợp lệ.', 'bank_missing' => 'Đơn thiếu thông tin ngân hàng để đối chiếu.',
     'invalid_end' => 'Vui lòng nhập ngày giờ kết thúc hợp lệ theo giờ Việt Nam.',
