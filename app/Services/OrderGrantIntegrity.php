@@ -33,7 +33,7 @@ class OrderGrantIntegrity
                 $order->forceFill(['duration_max_days' => $max]);
             }
             if ($previous && $previous->job_id !== null) {
-                foreach (['company_id', 'job_id', 'type', 'amount', 'method', 'payment_reference', 'payment_instructions'] as $field) {
+                foreach (['company_id', 'job_id', 'type', 'amount', 'method', 'payment_reference', 'payment_instructions', 'boost_plan_id', 'boost_plan_name', 'boost_days', 'boost_priority', 'requested_by'] as $field) {
                     if ($order->isDirty($field)) {
                         $this->invalid($field, 'immutable_order');
                     }
@@ -68,6 +68,10 @@ class OrderGrantIntegrity
             }
             if ($previous && DB::table('access_grants')->where('order_id', $order->id)->where('status', '<>', 'revoked')->exists()
                 && ($order->status !== 'paid' || $order->type !== 'access_grant' || $order->company_id !== $previous->company_id)) {
+                $this->invalid('status', 'grant_attached');
+            }
+
+            if ($previous && DB::table('job_boosts')->where('order_id', $order->id)->exists() && $order->isDirty(['status', 'confirmed_at', 'confirmed_by'])) {
                 $this->invalid('status', 'grant_attached');
             }
 

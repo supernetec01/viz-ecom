@@ -5,6 +5,7 @@ use App\Http\Controllers\AccessOrderController;
 use App\Http\Controllers\ApplicationDetailController;
 use App\Http\Controllers\ApplicationSubmissionController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BoostOrderController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\PaymentConfirmationController;
 use App\Http\Controllers\PrivateFileController;
@@ -27,6 +28,10 @@ Route::get('/cong-ty/{id}', PublicCompanyController::class)->middleware(CaptureA
 Route::get('/viec-lam/{slug}-{id}', PublicJobDetailController::class)->middleware(CaptureApplicationSource::class)->where('slug', '[a-z0-9-]+')->where('id', '[1-9][0-9]*')->name('jobs.show');
 Route::post('/ung-tuyen/{id}', ApplicationSubmissionController::class)->middleware('throttle:applications')->where('id', '[1-9][0-9]*')->name('applications.store');
 Route::view('/cam-on-ung-tuyen', 'public.application-thanks')->name('applications.thanks');
+Route::get('/app/day-tin/{id}', [BoostOrderController::class, 'showJob'])->middleware('auth')->name('boost-orders.request');
+Route::post('/app/day-tin/{id}', [BoostOrderController::class, 'store'])->middleware('auth')->name('boost-orders.store');
+Route::get('/app/don-day-tin/{id}', [BoostOrderController::class, 'showOrder'])->middleware('auth')->name('boost-orders.show');
+Route::post('/app/don-day-tin/{id}/xac-nhan', [BoostOrderController::class, 'confirm'])->middleware('auth')->name('boost-orders.confirm');
 Route::get('/app/quyen-xem-ho-so/{id}', [AccessGrantLifecycleController::class, 'show'])->middleware('auth')->name('grants.show');
 Route::post('/app/quyen-xem-ho-so/{id}/thu-hoi', [AccessGrantLifecycleController::class, 'revoke'])->middleware('auth')->name('grants.revoke');
 Route::post('/app/quyen-xem-ho-so/{id}/gia-han', [AccessGrantLifecycleController::class, 'renew'])->middleware('auth')->name('grants.renew');

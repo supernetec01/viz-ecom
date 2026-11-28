@@ -1,0 +1,1 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><title>{{ __('boosts.orders') }}</title></head><body><p role="alert">{{ $message }}</p>@foreach ($errors as $messages)@foreach ($messages as $message)<p>{{ $message }}</p>@endforeach@endforeach<a href="{{ url('/app/day-tin') }}">{{ __('boosts.back') }}</a></body></html>

@@ -16,6 +16,8 @@ return [
     'received_amount' => 'Số tiền thực nhận (VND)', 'transaction_reference' => 'Mã giao dịch ngân hàng thực tế',
     'zero_reason' => 'Lý do tặng hoặc dùng thử', 'confirm_button' => 'Xác nhận đã đối chiếu và cấp quyền',
     'rejections' => [
+        'paid_without_boost' => 'Đơn đã thanh toán nhưng thiếu gói đẩy tin. Dừng đối chiếu và kiểm tra dữ liệu; không tự cấp lại.',
+        'boost_ineligible' => 'Tin/công ty không đủ điều kiện hoặc tin hết hạn trước khi gói kết thúc. Không xác nhận; không cắt ngày hay kéo dài tin.',
         'renewal_missing' => 'Không còn quyền chưa thu hồi để gia hạn. Hãy tạo đơn cấp mới.',
         'scope_missing' => 'Đơn thiếu hoặc sai phạm vi tin tuyển dụng. Dừng để kiểm tra, không tự gán tin.',
         'paid_without_grant' => 'Đơn đã paid nhưng thiếu quyền hợp lệ. Dừng để kiểm tra, không tự cấp bù.',
