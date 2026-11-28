@@ -62,6 +62,7 @@ class RequestApplicationAccess
             $order = new Order;
             $order->forceFill(['company_id' => $job->company_id, 'job_id' => $job->id, 'type' => 'access_grant',
                 'amount' => $settings['amount'], 'status' => 'pending', 'method' => 'bank_transfer',
+                'duration_days' => $settings['duration_days'],
                 'payment_reference' => 'VE'.Str::ulid(), 'payment_instructions' => $settings['instructions']])->save();
 
             return $order;

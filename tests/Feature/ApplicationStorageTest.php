@@ -150,6 +150,8 @@ it('accepts the maximum file size and all documented application and scan status
 
 it('can roll back and reapply only the new storage migration without losing existing company or job records', function () {
     $job = managedJob(jobManager());
+    $confirmation = require database_path('migrations/2026_11_28_000023_add_payment_confirmation_integrity.php');
+    $confirmation->down();
     $orderScope = require database_path('migrations/2026_11_27_000022_scope_access_orders_to_jobs.php');
     $orderScope->down();
     $limits = require database_path('migrations/2026_11_27_000020_add_access_limits_and_audit_events.php');
@@ -171,6 +173,7 @@ it('can roll back and reapply only the new storage migration without losing exis
     $detail->up();
     $limits->up();
     $orderScope->up();
+    $confirmation->up();
     DB::table('applications')->insert(applicationStorageRow($job));
     expect(DB::table('applications')->count())->toBe(1);
 });

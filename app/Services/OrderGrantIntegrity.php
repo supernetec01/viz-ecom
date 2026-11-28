@@ -7,6 +7,8 @@ use App\Enums\UserStatus;
 use App\Models\AccessGrant;
 use App\Models\Order;
 use App\Models\User;
+use App\Support\GrantDuration;
+use App\Support\PaymentTransactionIdentity;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +24,14 @@ class OrderGrantIntegrity
         return DB::transaction(function () use ($order, $persist): bool {
             $previous = $order->exists ? DB::table('orders')->where('id', $order->getKey())->lockForUpdate()->first() : null;
             $this->mergeCurrent($order, $previous);
+            if ($previous && ($order->isDirty('duration_days') || $order->isDirty('duration_max_days'))) {
+                $this->invalid('duration_days', 'immutable_order');
+            }
+            if (! $previous && $order->duration_days !== null) {
+                $max = app(GrantDuration::class)->bounds()['max'];
+                Validator::make($order->getAttributes(), ['duration_days' => ['integer', 'min:1', 'max:'.$max]])->validate();
+                $order->forceFill(['duration_max_days' => $max]);
+            }
             if ($previous && $previous->job_id !== null) {
                 foreach (['company_id', 'job_id', 'type', 'amount', 'method', 'payment_reference', 'payment_instructions'] as $field) {
                     if ($order->isDirty($field)) {
@@ -41,6 +51,14 @@ class OrderGrantIntegrity
                 $this->invalid('reason', 'zero_reason');
             }
             if ($order->status === 'paid') {
+                if ($order->method === 'bank_transfer' && $order->payment_instructions !== null) {
+                    $reference = PaymentTransactionIdentity::normalize($order->transaction_reference ?? '');
+                    Validator::make(['transaction_reference' => $reference], ['transaction_reference' => ['required', 'string', 'max:255']])->validate();
+                    $order->forceFill(['transaction_reference' => $reference, 'payment_bank_key' => PaymentTransactionIdentity::bankKey($order->payment_instructions)]);
+                }
+                if ($previous && $previous->status === 'paid' && ($order->isDirty('transaction_reference') || $order->isDirty('payment_bank_key'))) {
+                    $this->invalid('transaction_reference', 'immutable_order');
+                }
                 if (! $order->confirmed_at || ! $order->confirmed_by) {
                     $this->invalid('confirmed_by', 'admin_confirmation');
                 }

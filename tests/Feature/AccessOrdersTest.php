@@ -18,7 +18,7 @@ require_once __DIR__.'/../Support/ApplicationPolicyFixtures.php';
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    config(['app.debug' => false, 'access-payments.amount_vnd' => '123000', 'access-payments.bank_name' => 'TEST BANK ONLY',
+    config(['app.debug' => false, 'access-payments.min_days' => 1, 'access-payments.max_days' => 366, 'access-payments.duration_days' => 7, 'access-payments.amount_vnd' => '123000', 'access-payments.bank_name' => 'TEST BANK ONLY',
         'access-payments.account_number' => '000000000001', 'access-payments.account_holder' => 'TEST HOLDER ONLY']);
 });
 
@@ -247,10 +247,13 @@ it('enforces the order job company binding in PostgreSQL', function () {
 it('backfills only known old grant scopes without losing legacy records', function () {
     $f = applicationAccessFixture();
     $grant = applicationAccessGrant($f);
+    $confirmation = require database_path('migrations/2026_11_28_000023_add_payment_confirmation_integrity.php');
+    $confirmation->down();
     $migration = require database_path('migrations/2026_11_27_000022_scope_access_orders_to_jobs.php');
     $migration->down();
     expect(Schema::hasColumn('orders', 'job_id'))->toBeFalse();
     $migration->up();
+    $confirmation->up();
     expect(Order::findOrFail($grant->order_id)->job_id)->toBe($f['job']->id);
     expect($grant->fresh()->isEffective())->toBeTrue();
     expect(DB::table('applications')->where('id', $f['applicationId'])->exists())->toBeTrue();
@@ -301,7 +304,7 @@ it('does not allow a scoped paid order to grant a different job in the same comp
     $otherJob = publishManagedJob(managedJob($f['admin']));
     DB::table('jobs')->where('id', $otherJob->id)->update(['company_id' => $f['job']->company_id]);
     $order = app(RequestApplicationAccess::class)->request($f['employer'], (string) $f['job']->id);
-    $order->forceFill(['status' => 'paid', 'confirmed_by' => $f['admin']->id, 'confirmed_at' => now()])->save();
+    $order->forceFill(['status' => 'paid', 'transaction_reference' => 'T37-SCOPE-TEST', 'confirmed_by' => $f['admin']->id, 'confirmed_at' => now()])->save();
     $grant = new AccessGrant;
     $grant->forceFill(['company_id' => $f['job']->company_id, 'job_id' => $otherJob->id, 'order_id' => $order->id,
         'created_by' => $f['admin']->id, 'starts_at' => now(), 'ends_at' => now()->addDay()]);

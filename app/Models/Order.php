@@ -18,11 +18,13 @@ class Order extends Model
 
     protected $guarded = ['*'];
 
+    protected $dateFormat = 'Y-m-d H:i:s.u';
+
     protected $attributes = ['status' => 'pending', 'method' => 'bank_transfer'];
 
     protected function casts(): array
     {
-        return ['amount' => 'integer', 'company_id' => 'integer', 'job_id' => 'integer', 'payment_instructions' => 'array', 'confirmed_by' => 'integer', 'confirmed_at' => 'immutable_datetime'];
+        return ['amount' => 'integer', 'company_id' => 'integer', 'job_id' => 'integer', 'duration_days' => 'integer', 'duration_max_days' => 'integer', 'payment_instructions' => 'array', 'confirmed_by' => 'integer', 'confirmed_at' => 'immutable_datetime'];
     }
 
     public function save(array $options = [])

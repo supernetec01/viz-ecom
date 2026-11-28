@@ -46,7 +46,7 @@ PHP 8.4 được chọn để chạy Pest 5. Phiên bản dependencies cụ th�
 ```sh
 git clone https://github.com/supernetec01/viz-ecom.git
 cd viz-ecom
-git switch codex/t37-access-request-orders
+git switch codex/t38-confirm-access-payments
 composer install
 npm ci
 npm run build
@@ -249,3 +249,25 @@ ACCESS_BANK_HOLDER=
 **Không có giá hoặc ngân hàng giả mặc định.** Thiếu/sai cấu hình thì báo503 tiếng Việt và không tạo đơn, cả local và production. Dữ liệu ngân hàng và số tiền giả chỉ có trong test tự động. Đơn lưu số tiền, ngân hàng và mã nội dung chuyển khoản tại thời điểm tạo; thay cấu hình không đổi đơn cũ. Đơn chờ cũ chưa có job_id cần admin đối chiếu trước khi tạo đơn mới cùng công ty, không đoán phạm vi. Migration chỉ backfill job_id khi đã có access_grants làm bằng chứng; không mất bản ghi cũ. Rollback dừng nếu còn hướng dẫn thanh toán đã lưu để không làm mất dữ liệu đối chiếu.
 
 T37 chưa có UI xác nhận paid/cấp quyền, gửi tiền, API thanh toán, QR ngân hàng hay email đơn hàng. Xem [báo cáo T37](docs/bao-cao-t37.md); kiểm tra thực tế chuyển khoản, đối chiếu và xử lý cấu hình sai thuộc checklist T38/T48.
+
+## T38: admin xác nhận chuyển khoản và cấp quyền
+
+Nhánh mới nhất: `codex/t38-confirm-access-payments`; PR vẫn draft, chưa merge main. Admin mở **Xác nhận thanh toán** tại `/app/xac-nhan-thanh-toan`, chọn đơn, đối chiếu số tiền/mã giao dịch và chọn ngày giờ kết thúc. Mật khẩu/2FA/cookie giữ nguyên. Staff và employer nhận403, kể cả POST trực tiếp.
+
+Chạy migration000023 trước mã. Bổ sung cấu hình sau; không có số ngày demo mặc định:
+
+```dotenv
+ACCESS_DURATION_DAYS=
+ACCESS_MIN_DAYS=1
+ACCESS_MAX_DAYS=366
+```
+
+ACCESS_DURATION_DAYS phải nguyên dương không vượt max, bắt buộc khi tạo đơn mới cùng các cấu hình giá/ngân hàng T37. Server chụp vào duration_days và duration_max_days (giới hạn CHECK DB), bỏ qua số ngày employer gửi. Đổi config không sửa đơn đã tạo. Đơn cũ không backfill, ends_at phải nhập tay, không gợi ý. Giao diện mua T37 giữ nguyên.
+
+starts_at do server lấy. Gợi ý ends_at = lúc xác nhận+Nngày tới23:59:59VN; admin đổi trong min/max và audit gợi ý/đã chọn. Min đủ24h ×số ngày, max gồm hết ngày cuốiVN. Form chưa sửa qua nửa đêm tính lại theo lúc xác nhận; chữ ký trạng thái form chỉ bảo vệ gợi ý, không phải token đăng nhập/quyền truy cập. T39 mới sửa thời hạn sau cấp.
+
+Mã giao dịch bỏ whitespace/viết hoa; partial unique DB khi paid chống trùng cùng bank/account snapshot. Tiền thực nhận phải bằng đơn, bank transfer không nhận0/âm/không phải số. Tiền lệch giữ pending, báo cả hai số tiền và audit; không tự hủy/tạo lại. **T38B** mới làm luồng hủy/thay thế; chưa có ở T38. Gift/trial0đ hiện có cần reason, không cần mã giao dịch. Chưa thêm UI tạo gift/trial, API thanh toán hay email.
+
+Paid+grant+hai audit bắt buộc cùng transaction, lỗi rollback. Bấm lại trả quyền cũ, không đổi ngày/phục hồi revoked. Thiếu scope/paid thiếu grant/overlap báo lỗi và audit, không tự sửa. Vi phạm gọi ApplicationRestriction, cờ thật chờ T43. Không dùng verified làm cờ khóa mới.
+
+Ngân hàng định danh bằng tên và account snapshot sau normalize; giữ tên định danh nhất quán khi cấu hình. Migration chỉ suy ra bank key cho paid cũ có đủ snapshot ngân hàng và mã giao dịch đã lưu, giữ nguyên reference gốc/số tiền/trạng thái/quyền và không điền số ngày. Trùng giao dịch lịch sử thì dừng migration để đối chiếu, không tự sửa. Thiếu snapshot/reference thì không lấy config mới để đoán ngân hàng. Test dùng dữ liệu giả và kiểm chứng khóa/unique, không chứng minh có tiền thật. Xem [báo cáo T38](docs/bao-cao-t38.md).
