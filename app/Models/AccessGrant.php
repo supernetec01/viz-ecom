@@ -22,7 +22,7 @@ class AccessGrant extends Model
 
     protected function casts(): array
     {
-        return ['company_id' => 'integer', 'job_id' => 'integer', 'order_id' => 'integer', 'created_by' => 'integer', 'starts_at' => 'immutable_datetime', 'ends_at' => 'immutable_datetime'];
+        return ['previous_grant_id' => 'integer', 'revoked_by' => 'integer', 'revoked_at' => 'immutable_datetime', 'company_id' => 'integer', 'job_id' => 'integer', 'order_id' => 'integer', 'created_by' => 'integer', 'starts_at' => 'immutable_datetime', 'ends_at' => 'immutable_datetime'];
     }
 
     public function save(array $options = [])

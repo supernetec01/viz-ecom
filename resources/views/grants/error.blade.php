@@ -1,0 +1,1 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><title>{{ __('grants.title') }}</title></head><body><p role="alert">{{ $message }}</p><a href="{{ url('/app/quyen-xem-ho-so') }}">{{ __('grants.back') }}</a></body></html>

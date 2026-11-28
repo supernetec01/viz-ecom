@@ -252,7 +252,7 @@ T37 chưa có UI xác nhận paid/cấp quyền, gửi tiền, API thanh toán, 
 
 ## T38: admin xác nhận chuyển khoản và cấp quyền
 
-Nhánh mới nhất: `codex/t38-confirm-access-payments`; PR vẫn draft, chưa merge main. Admin mở **Xác nhận thanh toán** tại `/app/xac-nhan-thanh-toan`, chọn đơn, đối chiếu số tiền/mã giao dịch và chọn ngày giờ kết thúc. Mật khẩu/2FA/cookie giữ nguyên. Staff và employer nhận403, kể cả POST trực tiếp.
+Nhánh T38: `codex/t38-confirm-access-payments`; PR vẫn draft, chưa merge main. Admin mở **Xác nhận thanh toán** tại `/app/xac-nhan-thanh-toan`, chọn đơn, đối chiếu số tiền/mã giao dịch và chọn ngày giờ kết thúc. Mật khẩu/2FA/cookie giữ nguyên. Staff và employer nhận403, kể cả POST trực tiếp.
 
 Chạy migration000023 trước mã. Bổ sung cấu hình sau; không có số ngày demo mặc định:
 
@@ -264,10 +264,22 @@ ACCESS_MAX_DAYS=366
 
 ACCESS_DURATION_DAYS phải nguyên dương không vượt max, bắt buộc khi tạo đơn mới cùng các cấu hình giá/ngân hàng T37. Server chụp vào duration_days và duration_max_days (giới hạn CHECK DB), bỏ qua số ngày employer gửi. Đổi config không sửa đơn đã tạo. Đơn cũ không backfill, ends_at phải nhập tay, không gợi ý. Giao diện mua T37 giữ nguyên.
 
-starts_at do server lấy. Gợi ý ends_at = lúc xác nhận+Nngày tới23:59:59VN; admin đổi trong min/max và audit gợi ý/đã chọn. Min đủ24h ×số ngày, max gồm hết ngày cuốiVN. Form chưa sửa qua nửa đêm tính lại theo lúc xác nhận; chữ ký trạng thái form chỉ bảo vệ gợi ý, không phải token đăng nhập/quyền truy cập. T39 mới sửa thời hạn sau cấp.
+starts_at do server lấy. Gợi ý ends_at = lúc xác nhận+Nngày tới23:59:59VN; admin đổi trong min/max và audit gợi ý/đã chọn. Min đủ24h ×số ngày, max gồm hết ngày cuốiVN. Form chưa sửa qua nửa đêm tính lại theo lúc xác nhận; chữ ký trạng thái form chỉ bảo vệ gợi ý, không phải token đăng nhập/quyền truy cập. Gia hạn/thu hồi xem T39 bên dưới; không sửa trực tiếp khoảng quyền đã cấp.
 
 Mã giao dịch bỏ whitespace/viết hoa; partial unique DB khi paid chống trùng cùng bank/account snapshot. Tiền thực nhận phải bằng đơn, bank transfer không nhận0/âm/không phải số. Tiền lệch giữ pending, báo cả hai số tiền và audit; không tự hủy/tạo lại. **T38B** mới làm luồng hủy/thay thế; chưa có ở T38. Gift/trial0đ hiện có cần reason, không cần mã giao dịch. Chưa thêm UI tạo gift/trial, API thanh toán hay email.
 
 Paid+grant+hai audit bắt buộc cùng transaction, lỗi rollback. Bấm lại trả quyền cũ, không đổi ngày/phục hồi revoked. Thiếu scope/paid thiếu grant/overlap báo lỗi và audit, không tự sửa. Vi phạm gọi ApplicationRestriction, cờ thật chờ T43. Không dùng verified làm cờ khóa mới.
 
 Ngân hàng định danh bằng tên và account snapshot sau normalize; giữ tên định danh nhất quán khi cấu hình. Migration chỉ suy ra bank key cho paid cũ có đủ snapshot ngân hàng và mã giao dịch đã lưu, giữ nguyên reference gốc/số tiền/trạng thái/quyền và không điền số ngày. Trùng giao dịch lịch sử thì dừng migration để đối chiếu, không tự sửa. Thiếu snapshot/reference thì không lấy config mới để đoán ngân hàng. Test dùng dữ liệu giả và kiểm chứng khóa/unique, không chứng minh có tiền thật. Xem [báo cáo T38](docs/bao-cao-t38.md).
+
+
+## T39 — gia hạn và thu hồi quyền
+
+Nhánh mới nhất `codex/t39-access-grant-lifecycle` (PR draft, chưa merge main). Sau khi lấy đúng nhánh, chạy `php artisan migrate` và `php artisan config:clear`; không chạy migrate:fresh trên DB đang dùng. Chỉ thêm migration000024, giữ nguyên tài khoản và dữ liệu trước đó.
+
+Admin vào **Quyền xem hồ sơ** tại `/app/quyen-xem-ho-so`, chọn quyền của tin:
+
+- **Gia hạn**: tạo đơn chờ mới, rồi đối chiếu/xác nhận trên trang T38. Bank transfer dùng cấu hình giá/ngân hàng/số ngày hiện tại; gift/free_trial0đ cần lý do, số ngày có thể để trống để chọn hạn tay. Không sửa đơn/grant cũ. Starts mới nối đúng ends cuối chưa revoked hoặc now nếu đã hết, tùy lúc nào muộn hơn. [starts,ends) không hở/trùng tại ranh giới.
+- **Thu hồi**: xem toàn bộ mã quyền và khoảng đang hiệu lực/lên lịch của tin, chọn lý do, xác nhận. Danh sách đổi thì phải xem lại. Đơn paid không đổi; không hoàn tiền tự động. Phiên employer đang mở và URL file đã ký bị chặn ở yêu cầu kế tiếp. Các quyền hết hạn/tin khác giữ nguyên.
+
+Không bật lại revoked, không gia hạn khi không còn quyền chưa thu hồi; cần cấp mới qua T37/T38. Nếu có pending gia hạn cũ sau khi thu hồi hết, dừng đối chiếu; hủy/thay thế chờ T38B, không sửa DB tay. Thu hồi cả công ty vì vi phạm để T43. Lý do audit dùng danh mục, tránh thông tin cá nhân. Xem [quyết định T39](docs/de-xuat-t39.md) và [báo cáo](docs/bao-cao-t39.md). Cấu hình demo SMTP/PDF production vẫn theo các lưu ý triển khai trước đó.

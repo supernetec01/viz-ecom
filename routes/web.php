@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccessGrantLifecycleController;
 use App\Http\Controllers\AccessOrderController;
 use App\Http\Controllers\ApplicationDetailController;
 use App\Http\Controllers\ApplicationSubmissionController;
@@ -26,6 +27,9 @@ Route::get('/cong-ty/{id}', PublicCompanyController::class)->middleware(CaptureA
 Route::get('/viec-lam/{slug}-{id}', PublicJobDetailController::class)->middleware(CaptureApplicationSource::class)->where('slug', '[a-z0-9-]+')->where('id', '[1-9][0-9]*')->name('jobs.show');
 Route::post('/ung-tuyen/{id}', ApplicationSubmissionController::class)->middleware('throttle:applications')->where('id', '[1-9][0-9]*')->name('applications.store');
 Route::view('/cam-on-ung-tuyen', 'public.application-thanks')->name('applications.thanks');
+Route::get('/app/quyen-xem-ho-so/{id}', [AccessGrantLifecycleController::class, 'show'])->middleware('auth')->name('grants.show');
+Route::post('/app/quyen-xem-ho-so/{id}/thu-hoi', [AccessGrantLifecycleController::class, 'revoke'])->middleware('auth')->name('grants.revoke');
+Route::post('/app/quyen-xem-ho-so/{id}/gia-han', [AccessGrantLifecycleController::class, 'renew'])->middleware('auth')->name('grants.renew');
 Route::get('/app/ho-so/{id}', [ApplicationDetailController::class, 'show'])->middleware('auth')->name('applications.detail');
 Route::post('/app/mo-ho-so/{job}', [AccessOrderController::class, 'store'])->middleware('auth')->where('job', '[1-9][0-9]*')->name('access-orders.store');
 Route::get('/app/don-mo-ho-so/{id}', [AccessOrderController::class, 'show'])->middleware('auth')->where('id', '[1-9][0-9]*')->name('access-orders.show');

@@ -89,6 +89,9 @@ class RecordAudit
             $metadata = ['order_id' => $savedOrder->id, 'grant_id' => $savedGrant->id, 'company_id' => $savedOrder->company_id,
                 'job_id' => $savedOrder->job_id, 'starts_at' => $savedGrant->starts_at->toIso8601String(), 'ends_at' => $savedGrant->ends_at->toIso8601String()];
             $this->appendPaymentOnce($actor, 'order.paid_confirmed', 'order', (string) $savedOrder->id, $savedOrder->company_id, $request, $metadata, $operation);
+            if ($savedGrant->previous_grant_id !== null) {
+                $metadata['previous_grant_id'] = $savedGrant->previous_grant_id;
+            }
             $this->appendPaymentOnce($actor, 'access_grant.created', 'access_grant', (string) $savedGrant->id, $savedOrder->company_id, $request, $metadata, $operation);
         });
     }
@@ -104,7 +107,7 @@ class RecordAudit
     {
         DB::transaction(function () use ($actor, $orderId, $operation, $request, $reason, $details): void {
             $this->requirePaymentAdmin($actor, $operation);
-            if (! in_array($reason, ['scope_missing', 'paid_without_grant', 'ineligible', 'amount_mismatch', 'bank_missing', 'zero_reason', 'overlap', 'duplicate_reference'], true)) {
+            if (! in_array($reason, ['scope_missing', 'paid_without_grant', 'ineligible', 'amount_mismatch', 'bank_missing', 'zero_reason', 'overlap', 'duplicate_reference', 'renewal_missing'], true)) {
                 throw new InvalidArgumentException('Invalid payment rejection reason.');
             }
             $order = Order::query()->whereKey($orderId)->firstOrFail(['id', 'company_id', 'job_id']);
@@ -117,6 +120,16 @@ class RecordAudit
             }
             $this->appendPaymentOnce($actor, 'order.confirm_rejected', 'order', (string) $orderId, $order->company_id, $request, $metadata, $operation, $reason);
         });
+    }
+
+    public function grantRevoked(User $actor, AccessGrant $grant, string $reason, string $operation, Request $request): void
+    {
+        $this->requirePaymentAdmin($actor, $operation);
+        if ($grant->status !== 'revoked' || $grant->revoked_by !== $actor->id || ! in_array($reason, AccessGrantLifecycle::REASONS, true)) {
+            throw new InvalidArgumentException('Invalid grant revocation audit.');
+        }
+        $this->appendPaymentOnce($actor, 'access_grant.revoked', 'access_grant', (string) $grant->id, $grant->company_id, $request,
+            ['grant_id' => $grant->id, 'job_id' => $grant->job_id, 'order_id' => $grant->order_id, 'reason' => $reason], $operation.':'.$grant->id);
     }
 
     private function requirePaymentAdmin(User $actor, string $operation): void

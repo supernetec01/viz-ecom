@@ -81,3 +81,10 @@ Nếu task dùng giả lập, mailer log, dữ liệu mẫu, đường dẫn loc
 `Task/phần → đang mô phỏng gì → ảnh hưởng khi chạy thật → việc phải làm → cách kiểm tra → trạng thái → người/ngày xác nhận`.
 
 Đóng task mã nguồn không tự đánh dấu các ô kiểm tra production. Tài liệu này chưa thay thế việc cấu hình SMTP hoặc triển khai máy chủ; yêu cầu hiện tại chỉ ghi chú và theo dõi, không đổi cấu hình đang chạy.
+
+
+## T39 — triển khai quản lý vòng đời quyền
+
+Chạy migration000024 trước mã mới, không đổi migration đã chạy; không backfill parent chuỗi cũ. Không rollback xóa lịch sử renewal/revocation: migration sẽ dừng nếu có dữ liệu mới. Dùng backup/quy trình đối chiếu trước mọi rollback. T39 không yêu cầu thư viện hay biến môi trường mới, dùng cấu hình ACCESS_* đã có. Không thêm giá/số ngày/ngân hàng giả vào production.
+
+Chỉ admin active + 2FA có giao diện `/app/quyen-xem-ho-so`; CSRF cho POST, kiểm role lại trong transaction. Trước thu hồi xem danh sách active/future của tin và chọn lý do. Có409 do tập quyền đổi thì xem lại; audit lỗi503 thì không hoàn tất. Giữ paid orders; hoàn tiền xử lý bên ngoài hệ thống, không có nút tự hoàn. Gia hạn tạo đơn mới qua đối chiếu T38; pending không tự chuyển loại sau thu hồi, hủy/thay thế thuộc T38B. Không tự bật production PDF hay job cleanup từ task này.

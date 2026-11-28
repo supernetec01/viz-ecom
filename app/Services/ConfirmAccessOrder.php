@@ -89,10 +89,16 @@ class ConfirmAccessOrder
                     throw new PaymentConfirmationRejected('zero_reason');
                 }
                 $at = CarbonImmutable::now('UTC');
-                $expiry = app(GrantDuration::class)->select($order, $actor->id, $input, $at);
+                $lifecycle = app(AccessGrantLifecycle::class);
+                $tail = $order->is_renewal ? $lifecycle->tail($order->company_id, $order->job_id) : null;
+                if ($order->is_renewal && ! $tail) {
+                    throw new PaymentConfirmationRejected('renewal_missing');
+                }
+                $start = $tail && $tail->ends_at->gt($at) ? $tail->ends_at : $at;
+                $expiry = app(GrantDuration::class)->select($order, $actor->id, $input, $start);
                 $end = $expiry['end'];
                 if (AccessGrant::query()->where('company_id', $order->company_id)->where('job_id', $order->job_id)->where('status', 'active')
-                    ->where('starts_at', '<', $end->format('Y-m-d H:i:s.uP'))->where('ends_at', '>', $at->format('Y-m-d H:i:s.uP'))
+                    ->where('starts_at', '<', $end->format('Y-m-d H:i:s.uP'))->where('ends_at', '>', $start->format('Y-m-d H:i:s.uP'))
                     ->lockForUpdate()->first(['id'])) {
                     throw new PaymentConfirmationRejected('overlap');
                 }
@@ -100,7 +106,7 @@ class ConfirmAccessOrder
                     'transaction_reference' => $reference, 'payment_bank_key' => $bankKey])->save();
                 $grant = new AccessGrant;
                 $grant->forceFill(['order_id' => $order->id, 'company_id' => $order->company_id, 'job_id' => $order->job_id,
-                    'starts_at' => $at, 'ends_at' => $end, 'created_by' => $actor->id, 'status' => 'active'])->save();
+                    'previous_grant_id' => $tail?->id, 'starts_at' => $start, 'ends_at' => $end, 'created_by' => $actor->id, 'status' => 'active'])->save();
                 $audit = app(RecordAudit::class);
                 $audit->paymentConfirmed($actor, $order, $grant, $operation, $request);
                 if ($expiry['overridden']) {
